@@ -1,0 +1,62 @@
+[project]
+name = "arcipe"
+version = "0.1.0"
+description = "Archetype-recipes - abstracting recipes and ingredients into data points and resolving meal plans using a graph db"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [{ name = "Ed", email = "edwardatkin@edwardatkin.co.uk" }]
+license = { text = "MIT" }
+dependencies = [
+    "pydantic>=2.13.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arcipe"]
+
+[project.optional-dependencies]
+dev = ["ruff", "ty", "pytest", "pre-commit"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (flake8 core)
+    "I",    # isort
+    "N",    # pep8-naming (snake_case, PascalCase enforcement)
+    "UP",   # pyupgrade (modernise syntax)
+    "B",    # flake8-bugbear (real bugs)
+    "C90",  # mccabe complexity
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-native rules
+    "C4",   # flake8-comprehensions (replaces flake8-comprehensions)
+]
+ignore = [
+    "E501",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+[tool.ty]
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
