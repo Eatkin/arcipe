@@ -13,13 +13,19 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
+from datetime import date
 from itertools import groupby
 
+from arcipe.models import COLOUR_MAX
 from arcipe.models import ComponentSlot
 from arcipe.models import Ingredient
+from arcipe.models import PreparedIngredient
 from arcipe.models import Recipe
 from arcipe.models import Season
+from arcipe.models import colour_distance
 from arcipe.ontology import INGREDIENTS
+from arcipe.ontology import PREPARED_INGREDIENTS
+from arcipe.utils import get_season
 
 
 # ---------------------------------------------------------------------------
@@ -81,6 +87,10 @@ def candidates(
         ing = db.get(ing_id)
         if ing is None:
             continue
+        if slot.required_colour:
+            dist = colour_distance(ing.colour, slot.required_colour)
+            if dist / COLOUR_MAX > slot.colour_tolerance:
+                continue
         required = set(slot.required_roles)
         covered = required & set(ing.roles)
         coverage = len(covered) / len(required) if required else 1.0
@@ -89,12 +99,46 @@ def candidates(
     return result
 
 
+def expand_inventory(
+    inventory: list[str],
+    ingredient_db: dict[str, Ingredient],
+    prepared_db: dict[str, PreparedIngredient],
+) -> dict[str, Ingredient]:
+    """
+    Returns an expanded ingredient db including prepared forms of
+    anything in inventory. Prepared ingredient ids are injected
+    as synthetic Ingredient entries with unlocked_roles.
+    """
+    expanded = dict(ingredient_db)
+    for prep in prepared_db.values():
+        if prep.base_ingredient in inventory:
+            base = ingredient_db.get(prep.base_ingredient)
+            if base is None:
+                continue
+            # Synthetic ingredient — inherits everything from base
+            # but roles replaced with unlocked_roles
+            synthetic = Ingredient(
+                id=prep.id,
+                name=f"{base.name} ({prep.method})",
+                classes=base.classes,
+                roles=prep.unlocked_roles,
+                flavour=base.flavour,
+                colour=base.colour,
+                season=base.season,
+                cost=base.cost,
+                nutrition=base.nutrition,
+                notes=prep.notes,
+            )
+            expanded[prep.id] = synthetic
+    return expanded
+
+
 # ---------------------------------------------------------------------------
 # Scoring
 # ---------------------------------------------------------------------------
 
 # Current season — hardcoded for now, will come from context later
-CURRENT_SEASON: Season = "spring"
+CURRENT_SEASON: Season = get_season(date.today())
 
 COST_SCORE: dict[str, float] = {
     "very_low": 1.0,
@@ -161,7 +205,6 @@ def resolve(
     recipe: Recipe,
     inventory: list[str],
     ingredient_db: dict[str, Ingredient] | None = None,
-    season: Season = CURRENT_SEASON,
 ) -> Resolution:
     """
     Resolve a recipe against an inventory.
@@ -175,14 +218,23 @@ def resolve(
     Returns a Resolution with full assignment detail.
     """
     db = ingredient_db or INGREDIENTS
-    remaining = list(inventory)  # mutable pool
+    # Expand inventory with prepared forms
+    expanded_db = expand_inventory(inventory, db, PREPARED_INGREDIENTS)
+    # Also inject prepared ingredient ids into the pool if base is present
+    expanded_inventory = list(inventory)
+
+    for prep in PREPARED_INGREDIENTS.values():
+        if prep.base_ingredient in inventory and prep.id not in expanded_inventory:
+            expanded_inventory.append(prep.id)
+
+    remaining = list(set(expanded_inventory))  # mutable pool
     assignments: list[SlotAssignment] = []
     unfillable: list[str] = []
     used: set[str] = set()
     preferred = recipe.preferred_ingredients
 
     for slot in recipe.slots:
-        viable = candidates(slot, remaining, db)
+        viable = candidates(slot, remaining, expanded_db)
 
         # Score and sort descending
         ranked = []
@@ -199,8 +251,11 @@ def resolve(
 
         # Remove assigned ingredients from pool (no-reuse)
         if recipe.no_ingredient_reuse:
+            # After assigning chosen_ids, also remove base ingredients of any prepared forms
             for ing_id in chosen_ids:
-                remaining.remove(ing_id)
+                prep = PREPARED_INGREDIENTS.get(ing_id)
+                if prep and prep.base_ingredient in remaining:
+                    remaining.remove(prep.base_ingredient)
             used.update(chosen_ids)
 
         filled = bool(chosen) or slot.optional

@@ -121,6 +121,25 @@ ColourFamily = Literal[
     "green", "red", "orange", "yellow", "white", "brown", "purple", "black"
 ]
 
+COLOUR_RGB: dict[str, tuple[int, int, int]] = {
+    "green":  (80,  140, 80),
+    "red":    (200, 60,  60),
+    "orange": (220, 130, 50),
+    "yellow": (220, 200, 80),
+    "white":  (240, 240, 240),
+    "brown":  (140, 90,  50),
+    "purple": (130, 70,  160),
+    "black":  (30,  30,  30),
+}
+
+def colour_distance(a: str, b: str) -> float:
+    ra, ga, ba = COLOUR_RGB[a]
+    rb, gb, bb = COLOUR_RGB[b]
+    return ((ra-rb)**2 + (ga-gb)**2 + (ba-bb)**2) ** 0.5
+
+# Max possible distance (black to white) ≈ 416
+COLOUR_MAX = 416.0
+
 # How components connect to each other in a recipe DAG
 EdgeType = Literal[
     "combine",  # mix together
@@ -164,6 +183,8 @@ class Ingredient(BaseModel):
     season: list[Season]
     cost: CostTier
     nutrition: list[NutritionFlag] = Field(default_factory=list)
+    perishable: bool = False
+    unlimited: bool = False # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
     notes: str = ""
 
 
@@ -196,6 +217,8 @@ class ComponentSlot(BaseModel):
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 3  # prevent slot becoming a dumping ground
+    required_colour: ColourFamily | None = None
+    colour_tolerance: float = 0.4   # 0.0 = exact, 1.0 = anything goes
     notes: str = ""
 
 

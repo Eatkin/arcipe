@@ -219,7 +219,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         id="mixed_spice",
         name="Mixed Spice",
         classes=["dried_spice"],
-        roles=["dried_spice", "baking_spice"],
+        roles=["spice_base", "baking_spice"],
         flavour=["sweet", "spicy", "nutty"],
         colour="brown",
         season=["all"],
@@ -229,7 +229,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         id="cinnamon_ground",
         name="Ground Cinnamon",
         classes=["dried_spice"],
-        roles=["dried_spice", "baking_spice"],
+        roles=["spice_base", "baking_spice"],
         flavour=["sweet", "spicy", "earthy"],
         colour="brown",
         season=["all"],
@@ -248,6 +248,18 @@ INGREDIENTS: dict[str, Ingredient] = {
         nutrition=["high_fat"],
         notes="Full fat only. The lite stuff is a waste of everyone's time.",
     ),
+    "butter": Ingredient(
+            id="butter",
+            name="Butter",
+            classes=["fat"],
+            roles=["fat_emulsifier"],
+            flavour=["rich", "nutty", "rich"],
+            colour="yellow",
+            season=["all"],
+            cost="medium",
+            nutrition=["high_fat"],
+            notes="May sub for vegan alternative"
+            ),
     # Fruit
     "apple": Ingredient(
         id="apple",
