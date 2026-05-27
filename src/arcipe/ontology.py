@@ -5,6 +5,7 @@ Contains real data
 """
 
 from __future__ import annotations
+from importlib.metadata import requires
 
 from arcipe.models import ComponentSlot
 from arcipe.models import Ingredient
@@ -39,6 +40,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="green",
         season=["spring", "forage"],
         cost="very_low",
+        perishable=True,
         nutrition=["high_iron"],
         notes="Blanch first to neutralise sting. Remarkable spring ingredient.",
     ),
@@ -50,6 +52,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["bitter", "earthy"],
         colour="green",
         season=["autumn", "winter"],
+        perishable=True,
         cost="low",
         nutrition=["high_iron", "high_calcium", "high_fibre"],
     ),
@@ -73,6 +76,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["sweet", "earthy", "mild"],
         colour="orange",
         season=["all"],
+        perishable=True,
         cost="very_low",
         nutrition=["high_fibre"],
         notes="Roast then blend = extraordinary cheap curry gravy base.",
@@ -84,6 +88,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         roles=["bulk", "bulk_blendable", "sweetener"],
         flavour=["sweet", "earthy", "mild"],
         colour="white",
+        perishable=True,
         season=["autumn", "winter"],
         cost="very_low",
         nutrition=["high_fibre"],
@@ -95,6 +100,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         roles=["bulk", "bulk_blendable", "sweetener"],
         flavour=["sweet", "earthy"],
         colour="orange",
+        perishable=True,
         season=["all"],
         cost="low",
         nutrition=["high_carb", "high_fibre"],
@@ -108,6 +114,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["mild", "earthy", "nutty"],
         colour="white",
         season=["all"],
+        perishable=True,
         cost="low",
         nutrition=["high_fibre"],
         notes="Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.",
@@ -120,6 +127,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         roles=["aromatic", "spice_base"],
         flavour=["spicy", "fresh", "floral"],
         colour="yellow",
+        perishable=True,
         season=["all"],
         cost="low",
     ),
@@ -129,6 +137,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         classes=["rhizome"],
         roles=["aromatic", "spice_base"],
         flavour=["earthy", "spicy"],
+        perishable=True,
         colour="orange",
         season=["all"],
         cost="medium",
@@ -142,7 +151,9 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["spicy", "floral", "earthy"],
         colour="brown",
         season=["all"],
+        cuisine_context=["indian"],
         cost="low",
+        unlimited=True
     ),
     "fenugreek_seed": Ingredient(
         id="fenugreek_seed",
@@ -153,6 +164,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="yellow",
         season=["all"],
         cost="low",
+        unlimited=True
     ),
     "cumin": Ingredient(
         id="cumin",
@@ -163,6 +175,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["all"],
         cost="low",
+        unlimited=True
     ),
     "coriander_seed": Ingredient(
         id="coriander_seed",
@@ -173,6 +186,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     "chilli_powder": Ingredient(
         id="chilli_powder",
@@ -183,6 +197,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="red",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     "smoked_paprika": Ingredient(
         id="smoked_paprika",
@@ -193,6 +208,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="red",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     "turmeric_dried": Ingredient(
         id="turmeric_dried",
@@ -203,6 +219,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="yellow",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     "curry_powder": Ingredient(
         id="curry_powder",
@@ -212,7 +229,9 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["spicy", "earthy", "floral"],
         colour="yellow",
         season=["all"],
+        cuisine_context=["indian", "japanese"],
         cost="low",
+        unlimited=True,
         notes="Generic blend. Fine for katsu or mild curries.",
     ),
     "mixed_spice": Ingredient(
@@ -224,6 +243,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     "cinnamon_ground": Ingredient(
         id="cinnamon_ground",
@@ -234,6 +254,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["all"],
         cost="low",
+        unlimited=True,
     ),
     # Fats / plant milks
     "coconut_milk": Ingredient(
@@ -245,21 +266,23 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="white",
         season=["all"],
         cost="low",
+        cuisine_context=["indian", "chinese"],
         nutrition=["high_fat"],
         notes="Full fat only. The lite stuff is a waste of everyone's time.",
     ),
     "butter": Ingredient(
-            id="butter",
-            name="Butter",
-            classes=["fat"],
-            roles=["fat_emulsifier"],
-            flavour=["rich", "nutty", "rich"],
-            colour="yellow",
-            season=["all"],
-            cost="medium",
-            nutrition=["high_fat"],
-            notes="May sub for vegan alternative"
-            ),
+        id="butter",
+        name="Butter",
+        classes=["fat"],
+        roles=["fat_emulsifier"],
+        flavour=["rich", "nutty", "rich"],
+        colour="yellow",
+        season=["all"],
+        cuisine_context=["french", "british"],
+        cost="medium",
+        nutrition=["high_fat"],
+        notes="May sub for vegan alternative",
+    ),
     # Fruit
     "apple": Ingredient(
         id="apple",
@@ -307,10 +330,11 @@ INGREDIENTS: dict[str, Ingredient] = {
         cost="low",
         nutrition=["high_protein", "high_fibre"],
         notes="Aquafaba (liquid) is separately useful as binder/emulsifier.",
+        unlimited=True,
     ),
-    "white_beans": Ingredient(
-        id="white_beans",
-        name="White Beans (cannellini/butter)",
+    "canellini_beans": Ingredient(
+        id="cannelini_beans",
+        name="Cannelini Beans",
         classes=["legume"],
         roles=["bulk", "protein", "sauce_base", "fat_emulsifier"],
         flavour=["earthy", "rich"],
@@ -319,6 +343,33 @@ INGREDIENTS: dict[str, Ingredient] = {
         cost="low",
         nutrition=["high_protein", "high_fibre"],
         notes="Blended white beans make an incredibly creamy sauce base.",
+    ),
+    "butter_beans": Ingredient(
+        id="butter_beans",
+        name="Butter Beans",
+        classes=["legume"],
+        roles=["bulk", "protein", "sauce_base", "fat_emulsifier"],
+        flavour=["earthy", "rich"],
+        colour="white",
+        season=["all"],
+        cost="low",
+        nutrition=["high_protein", "high_fibre"],
+        notes="Blended white beans make an incredibly creamy sauce base.",
+        unlimited=True,
+    ),
+    "black_beans": Ingredient(
+        id="black_beans",
+        name="Black Beans",
+        classes=["legume"],
+        roles=["bulk", "protein"],
+        flavour=["earthy", "rich"],
+        colour="black",
+        season=["all"],
+        cost="low",
+        nutrition=["high_protein", "high_fibre"],
+        cuisine_context=["mexican"],
+        notes="Blended white beans make an incredibly creamy sauce base.",
+        unlimited=True,
     ),
     "lentils": Ingredient(
         id="lentils",
@@ -342,6 +393,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         cost="very_low",
         nutrition=["high_protein", "high_fibre"],
         notes="The canonical rajma bean. Canned is fine, dried is better.",
+        unlimited=True,
     ),
     # Grains
     "spaghetti": Ingredient(
@@ -352,8 +404,10 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["earthy"],
         colour="yellow",
         season=["all"],
+        cuisine_context=["italian"],
         cost="very_low",
         nutrition=["high_carb"],
+        unlimited=True,
     ),
     "farro": Ingredient(
         id="farro",
@@ -363,6 +417,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["nutty", "earthy"],
         colour="brown",
         season=["all"],
+        cuisine_context=["italian"],
         cost="medium",
         nutrition=["high_carb", "high_fibre"],
     ),
@@ -374,6 +429,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["earthy"],
         colour="brown",
         season=["all"],
+        cuisine_context=["levantine", "indian"],
         cost="low",
         nutrition=["high_carb"],
         notes="Changes the recipe method — bake/grill not boil.",
@@ -386,6 +442,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["sweet", "earthy"],
         colour="yellow",
         season=["all"],
+        cuisine_context=["italian"],
         cost="low",
         nutrition=["high_carb"],
     ),
@@ -404,11 +461,12 @@ INGREDIENTS: dict[str, Ingredient] = {
         id="onion",
         name="Onion",
         classes=["allium"],
-        roles=["aromatic", "bulk"],
+        roles=["aromatic"],
         flavour=["sweet", "umami"],
         colour="white",
         season=["all"],
         cost="very_low",
+        unlimited=True,
     ),
     # Nuts and seeds
     "cashews": Ingredient(
@@ -421,25 +479,27 @@ INGREDIENTS: dict[str, Ingredient] = {
         season=["all"],
         cost="medium",
         nutrition=["high_fat"],
+        unlimited=True,
         notes="Soaked and blended = exceptional creamy base.",
     ),
     "sunflower_seeds": Ingredient(
         id="sunflower_seeds",
         name="Sunflower Seeds",
         classes=["seed"],
-        roles=["fat_emulsifier", "texture_top"],
+        roles=["fat_emulsifier", "texture_top", "garnish"],
         flavour=["mild", "nutty"],
         colour="yellow",
         season=["all"],
         cost="low",
         nutrition=["high_fat", "omega3"],
+        unlimited=True,
         notes="Soaked and blended = sunflower cream, excellent cheaper cashew alternative.",
     ),
     "pumpkin_seeds": Ingredient(
         id="pumpkin_seeds",
         name="Pumpkin Seeds",
         classes=["seed"],
-        roles=["texture_top", "protein", "garnish"],
+        roles=["texture_top", "garnish"],
         flavour=["nutty"],
         colour="green",
         season=["all"],
@@ -453,6 +513,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         roles=["texture_top", "fat_emulsifier"],
         flavour=["rich", "nutty"],
         colour="white",
+        cuisine_context=["italian", "levantine"],
         season=["all"],
         cost="high",
     ),
@@ -475,6 +536,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["sharp", "umami"],
         colour="green",
         season=["all"],
+        cuisine_context=["italian", "levantine"],
         cost="medium",
         notes="Fried capers are a texture revelation.",
     ),
@@ -509,6 +571,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["umami", "rich"],
         colour="yellow",
         season=["all"],
+        cuisine_context=["japanese", "korean"],
         cost="medium",
         nutrition=["b12_source"],
     ),
@@ -521,6 +584,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="yellow",
         season=["all"],
         cost="medium",
+        unlimited=True,
         nutrition=["b12_source"],
     ),
     # Fats
@@ -533,6 +597,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="yellow",
         season=["all"],
         cost="medium",
+        unlimited=True,
         nutrition=["high_fat"],
     ),
     # Fungus
@@ -545,6 +610,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["autumn", "winter"],
         cost="low",
+        cuisine_context=["chinese", "japanese"],
         nutrition=["high_fibre"],
     ),
     # Nightshade
@@ -568,6 +634,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["mild"],
         colour="white",
         season=["all"],
+        cuisine_context=["japanese", "korean", "chinese"],
         cost="low",
         nutrition=["high_protein", "high_calcium"],
         notes="Press well before using. Takes on sauce flavour readily.",
@@ -581,6 +648,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["mild"],
         colour="white",
         season=["all"],
+        unlimited=True,
         cost="very_low",
     ),
     "tomato_puree": Ingredient(
@@ -591,6 +659,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["rich", "umami"],
         colour="red",
         season=["all"],
+        unlimited=True,
         cost="low",
     ),
     "tomato_ketchup": Ingredient(
@@ -601,6 +670,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["rich", "umami", "sweet"],
         colour="red",
         season=["all"],
+        unlimited=True,
         cost="low",
     ),
     # Herbs
@@ -612,6 +682,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["fresh", "floral"],
         colour="green",
         season=["all"],
+        perishable=True,
         cost="low",
     ),
     # Canned tomato — separate from fresh
@@ -619,12 +690,13 @@ INGREDIENTS: dict[str, Ingredient] = {
         id="canned_tomato",
         name="Canned Tomatoes",
         classes=["nightshade"],
-        roles=["sauce_base", "liquid", "acid_bright"],
+        roles=["sauce_base", "liquid"],
         flavour=["umami", "sweet", "sharp"],
         colour="red",
         season=["all"],
         cost="very_low",
         nutrition=["high_fibre"],
+        unlimited=True,
         notes="Year-round pantry staple. Often better than out-of-season fresh.",
     ),
     # Rice
@@ -636,7 +708,9 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["earthy", "floral"],
         colour="white",
         season=["all"],
+        cuisine_context=["indian", "levantine"],
         cost="very_low",
+        unlimited=True,
         nutrition=["high_carb"],
     ),
     "brown_rice": Ingredient(
@@ -648,6 +722,7 @@ INGREDIENTS: dict[str, Ingredient] = {
         colour="brown",
         season=["all"],
         cost="very_low",
+        unlimited=True,
         nutrition=["high_carb"],
     ),
     "sushi_rice": Ingredient(
@@ -658,7 +733,9 @@ INGREDIENTS: dict[str, Ingredient] = {
         flavour=["earthy", "floral"],
         colour="white",
         season=["all"],
+        cuisine_context=["japanese"],
         cost="low",
+        unlimited=True,
         nutrition=["high_carb"],
     ),
 }
@@ -671,31 +748,40 @@ INGREDIENTS: dict[str, Ingredient] = {
 PREPARED_INGREDIENTS: dict[str, PreparedIngredient] = {
     "sunflower_cream": PreparedIngredient(
         id="sunflower_cream",
-        base_ingredient="sunflower_seeds",
+        base_ingredients=["sunflower_seeds"],
         method="blend",
         unlocked_roles=["fat_emulsifier", "sauce_base"],
         notes="Soak 4hrs, drain, blend with water. Cheaper cashew cream substitute.",
     ),
     "cashew_cream": PreparedIngredient(
         id="cashew_cream",
-        base_ingredient="cashews",
+        base_ingredients=["cashews"],
         method="blend",
         unlocked_roles=["fat_emulsifier", "sauce_base"],
         notes="Soak 2hrs, drain, blend with water until very smooth.",
     ),
     "roasted_carrot": PreparedIngredient(
         id="roasted_carrot",
-        base_ingredient="carrot",
+        base_ingredients=["carrot"],
         method="roast",
         unlocked_roles=["sauce_base", "bulk_blendable"],
         notes="Roast at 200°C until caramelised. Blends into sweet gravy base.",
     ),
     "roux": PreparedIngredient(
         id="roux",
-        base_ingredient="plain_flour",
+        base_ingredients=["plain_flour", "butter"],
         method="fry",
         unlocked_roles=["thickener", "sauce_base"],
+        cuisine_context=["french", "japanese"],
         notes="Equal parts flour and vegan butter/oil, cooked out 2 mins.",
+    ),
+    "flatbread": PreparedIngredient(
+        id="flatbread",
+        base_ingredients=["plain_flour"],
+        method="fry",
+        unlocked_roles=["grain_base"],
+        cuisine_context=["levantine", "indian"],
+        notes="Flour, water, salt, baking powder. Fry 1 minute each side. Cover with damp towel to steam.",
     ),
 }
 
@@ -719,6 +805,8 @@ SLOTS: dict[str, ComponentSlot] = {
         preferred_classes=["leafy_green", "legume"],
         required_method=["blend"],
         max_ingredients=2,
+        required_colour="green",
+        colour_tolerance=0.15,
         notes="Primary body of the sauce. Should be green. Blend with liquid.",
     ),
     "creamy_sauce": ComponentSlot(
@@ -727,6 +815,8 @@ SLOTS: dict[str, ComponentSlot] = {
         required_roles=["sauce_base", "fat_emulsifier"],
         preferred_classes=["legume", "nut"],
         required_method=["blend"],
+        required_colour="white",
+        colour_tolerance=0.2,
         max_ingredients=2,
     ),
     "fat_emulsifier": ComponentSlot(
@@ -814,6 +904,8 @@ SLOTS: dict[str, ComponentSlot] = {
         preferred_classes=["nightshade"],
         required_method=["boil", "blend", "fry"],
         max_ingredients=1,
+        required_colour="red",
+        colour_tolerance=0.0,
         notes="Fresh preferred, canned always acceptable.",
     ),
     "tomato_enhancement": ComponentSlot(
@@ -822,6 +914,8 @@ SLOTS: dict[str, ComponentSlot] = {
         required_roles=["flavour_enhancer", "thickener"],
         required_method=["fry", "raw"],
         max_ingredients=1,
+        required_colour="red",
+        colour_tolerance=0.15,
         notes="Add tomato puree (or ketchup!) to dish - fry with spices or add to sauce",
     ),
     "creamy_curry_fat": ComponentSlot(
@@ -921,6 +1015,8 @@ SLOTS: dict[str, ComponentSlot] = {
         preferred_classes=["leafy_green"],
         required_method=["blend", "wilt"],
         max_ingredients=2,
+        required_colour="green",
+        colour_tolerance=0.15,
         notes="Frozen spinach is canonical and excellent here.",
     ),
 }
@@ -968,6 +1064,7 @@ RECIPES: dict[str, Recipe] = {
             ),
             RecipeEdge(from_slot="texture_top", to_slot="grain_base", edge_type="top"),
         ],
+        cuisine_context=["italian"],
         notes="spaghetti + peas + cashews + garlic + lemon + nooch + pine nuts is the canonical fill.",
     ),
     # ------------------------------------------------------------------
@@ -1039,6 +1136,8 @@ RECIPES: dict[str, Recipe] = {
             ),
             RecipeEdge(from_slot="texture_top", to_slot="grain_base", edge_type="top"),
         ],
+        required_ingredients=["flatbread"],
+        cuisine_context=["levantine", "indian"],
         notes=(
             "flatbread + pea & basil spread + chickpeas + olive oil + capers + fried capers. "
             "Grill the flatbread for char."
@@ -1083,6 +1182,7 @@ RECIPES: dict[str, Recipe] = {
             ),
             RecipeEdge(from_slot="texture_top", to_slot="grain_base", edge_type="top"),
         ],
+        cuisine_context=["italian"],
         notes=(
             "spaghetti + tomato & cashew sauce + lentils + onion & garlic + miso + lemon + "
             "toasted pumpkin seeds. Miso is the secret — rounds out the tomato."
@@ -1137,6 +1237,7 @@ RECIPES: dict[str, Recipe] = {
             "turmeric_dried",
             "kidney_beans",
         ],
+        cuisine_context=["indian"],
         notes=(
             "kidney_beans strongly preferred for curry_protein — "
             "could add preferred_ingredient field later. "
@@ -1199,6 +1300,7 @@ RECIPES: dict[str, Recipe] = {
             "mixed_spice",
             "canned_tomato",
         ],
+        cuisine_context=["indian"],
         notes="chickpeas strongly preferred. Blitz half the sauce before adding chickpeas for texture.",
     ),
     # ------------------------------------------------------------------
@@ -1252,6 +1354,7 @@ RECIPES: dict[str, Recipe] = {
             "ginger",
             "canned_tomato",
         ],
+        cuisine_context=["indian"],
         notes=(
             "cauliflower preferred for curry_protein — roast at 200°C first. "
             "Same skeleton as rajma, spice profile is what differentiates."
@@ -1306,6 +1409,7 @@ RECIPES: dict[str, Recipe] = {
                 from_slot="finish_herb", to_slot="curry_grain_base", edge_type="finish"
             ),
         ],
+        cuisine_context=["indian"],
         notes="acid_component required — without vinegar it's just a hot tomato curry, not a vindaloo.",
     ),
     # ------------------------------------------------------------------
@@ -1361,6 +1465,7 @@ RECIPES: dict[str, Recipe] = {
             "turmeric_dried",
             "fenugreek_seed",
         ],
+        cuisine_context=["indian"],
         notes="Frozen spinach is canonical. Fresh works but you need a lot of it.",
     ),
     # ------------------------------------------------------------------
@@ -1417,13 +1522,13 @@ RECIPES: dict[str, Recipe] = {
             ),
         ],
         preferred_ingredients=[
-            "plain_flour",
-            # "butter", # Not an ingredient YET
             "tomato_ketchup",
             "tofu",
             "curry_powder",
             "garam_masala",
         ],
+        required_ingredients=["roux"],
+        cuisine_context=["japanese"],
         notes="plain_flour fills katsu_sauce_body. Cauliflower or tofu as curry_protein. Ketchup used over puree.",
     ),
     # ------------------------------------------------------------------
@@ -1476,6 +1581,7 @@ RECIPES: dict[str, Recipe] = {
                 from_slot="finish_herb", to_slot="curry_grain_base", edge_type="finish"
             ),
         ],
+        cuisine_context=["indian"],
         notes=(
             "carrot strongly preferred for root_sauce_body — cheap as chips. "
             "Roast at 200°C with a little oil until edges are dark. "

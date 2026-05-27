@@ -30,14 +30,14 @@ Role = Literal[
     "binder",  # holds things together (flax egg, aquafaba, starch)
     "sweetener",  # natural sweetness (dates, maple, fruit)
     "liquid",  # stock, water, plant milk — carries flavour
-    "texture_spice", # whole spices
+    "texture_spice",  # whole spices
     "spice_base",  # any spices
     "bulk_blendable",  # carrots, lentils, things that bulk sauces
     "acid_component",  # vinegar, lemon, for example in vindaloo
     "thickener",  # flour, etc
     "finish_herb",  # fresh coriander, basil, etc
-    "baking_spice", #mixed spice, etc
-    "flavour_enhancer", # Tomato puree, msg, soy sauce, etc
+    "baking_spice",  # mixed spice, etc
+    "flavour_enhancer",  # Tomato puree, msg, soy sauce, etc
 ]
 
 # Broad flavour contribution
@@ -122,20 +122,22 @@ ColourFamily = Literal[
 ]
 
 COLOUR_RGB: dict[str, tuple[int, int, int]] = {
-    "green":  (80,  140, 80),
-    "red":    (200, 60,  60),
+    "green": (80, 140, 80),
+    "red": (200, 60, 60),
     "orange": (220, 130, 50),
     "yellow": (220, 200, 80),
-    "white":  (240, 240, 240),
-    "brown":  (140, 90,  50),
-    "purple": (130, 70,  160),
-    "black":  (30,  30,  30),
+    "white": (240, 240, 240),
+    "brown": (140, 90, 50),
+    "purple": (130, 70, 160),
+    "black": (30, 30, 30),
 }
+
 
 def colour_distance(a: str, b: str) -> float:
     ra, ga, ba = COLOUR_RGB[a]
     rb, gb, bb = COLOUR_RGB[b]
-    return ((ra-rb)**2 + (ga-gb)**2 + (ba-bb)**2) ** 0.5
+    return ((ra - rb) ** 2 + (ga - gb) ** 2 + (ba - bb) ** 2) ** 0.5
+
 
 # Max possible distance (black to white) ≈ 416
 COLOUR_MAX = 416.0
@@ -152,6 +154,40 @@ EdgeType = Literal[
     "blend",  # same
 ]
 
+CuisineContext = Literal[
+    "italian",
+    "french",
+    "indian",
+    "japanese",
+    "korean",
+    "levantine",
+    "mexican",
+    "british",
+    "universal",
+    "chinese",
+]
+
+CuisineFamily = Literal[
+    "european",
+    "south_asian",
+    "east_asian",
+    "middle_eastern",
+    "american",
+    "universal",
+]
+
+CUISINE_FAMILY: dict[CuisineContext, CuisineFamily] = {
+    "italian": "european",
+    "french": "european",
+    "indian": "south_asian",
+    "chinese": "east_asian",
+    "japanese": "east_asian",
+    "korean": "east_asian",
+    "levantine": "middle_eastern",
+    "mexican": "american",
+    "british": "european",
+    "universal": "universal",
+}
 
 # ---------------------------------------------------------------------------
 # Ingredient Class — top-level ontology node
@@ -182,9 +218,12 @@ class Ingredient(BaseModel):
     colour: ColourFamily
     season: list[Season]
     cost: CostTier
+    cuisine_context: list[CuisineContext] = Field(default_factory=list)
     nutrition: list[NutritionFlag] = Field(default_factory=list)
     perishable: bool = False
-    unlimited: bool = False # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
+    unlimited: bool = (
+        False  # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
+    )
     notes: str = ""
 
 
@@ -195,9 +234,11 @@ class Ingredient(BaseModel):
 
 class PreparedIngredient(BaseModel):
     id: str  # e.g. "spinach__wilted"
-    base_ingredient: str  # ref to Ingredient.id
+    base_ingredients: list[str]
+    cuisine_context: list[CuisineContext] = Field(default_factory=list)
     method: Method
     unlocked_roles: list[Role]  # what roles this preparation enables
+    colour: ColourFamily | None = None
     notes: str = ""
 
 
@@ -218,7 +259,7 @@ class ComponentSlot(BaseModel):
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 3  # prevent slot becoming a dumping ground
     required_colour: ColourFamily | None = None
-    colour_tolerance: float = 0.4   # 0.0 = exact, 1.0 = anything goes
+    colour_tolerance: float = 0.4  # 0.0 = exact, 1.0 = anything goes
     notes: str = ""
 
 
@@ -244,7 +285,13 @@ class Recipe(BaseModel):
     description: str
     slots: list[ComponentSlot]
     edges: list[RecipeEdge]
-    preferred_ingredients: list[str] = field(default_factory=list)
+    cuisine_context: list[CuisineContext] = Field(default_factory=list)
+    preferred_ingredients: list[str] = field(
+        default_factory=list
+    )  # Preferential ingredients
+    required_ingredients: list[str] = field(
+        default_factory=list
+    )  # Must be included for valid recipe
     # Hard constraints
     no_ingredient_reuse: bool = True  # same ingredient can't fill two slots
     colour_dominant: ColourFamily | None = None

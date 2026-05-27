@@ -22,10 +22,8 @@ from dataclasses import field
 
 from arcipe.models import Ingredient
 from arcipe.models import Recipe
-from arcipe.models import Season
 from arcipe.ontology import INGREDIENTS
 from arcipe.ontology import RECIPES
-from arcipe.resolver import CURRENT_SEASON
 from arcipe.resolver import Resolution
 from arcipe.resolver import rank_recipes
 from arcipe.resolver import resolve
@@ -238,7 +236,6 @@ def plan_week(
     days: int = 7,
     meals_per_day: list[str] | None = None,
     max_same_class_gap: int = 2,
-    season: Season = CURRENT_SEASON,
     ingredient_db: dict[str, Ingredient] | None = None,
     randomise: bool = True,
 ) -> MealPlan:
@@ -277,13 +274,22 @@ def plan_week(
         for meal in meals:
             # Build pool — perishables sorted to front
             ordered = perishables_first(inv, db)
-            pool = build_pool({ing: inv[ing] for ing in ordered if ing in inv})
+            # include unlimited ingredients from db that aren't already in inv
+            pool_inv = {ing: inv[ing] for ing in ordered if ing in inv}
+            for ing_id, ing in db.items():
+                if ing.unlimited and ing_id not in pool_inv:
+                    pool_inv[ing_id] = UNLIMITED
+            pool = build_pool(pool_inv)
 
             # Rank recipes
             ranked = rank_recipes(recipe_db, pool, db)
 
             # Filter already used this week
-            candidates = [rs for rs in ranked if rs.recipe_id not in used_recipes]
+            candidates = [
+                rs
+                for rs in ranked
+                if rs.recipe_id not in used_recipes and rs.resolution.success
+            ]
 
             if not candidates:
                 # All recipes exhausted — allow repeats
@@ -308,7 +314,7 @@ def plan_week(
                 unplanned.append((day, meal))
             else:
                 # Re-resolve with current pool to get accurate assignment
-                final = resolve(recipe_db[best.recipe_id], pool, db, season)
+                final = resolve(recipe_db[best.recipe_id], pool, db)
                 slot = MealSlot(
                     day=day,
                     meal=meal,
@@ -346,35 +352,11 @@ if __name__ == "__main__":
         "coriander_leaf": 2,
         "potato": 4,
         # Proteins — a few cans/portions each
-        "chickpeas": 4,
-        "kidney_beans": 3,
         "lentils": 4,
-        "white_beans": 2,
         # Grains
-        "basmati_rice": UNLIMITED,
-        "spaghetti": UNLIMITED,
         "flatbread": 3,
         # Pantry staples — unlimited
-        "garlic": UNLIMITED,
-        "onion": UNLIMITED,
-        "ginger": UNLIMITED,
-        "garam_masala": UNLIMITED,
-        "cumin": UNLIMITED,
-        "coriander_seed": UNLIMITED,
-        "chilli_powder": UNLIMITED,
-        "turmeric_dried": UNLIMITED,
-        "curry_powder": UNLIMITED,
-        "plain_flour": UNLIMITED,
-        "olive_oil": UNLIMITED,
-        "canned_tomato": UNLIMITED,
-        "lemon": UNLIMITED,
-        "nutritional_yeast": UNLIMITED,
-        # Creamy options
-        "cashews": 2,
         "coconut_milk": 3,
-        "sunflower_seeds": UNLIMITED,
-        # Seeds/nuts
-        "pumpkin_seeds": UNLIMITED,
     }
 
     plan = plan_week(

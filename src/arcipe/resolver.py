@@ -17,6 +17,7 @@ from datetime import date
 from itertools import groupby
 
 from arcipe.models import COLOUR_MAX
+from arcipe.models import CUISINE_FAMILY
 from arcipe.models import ComponentSlot
 from arcipe.models import Ingredient
 from arcipe.models import PreparedIngredient
@@ -104,32 +105,36 @@ def expand_inventory(
     ingredient_db: dict[str, Ingredient],
     prepared_db: dict[str, PreparedIngredient],
 ) -> dict[str, Ingredient]:
-    """
-    Returns an expanded ingredient db including prepared forms of
-    anything in inventory. Prepared ingredient ids are injected
-    as synthetic Ingredient entries with unlocked_roles.
-    """
     expanded = dict(ingredient_db)
     for prep in prepared_db.values():
-        if prep.base_ingredient in inventory:
-            base = ingredient_db.get(prep.base_ingredient)
-            if base is None:
-                continue
-            # Synthetic ingredient — inherits everything from base
-            # but roles replaced with unlocked_roles
-            synthetic = Ingredient(
-                id=prep.id,
-                name=f"{base.name} ({prep.method})",
-                classes=base.classes,
-                roles=prep.unlocked_roles,
-                flavour=base.flavour,
-                colour=base.colour,
-                season=base.season,
-                cost=base.cost,
-                nutrition=base.nutrition,
-                notes=prep.notes,
-            )
-            expanded[prep.id] = synthetic
+        base_available = all(
+            i in inventory or (ingredient_db.get(i) and ingredient_db[i].unlimited)
+            for i in prep.base_ingredients
+        )
+        if not base_available:
+            continue
+        base = ingredient_db.get(prep.base_ingredients[0])
+        if base is None:
+            continue
+        synthetic = Ingredient(
+            id=prep.id,
+            name=f"{prep.id.replace('_', ' ')} (prepared)",
+            classes=base.classes,
+            roles=prep.unlocked_roles,
+            flavour=base.flavour,
+            colour=prep.colour or base.colour,
+            season=base.season,
+            cost=base.cost,
+            nutrition=base.nutrition,
+            unlimited=all(
+                ingredient_db[i].unlimited
+                for i in prep.base_ingredients
+                if i in ingredient_db
+            ),
+            cuisine_context=prep.cuisine_context,
+            notes=prep.notes,
+        )
+        expanded[prep.id] = synthetic
     return expanded
 
 
@@ -148,7 +153,9 @@ COST_SCORE: dict[str, float] = {
 }
 
 
-def score(ingredient: Ingredient, slot: ComponentSlot, preferred: list[str]) -> float:
+def score(
+    ingredient: Ingredient, slot: ComponentSlot, preferred: list[str], recipe: Recipe
+) -> float:
     """
     Score an ingredient against a slot. Higher is better.
 
@@ -161,6 +168,7 @@ def score(ingredient: Ingredient, slot: ComponentSlot, preferred: list[str]) -> 
         season            — bonus if ingredient is in season or available all year
         cost              — cheaper ingredients score higher (maximise use of cheap staples)
         role_depth        — ingredients with more roles are more versatile, slight bonus
+        cuisine_context   — scores worse if outside of cuisine family
     """
     s = 0.0
 
@@ -193,6 +201,16 @@ def score(ingredient: Ingredient, slot: ComponentSlot, preferred: list[str]) -> 
     if ingredient.id in preferred:
         s += 0.5
 
+    if recipe.cuisine_context and ingredient.cuisine_context:
+        recipe_families = {CUISINE_FAMILY[c] for c in recipe.cuisine_context}
+        ing_families = {CUISINE_FAMILY[c] for c in ingredient.cuisine_context}
+        if not recipe_families & ing_families:
+            s -= 0.8  # heavy penalty, not hard exclude
+
+    # Massive boost for this being a required ingredient
+    if ingredient.id in recipe.required_ingredients:
+        s += 10.0
+
     return s
 
 
@@ -201,7 +219,7 @@ def score(ingredient: Ingredient, slot: ComponentSlot, preferred: list[str]) -> 
 # ---------------------------------------------------------------------------
 
 
-def resolve(
+def resolve(  # noqa: C901
     recipe: Recipe,
     inventory: list[str],
     ingredient_db: dict[str, Ingredient] | None = None,
@@ -223,9 +241,28 @@ def resolve(
     # Also inject prepared ingredient ids into the pool if base is present
     expanded_inventory = list(inventory)
 
+    # inject unlimited ingredients automatically — always available
+    for ing_id, ing in db.items():
+        if ing.unlimited and ing_id not in expanded_inventory:
+            expanded_inventory.append(ing_id)
+
     for prep in PREPARED_INGREDIENTS.values():
-        if prep.base_ingredient in inventory and prep.id not in expanded_inventory:
+        if (
+            all(i in inventory for i in prep.base_ingredients)
+            and prep.id not in expanded_inventory
+        ):
             expanded_inventory.append(prep.id)
+
+    # Required ingredients check
+    for ing_id in recipe.required_ingredients:
+        if ing_id not in inventory:
+            return Resolution(
+                recipe_id=recipe.id,
+                recipe_name=recipe.name,
+                assignments=[],
+                used=set(),
+                unfillable=["required_ingredient_missing"],
+            )
 
     remaining = list(set(expanded_inventory))  # mutable pool
     assignments: list[SlotAssignment] = []
@@ -238,7 +275,15 @@ def resolve(
 
         # Score and sort descending
         ranked = []
-        for _, group in groupby(viable, key=lambda ing: score(ing, slot, preferred)):
+        viable_scored = sorted(
+            viable,
+            key=lambda ing: score(ing, slot, preferred, recipe),
+            reverse=True,
+        )
+        for _, group in groupby(
+            viable_scored,
+            key=lambda ing: score(ing, slot, preferred, recipe),
+        ):
             group_list = list(group)
             random.shuffle(group_list)
             ranked.extend(group_list)
@@ -254,8 +299,9 @@ def resolve(
             # After assigning chosen_ids, also remove base ingredients of any prepared forms
             for ing_id in chosen_ids:
                 prep = PREPARED_INGREDIENTS.get(ing_id)
-                if prep and prep.base_ingredient in remaining:
-                    remaining.remove(prep.base_ingredient)
+                if prep and all(i in remaining for i in prep.base_ingredients):
+                    for ing in prep.base_ingredients:
+                        remaining.remove(ing)
             used.update(chosen_ids)
 
         filled = bool(chosen) or slot.optional
@@ -312,7 +358,7 @@ def rank_recipes(
         ]
         filled = sum(1 for a in required_slots if a.filled)
         total = len(required_slots)
-        recipe_score = filled / total if total else 1.0
+        recipe_score = 0.0 if "required_ingredient_missing" in r.unfillable else filled / total if total else 1.0
         results.append(
             RecipeScore(
                 recipe_id=recipe.id,
