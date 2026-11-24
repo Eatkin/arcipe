@@ -15,6 +15,7 @@ never disagrees with what the planner would actually cook:
               + repeat     * extra repeats of a recipe
               + variety    * ingredient-class overlap with recent meals (0..1 each)
               + time       * hours of cooking
+              - liked      * how much you've liked each recipe cooked (-1..1)
 
 Search: start from the greedy plan, then simulated annealing over "change one
 meal" and "swap two meals" moves. Evaluations are cached by plan.
@@ -46,6 +47,7 @@ from arcipe.planner import totals
 from arcipe.planner import urgency
 from arcipe.planner import variety_score
 from arcipe.resolver import resolve
+from arcipe.vibes import Feedback
 
 
 # Food still in stock that expires within this many days after the plan counts
@@ -64,6 +66,7 @@ class Weights:
     repeat: float = 2.0  # per extra appearance of a recipe
     variety: float = 1.0  # per meal, fraction of its ingredient classes eaten recently
     time: float = 0.2  # per hour of total cooking time
+    liked: float = 2.0  # per meal, times its learned recipe score (-1..1)
 
 
 @dataclass
@@ -74,6 +77,7 @@ class Breakdown:
     repeats: int = 0
     variety: float = 0.0
     minutes: int = 0
+    liked: float = 0.0
     objective: float = 0.0
 
     def describe(self) -> str:
@@ -81,7 +85,7 @@ class Breakdown:
             f"objective {self.objective:6.2f} | waste {self.waste_g:5.0f}g"
             f" | spill {self.spill_g:5.0f}g | unplanned {self.unplanned}"
             f" | repeats {self.repeats} | variety {self.variety:4.2f}"
-            f" | {self.minutes} min cooking"
+            f" | {self.minutes} min cooking | liked {self.liked:+.2f}"
         )
 
 
@@ -104,6 +108,7 @@ class _Problem:
     max_minutes: int | None
     gap: int
     weights: Weights
+    feedback: Feedback | None = None
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
 
 
@@ -133,6 +138,11 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
                     servings=p.people,
                     urgency=urgency(lots, day),
                     rng=random.Random(0),
+                    affinity=(
+                        p.feedback.ingredient_affinity(p.recipes[recipe_id])
+                        if p.feedback
+                        else None
+                    ),
                 )
                 too_long = (
                     p.max_minutes is not None and res.timing.total > p.max_minutes
@@ -146,6 +156,8 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
             recent = classes_used_recently(planned, day, p.gap, p.ingredient_db)
             b.variety += 1.0 - variety_score(res, recent, p.ingredient_db)
             b.minutes += res.timing.total
+            if p.feedback and recipe_id:
+                b.liked += p.feedback.recipe_score(recipe_id)
             planned.append(
                 MealSlot(day=day, meal=meal, recipe_id=recipe_id, resolution=res)
             )
@@ -171,6 +183,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         + w.repeat * b.repeats
         + w.variety * b.variety
         + w.time * b.minutes / 60
+        - w.liked * b.liked
     )
 
     plan = MealPlan(
@@ -256,6 +269,7 @@ def optimise_week(
     restarts: int = 2,
     ingredient_db: dict[str, Ingredient] | None = None,
     rng: random.Random | None = None,
+    feedback: Feedback | None = None,
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
@@ -275,6 +289,7 @@ def optimise_week(
         max_minutes=max_minutes,
         gap=max_same_class_gap,
         weights=weights or Weights(),
+        feedback=feedback,
     )
     options = _options(p)
 
@@ -289,6 +304,7 @@ def optimise_week(
         ingredient_db=db,
         randomise=False,
         rng=random.Random(rng.random()),
+        feedback=feedback,
     )
     greedy: Choice = tuple(s.recipe_id for s in greedy_plan.slots)
     greedy = tuple(

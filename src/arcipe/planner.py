@@ -41,6 +41,7 @@ from arcipe.models import Recipe
 from arcipe.resolver import RecipeScore
 from arcipe.resolver import Resolution
 from arcipe.resolver import rank_recipes
+from arcipe.vibes import Feedback
 
 
 # Ingredients expiring within this many days get an urgency boost
@@ -372,6 +373,7 @@ def _pick(
     jitter: float,
     rng: random.Random,
     max_minutes: int | None = None,
+    feedback: Feedback | None = None,
 ) -> RecipeScore | None:
     viable = [
         rs
@@ -389,6 +391,7 @@ def _pick(
         return (
             0.5 * variety_score(rs.resolution, recent, db)
             + 0.5 * rescue_score(rs.resolution, lots, day)
+            + (0.3 * feedback.recipe_score(rs.recipe_id) if feedback else 0.0)
             + rng.uniform(0, jitter)
         )
 
@@ -406,6 +409,7 @@ def plan_week(
     ingredient_db: dict[str, Ingredient] | None = None,
     randomise: bool = True,
     rng: random.Random | None = None,
+    feedback: Feedback | None = None,
 ) -> MealPlan:
     """
     Plan meals across `days` days given an inventory. Greedy: one meal at a time.
@@ -430,6 +434,7 @@ def plan_week(
         ingredient_db:        ingredient db, defaults to INGREDIENTS
         randomise:            jitter scores slightly for variety between runs
         rng:                  random source, pass a seeded Random for repeatable plans
+        feedback:             your ratings (arcipe.vibes) to steer recipes and ingredients
     """
     recipe_db = recipes or RECIPES
     db = ingredient_db or INGREDIENTS
@@ -458,6 +463,7 @@ def plan_week(
                 rng=rng,
                 servings=people,
                 urgency=urgency(lots, day),
+                feedback=feedback,
             )
             best = _pick(
                 ranked,
@@ -470,6 +476,7 @@ def plan_week(
                 jitter,
                 rng,
                 max_minutes,
+                feedback,
             )
             if best is None:
                 planned.append(MealSlot(day=day, meal=meal))

@@ -43,6 +43,7 @@ from arcipe.models import colour_distance
 from arcipe.timing import Timing
 from arcipe.timing import recipe_timing
 from arcipe.utils import get_season
+from arcipe.vibes import Feedback
 
 
 # ---------------------------------------------------------------------------
@@ -302,11 +303,28 @@ COST_SCORE: dict[str, float] = {
 }
 
 
+def _cuisine_fit(ingredient: Ingredient, recipe: Recipe) -> float:
+    """Exact cuisine match +0.4, same family +0.1, different family -0.8."""
+    if not (recipe.cuisine_context and ingredient.cuisine_context):
+        return 0.0
+    if set(recipe.cuisine_context) & set(ingredient.cuisine_context):
+        return 0.4
+    recipe_families = {CUISINE_FAMILY[c] for c in recipe.cuisine_context}
+    ing_families = {CUISINE_FAMILY[c] for c in ingredient.cuisine_context}
+    return 0.1 if recipe_families & ing_families else -0.8
+
+
+# How hard learned taste pushes: a firm like/dislike (~±0.6) is worth about a
+# cuisine match
+VIBES_SCALE = 1.0
+
+
 def score(
     ingredient: Ingredient,
     slot: ComponentSlot,
     recipe: Recipe,
     urgency: dict[str, float] | None = None,
+    affinity: dict[str, float] | None = None,
 ) -> float:
     """
     Score an ingredient against a slot. Higher is better.
@@ -324,6 +342,7 @@ def score(
         preferred         — recipe.preferred_ingredients bonus
         cuisine_context   — bonus for exact cuisine match, small bonus for same family,
                             heavy penalty for a different family
+        affinity          — learned from your ratings (arcipe.vibes), -1..1 per id
     """
     s = 0.0
 
@@ -354,13 +373,10 @@ def score(
     if ingredient.id in recipe.preferred_ingredients:
         s += 0.5
 
-    if recipe.cuisine_context and ingredient.cuisine_context:
-        if set(recipe.cuisine_context) & set(ingredient.cuisine_context):
-            s += 0.4
-        else:
-            recipe_families = {CUISINE_FAMILY[c] for c in recipe.cuisine_context}
-            ing_families = {CUISINE_FAMILY[c] for c in ingredient.cuisine_context}
-            s += 0.1 if recipe_families & ing_families else -0.8
+    s += _cuisine_fit(ingredient, recipe)
+
+    if affinity:
+        s += VIBES_SCALE * affinity.get(ingredient.id, 0.0)
 
     return s
 
@@ -371,11 +387,12 @@ def rank(
     recipe: Recipe,
     rng: random.Random | None = None,
     urgency: dict[str, float] | None = None,
+    affinity: dict[str, float] | None = None,
 ) -> list[Ingredient]:
     """Sort by score descending, shuffling within equal-score groups for variety."""
     rng = rng or random.Random()
     scored = sorted(
-        ((score(ing, slot, recipe, urgency), ing.id, ing) for ing in viable),
+        ((score(ing, slot, recipe, urgency, affinity), ing.id, ing) for ing in viable),
         key=lambda t: (-t[0], t[1]),
     )
     ranked: list[Ingredient] = []
@@ -500,6 +517,7 @@ def resolve(
     rng: random.Random | None = None,
     servings: int | None = None,
     urgency: dict[str, float] | None = None,
+    affinity: dict[str, float] | None = None,
 ) -> Resolution:
     """
     Resolve a recipe against an inventory.
@@ -512,7 +530,8 @@ def resolve(
         4. Required slots that can't reach MIN_SLOT_COVERAGE are unfillable
 
     servings defaults to recipe.serves. urgency (0..1 per ingredient id) boosts
-    ingredients that are about to expire.
+    ingredients that are about to expire. affinity (-1..1 per ingredient id, from
+    arcipe.vibes) nudges towards what you've liked in this kind of dish.
     """
     db = ingredient_db or INGREDIENTS
     preps = PREPARED_INGREDIENTS if prepared_db is None else prepared_db
@@ -543,7 +562,7 @@ def resolve(
         if not accepting:
             failed.unplaceable_required.append(req)
             continue
-        best = max(accepting, key=lambda sl, i=ing: score(i, sl, recipe, urg))
+        best = max(accepting, key=lambda sl, i=ing: score(i, sl, recipe, urg, affinity))
         reserved[best.id].append(req)
         picks.claimed |= picks.keys(req)
     if failed.unplaceable_required:
@@ -557,6 +576,7 @@ def resolve(
             recipe,
             rng,
             urg,
+            affinity,
         )
         must = reserved[slot.id]
         ordered = [expanded_db[i] for i in must] + [
@@ -611,6 +631,7 @@ def rank_recipes(
     rng: random.Random | None = None,
     servings: int | None = None,
     urgency: dict[str, float] | None = None,
+    feedback: Feedback | None = None,
 ) -> list[RecipeScore]:
     """
     Resolve all recipes against inventory and rank by how completely they can be filled.
@@ -625,6 +646,7 @@ def rank_recipes(
             rng=rng,
             servings=servings,
             urgency=urgency,
+            affinity=feedback.ingredient_affinity(recipe) if feedback else None,
         )
         required_slots = [
             a for a in r.assignments if not _slot_is_optional(a.slot_id, recipe)
