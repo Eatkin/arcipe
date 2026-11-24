@@ -63,6 +63,7 @@ olive_oil:
   colour: yellow
   season: [all]
   cost: medium
+  max_per_serving: 15
   unlimited: true
   nutrition: [high_fat]
 
@@ -158,3 +159,262 @@ vegan_parmesan:
   cost: high
   max_per_serving: 15
   cuisine_context: [italian]
+
+vegetable_oil:
+  name: Vegetable Oil
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  cost: low
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+coconut_oil:
+  name: Coconut Oil
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, sweet]
+  colour: white
+  season: [all]
+  cost: medium
+  max_per_serving: 15
+
+sesame_oil:
+  name: Toasted Sesame Oil
+  classes: [fat, seed]
+  roles: [fat_emulsifier, umami_boost]
+  flavour: [nutty, rich]
+  colour: brown
+  season: [all]
+  cost: medium
+  max_per_serving: 8
+  cuisine_context: [chinese, japanese, korean]
+
+vegetable_stock:
+  name: Vegetable Stock
+  classes: [seasoning]
+  roles: [liquid]
+  flavour: [umami, mild]
+  colour: yellow
+  season: [all]
+  cost: very_low
+  unlimited: true
+  staple: true
+  notes: Cubes or bouillon powder — water + a cube counts as stock.
+
+passata:
+  name: Passata
+  classes: [nightshade]
+  roles: [sauce_base, liquid]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [all]
+  cost: very_low
+  unit_weight: 500
+  nutrition: [high_fibre]
+
+soy_sauce:
+  name: Soy Sauce
+  classes: [condiment, fermented, soy_product]
+  roles: [umami_boost]
+  flavour: [umami]
+  colour: black
+  season: [all]
+  cost: low
+  max_per_serving: 15
+  unlimited: true
+  cuisine_context: [chinese, japanese, korean, thai]
+
+plant_milk:
+  name: Plant Milk
+  classes: [plant_milk]
+  roles: [liquid]
+  flavour: [mild, sweet]
+  colour: white
+  season: [all]
+  cost: low
+  unit_weight: 1000
+  nutrition: [high_calcium, b12_source]
+  notes: unit = a carton. Soy, oat, whatever.
+
+plant_cream:
+  name: Plant Cream
+  classes: [plant_milk]
+  roles: [fat_emulsifier, sauce_base, liquid]
+  flavour: [rich, mild]
+  colour: white
+  season: [all]
+  cost: low
+  unit_weight: 200
+  nutrition: [high_fat]
+  notes: Oat / soy cooking cream, a 200ml carton.
+
+peanut_butter:
+  name: Peanut Butter
+  classes: [nut]
+  roles: [fat_emulsifier, sauce_base, umami_boost]
+  flavour: [nutty, rich, sweet]
+  colour: brown
+  season: [all]
+  cost: low
+  max_per_serving: 30
+  unlimited: true
+  nutrition: [high_protein, high_fat]
+
+tahini:
+  name: Tahini
+  classes: [seed]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [nutty, bitter, rich]
+  colour: beige
+  season: [all]
+  cost: medium
+  max_per_serving: 20
+  cuisine_context: [levantine, mediterranean]
+  nutrition: [high_calcium, high_fat]
+
+maple_syrup:
+  name: Maple / Agave Syrup
+  classes: [sweetener]
+  roles: [sweetener]
+  flavour: [sweet]
+  colour: brown
+  season: [all]
+  cost: medium
+  max_per_serving: 15
+
+sugar:
+  name: Sugar
+  classes: [sweetener]
+  roles: [sweetener]
+  flavour: [sweet]
+  colour: white
+  season: [all]
+  cost: very_low
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+cornflour:
+  name: Cornflour
+  classes: [starch]
+  roles: [thickener, binder]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  cost: very_low
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+baking_powder:
+  name: Baking Powder
+  classes: [raising_agent]
+  roles: [raising_agent]
+  flavour: []
+  colour: white
+  season: [all]
+  cost: low
+  unlimited: true
+  staple: true
+
+yeast:
+  name: Dried Yeast
+  classes: [raising_agent]
+  roles: [raising_agent]
+  flavour: [umami]
+  colour: beige
+  season: [all]
+  cost: low
+  unlimited: true
+
+mustard:
+  name: Mustard
+  classes: [condiment]
+  roles: [acid_bright, umami_boost]
+  flavour: [sharp, spicy]
+  colour: yellow
+  season: [all]
+  cost: low
+  max_per_serving: 10
+
+rice_vinegar:
+  name: Rice Vinegar
+  classes: [vinegar]
+  roles: [acid_bright, acid_component]
+  flavour: [sharp, sweet]
+  colour: white
+  season: [all]
+  cost: low
+  max_per_serving: 15
+  cuisine_context: [japanese, chinese, korean]
+
+gochujang:
+  name: Gochujang
+  classes: [condiment, fermented]
+  roles: [heat, umami_boost, sweetener]
+  flavour: [spicy, umami, sweet]
+  colour: red
+  season: [all]
+  cost: medium
+  max_per_serving: 20
+  cuisine_context: [korean]
+
+hot_sauce:
+  name: Hot Sauce / Sriracha
+  classes: [condiment]
+  roles: [heat, acid_bright]
+  flavour: [spicy, sharp]
+  colour: red
+  season: [all]
+  cost: low
+  max_per_serving: 10
+
+sweet_chilli_sauce:
+  name: Sweet Chilli Sauce
+  classes: [condiment]
+  roles: [sweetener, heat]
+  flavour: [sweet, spicy]
+  colour: red
+  season: [all]
+  cost: low
+  max_per_serving: 30
+  cuisine_context: [thai]
+
+plant_yogurt:
+  name: Plant Yoghurt
+  classes: [plant_milk, fermented]
+  roles: [fat_emulsifier, sauce_base, acid_bright]
+  flavour: [sharp, mild]
+  colour: white
+  season: [all]
+  cost: low
+  shelf_life_days: 10
+  unit_weight: 500
+  notes: Soy or coconut. Dolloped on curries, chilli, porridge.
+
+kimchi:
+  name: Kimchi
+  classes: [fermented, brassica]
+  roles: [acid_bright, heat, raw_crunch]
+  flavour: [sharp, spicy, umami]
+  colour: red
+  season: [all]
+  cost: medium
+  max_per_serving: 80
+  cuisine_context: [korean]
+
+nori:
+  name: Nori Sheets
+  classes: [sea_veg]
+  roles: [umami_boost, garnish]
+  flavour: [umami]
+  colour: black
+  season: [all]
+  cost: medium
+  max_per_serving: 5
+  cuisine_context: [japanese, korean]
+  nutrition: [b12_source]

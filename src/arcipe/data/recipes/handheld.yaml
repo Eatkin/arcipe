@@ -1,0 +1,75 @@
+patties:
+  name: Veggie Patties / Burgers
+  description: >
+    Mashed beans or grains with grated veg, a binder and spices, shaped and fried.
+    In a bun with pickles and sauce, or on a plate with salad.
+  colour_dominant: brown
+  cuisine_context: [eastern_european, american]
+  preferred_ingredients: [chickpeas, kidney_beans, buckwheat, beetroot, carrot, cabbage, oats, flax_egg, bread, pickles, vegan_mayo]
+  slots: [patty_body, grated_veg, aromatic_base, binder, spice_bloom, bread_base, raw_veg, creamy_drizzle]
+  slot_overrides:
+    aromatic_base: {amount: {per_serving: 30}}
+    spice_bloom: {max_ingredients: 2}
+    bread_base: {optional: true}
+    creamy_drizzle: {optional: true, preferred_classes: [plant_milk, condiment]}
+  edges:
+    - {from: grated_veg,     to: patty_body, type: combine}
+    - {from: aromatic_base,  to: patty_body, type: combine}
+    - {from: binder,         to: patty_body, type: combine}
+    - {from: spice_bloom,    to: patty_body, type: combine}
+    - {from: patty_body,     to: bread_base, type: top}
+    - {from: raw_veg,        to: bread_base, type: top}
+    - {from: creamy_drizzle, to: bread_base, type: finish}
+  sources:
+    - https://www.vegansandra.com/2018/10/super-easy-chickpea-patties-4.html
+    - https://www.vegansandra.com/2017/12/vegan-hash-brown-burgers-rosti.html
+    - https://www.vegansandra.com/2015/08/how-to-make-perfect-vegan-patties.html
+    - https://www.healthiersteps.com/recipe/yellow-lentil-and-spinach-bhajias/
+
+tacos:
+  name: Tacos / Wraps
+  description: >
+    Warm tortillas, a spiced filling (beans, tofu, tempeh or soy chunks), crunchy
+    raw veg, something creamy, lime and coriander.
+  colour_dominant: red
+  cuisine_context: [mexican, american]
+  preferred_ingredients: [tortillas, black_beans, soy_chunks, tempeh, cabbage, lettuce, guacamole, avocado, lime, coriander_leaf, smoked_paprika, cumin]
+  slots: [bread_base, aromatic_base, protein_bulk, spice_bloom, heat, raw_veg, creamy_drizzle, acid_bright, finish_herb]
+  slot_overrides:
+    bread_base: {required_classes: [bread], preferred_classes: [bread]}
+    protein_bulk: {max_ingredients: 1}
+    spice_bloom: {max_ingredients: 3}
+    aromatic_base: {amount: {per_serving: 40}}
+  edges:
+    - {from: aromatic_base,  to: protein_bulk, type: combine}
+    - {from: spice_bloom,    to: protein_bulk, type: combine}
+    - {from: heat,           to: protein_bulk, type: combine}
+    - {from: protein_bulk,   to: bread_base,   type: top}
+    - {from: raw_veg,        to: bread_base,   type: top}
+    - {from: creamy_drizzle, to: bread_base,   type: finish}
+    - {from: acid_bright,    to: bread_base,   type: finish}
+    - {from: finish_herb,    to: bread_base,   type: finish}
+  sources:
+    - https://www.connoisseurusveg.com/vegan-chorizo-tacos/
+    - https://www.vegansandra.com/2016/06/vegan-wraps-with-carrot-noodles-pepper.html
+    - https://www.texanerin.com/vegan-tortillas/
+
+open_sandwich:
+  name: Loaded Toast / Open Sandwich
+  description: >
+    Bread with a thick spread (hummus, avocado, bean spread), crunchy veg, pickles
+    or something sharp, seeds. Lunch in five minutes.
+  colour_dominant: green
+  cuisine_context: [eastern_european, levantine, british]
+  meal_type: [breakfast, lunch]
+  preferred_ingredients: [bread, hummus, avocado, guacamole, cucumber, radish, tomato, pickles, sunflower_seeds]
+  slots: [bread_base, creamy_drizzle, raw_veg, acid_bright, texture_top]
+  slot_overrides:
+    creamy_drizzle: {amount: {per_serving: 50}}
+  edges:
+    - {from: creamy_drizzle, to: bread_base, type: coat}
+    - {from: raw_veg,        to: bread_base, type: top}
+    - {from: acid_bright,    to: bread_base, type: finish}
+    - {from: texture_top,    to: bread_base, type: top}
+  sources:
+    - https://www.vegansandra.com/2016/03/simple-lentil-and-onion-sandwich-spread.html

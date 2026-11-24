@@ -78,3 +78,87 @@ thickened_cashew_cream:
   make_ahead: true
   unlocked_roles: [fat_emulsifier, sauce_base, thickener]
   notes: Cashews, water, and a pinch of flour blended smooth. Thicken via simmering.
+
+hummus:
+  base_ingredients: [chickpeas, tahini, lemon]
+  base_ratio: {chickpeas: 0.75, tahini: 0.12, lemon: 0.06}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, protein]
+  cuisine_context: [levantine, mediterranean]
+  colour: beige
+  notes: Chickpeas, tahini, lemon, garlic, a splash of the aquafaba.
+
+pesto:
+  base_ingredients: [basil, olive_oil, walnuts]
+  base_ratio: {basil: 0.35, olive_oil: 0.35, walnuts: 0.25}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier]
+  cuisine_context: [italian]
+  colour: green
+  notes: Any soft herb or wild garlic works; any nut or seed does too.
+
+peanut_sauce:
+  base_ingredients: [peanut_butter, soy_sauce]
+  base_ratio: {peanut_butter: 0.55, soy_sauce: 0.1}
+  method: blend
+  time: {active: 3, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, umami_boost]
+  cuisine_context: [thai, chinese]
+  colour: brown
+  notes: Peanut butter, soy, lime, a little sweetener, hot water to loosen.
+
+guacamole:
+  base_ingredients: [avocado, lime]
+  base_ratio: {avocado: 0.9, lime: 0.05}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, garnish]
+  cuisine_context: [mexican, american]
+  colour: green
+
+vegan_mayo:
+  base_ingredients: [plant_milk, vegetable_oil]
+  base_ratio: {plant_milk: 0.35, vegetable_oil: 0.6}
+  method: blend
+  time: {active: 4, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier]
+  colour: white
+  notes: Soy milk + oil + mustard + lemon, blended until it catches.
+
+cashew_cheese_sauce:
+  base_ingredients: [cashews, nutritional_yeast]
+  base_ratio: {cashews: 0.35, nutritional_yeast: 0.08}
+  method: blend
+  time: {active: 5, passive: 120}
+  make_ahead: true
+  unlocked_roles: [sauce_base, fat_emulsifier, meltable, umami_boost]
+  colour: yellow
+  notes: Soaked cashews, nooch, garlic, lemon, water. Mac and cheese's best friend.
+
+flax_egg:
+  base_ingredients: [flaxseed]
+  base_ratio: {flaxseed: 0.25}
+  method: soak
+  time: {active: 1, passive: 5}
+  unlocked_roles: [binder]
+  notes: 1 tbsp ground flax + 3 tbsp water, rest 5 minutes.
+
+crispy_tofu:
+  base_ingredients: [tofu, cornflour]
+  base_ratio: {tofu: 1.0, cornflour: 0.05}
+  method: fry
+  time: {active: 8, passive: 10}
+  unlocked_roles: [protein, texture_top, bulk]
+  cuisine_context: [chinese, japanese, korean, thai]
+  colour: yellow
+  notes: Press, cube, toss in cornflour, fry or bake until golden.
+
+roasted_chickpeas:
+  base_ingredients: [chickpeas]
+  base_ratio: {chickpeas: 1.1}
+  method: roast
+  time: {active: 2, passive: 25}
+  unlocked_roles: [texture_top, protein]
+  colour: brown

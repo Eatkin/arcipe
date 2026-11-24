@@ -47,3 +47,37 @@ lemon:
   stock_ratio: 2.0
   unlimited: true
 
+
+lime:
+  name: Lime
+  classes: [citrus]
+  roles: [acid_bright, garnish]
+  flavour: [sharp, fresh]
+  colour: green
+  season: [all]
+  cost: low
+  shelf_life_days: 14
+  unit_weight: 60
+  stock_ratio: 2.0
+  max_per_serving: 15
+  cuisine_context: [thai, mexican, indian]
+
+raisins:
+  name: Raisins
+  classes: [fruit, sweetener]
+  roles: [sweetener, texture_top]
+  flavour: [sweet]
+  colour: black
+  season: [all]
+  cost: low
+  max_per_serving: 30
+
+dates:
+  name: Dates
+  classes: [fruit, sweetener]
+  roles: [sweetener, binder]
+  flavour: [sweet, rich]
+  colour: brown
+  season: [all]
+  cost: medium
+  max_per_serving: 30

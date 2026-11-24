@@ -353,3 +353,260 @@ stew_wilted_greens:
   amount: {per_serving: 80}
   time: {active: 2, passive: 3}
   optional: true
+
+# ---------------------------------------------------------------------------
+# Added for the corpus import: pasta, noodles, soups, bowls, handhelds, breakfast
+# ---------------------------------------------------------------------------
+
+pasta_base:
+  label: Pasta
+  required_roles: [grain_base]
+  required_classes: [pasta]
+  required_method: [boil]
+  amount: {per_serving: 180}
+  time: {active: 3, passive: 10}
+
+noodle_base:
+  label: Noodles
+  required_roles: [grain_base]
+  required_classes: [noodle]
+  required_method: [boil, steam]
+  amount: {per_serving: 180}
+  time: {active: 3, passive: 5}
+
+rice_base:
+  label: Rice
+  required_roles: [grain_base]
+  required_classes: [rice]
+  required_method: [boil, steam]
+  amount: {per_serving: 180}
+  time: {active: 3, passive: 15}
+
+bread_base:
+  label: Bread / Wraps
+  required_roles: [grain_base]
+  required_classes: [bread]
+  required_method: [raw, bake, fry]
+  amount: {per_serving: 80}
+  time: {active: 2, passive: 0}
+
+hearty_base:
+  label: Grain or Potato Base
+  required_roles: [grain_base]
+  preferred_classes: [grain, root_veg]
+  required_method: [boil, steam, roast]
+  amount: {per_serving: 200}
+  time: {active: 3, passive: 15}
+  notes: Buckwheat, rice, barley, mash — whatever the sauce sits on.
+
+cooked_veg:
+  label: Veg
+  required_roles: [bulk]
+  preferred_classes: [brassica, fruit_veg, leafy_green, squash, fungus]
+  required_method: [fry, roast, boil, steam, wilt]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 150}
+  time: {active: 5, passive: 8}
+
+roast_veg:
+  label: Roasted Veg
+  required_roles: [bulk]
+  preferred_classes: [root_veg, brassica, squash, fruit_veg]
+  required_method: [roast]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 220}
+  time: {active: 8, passive: 35}
+
+raw_veg:
+  label: Fresh Crunch
+  required_roles: [raw_crunch]
+  required_method: [raw]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 60}
+  time: {active: 4, passive: 0}
+
+grated_veg:
+  label: Grated Veg
+  required_roles: [bulk]
+  preferred_classes: [root_veg, fruit_veg, brassica]
+  required_method: [raw]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 70}
+  time: {active: 5, passive: 0}
+
+soup_veg:
+  label: Soup Veg
+  required_roles: [bulk]
+  preferred_classes: [root_veg, brassica, leafy_green]
+  required_method: [boil]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 150}
+  time: {active: 6, passive: 0}
+
+blend_veg:
+  label: Blended Veg Body
+  required_roles: [bulk_blendable]
+  preferred_classes: [squash, root_veg, brassica]
+  required_method: [boil, roast, blend]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 250}
+  time: {active: 6, passive: 0}
+
+mash_base:
+  label: Mash
+  required_roles: [bulk_blendable]
+  required_classes: [root_veg, squash]
+  required_method: [boil]
+  max_ingredients: 2
+  amount: {per_serving: 250}
+  time: {active: 8, passive: 20}
+
+stock_liquid:
+  label: Stock
+  required_roles: [liquid]
+  preferred_classes: [seasoning]
+  required_method: [boil]
+  amount: {per_serving: 300}
+  time: {active: 1, passive: 20}
+  notes: The simmer lives here.
+
+creamy_liquid:
+  label: Creamy Liquid
+  required_roles: [fat_emulsifier, liquid]
+  preferred_classes: [plant_milk]
+  required_method: [raw, boil]
+  amount: {per_serving: 75}
+  time: {active: 1, passive: 3}
+
+breakfast_liquid:
+  label: Milk
+  required_roles: [liquid]
+  required_classes: [plant_milk]
+  required_method: [raw, boil]
+  amount: {per_serving: 200}
+  time: {active: 1, passive: 0}
+
+dried_herbs:
+  label: Dried Herbs
+  required_roles: [dried_herb]
+  required_method: [raw, fry]
+  max_ingredients: 2
+  amount: trace
+  time: {active: 1, passive: 0}
+
+heat:
+  label: Heat
+  required_roles: [heat]
+  required_method: [raw, fry]
+  optional: true
+  amount: {per_serving: 4}
+  time: {active: 1, passive: 0}
+
+stir_fry_seasoning:
+  label: Savoury Seasoning
+  required_roles: [umami_boost]
+  preferred_classes: [condiment, fermented]
+  required_method: [raw]
+  max_ingredients: 2
+  amount: {per_serving: 15}
+  time: {active: 1, passive: 0}
+
+sweet_note:
+  label: Sweetness
+  required_roles: [sweetener]
+  preferred_classes: [sweetener]
+  required_method: [raw]
+  optional: true
+  amount: {per_serving: 8}
+  time: {active: 1, passive: 0}
+
+slurry:
+  label: Thickener
+  required_roles: [thickener]
+  required_classes: [starch]
+  required_method: [raw]
+  optional: true
+  amount: trace
+  time: {active: 1, passive: 2}
+
+creamy_drizzle:
+  label: Sauce / Spread
+  required_roles: [fat_emulsifier, sauce_base]
+  preferred_classes: [nut, seed]
+  required_method: [raw, blend]
+  amount: {per_serving: 30}
+  time: {active: 4, passive: 0}
+
+dressing_fat:
+  label: Dressing Oil
+  required_roles: [fat_emulsifier]
+  preferred_classes: [fat]
+  required_method: [raw]
+  amount: {per_serving: 12}
+  time: {active: 2, passive: 0}
+
+binder:
+  label: Binder
+  required_roles: [binder]
+  required_method: [raw, soak]
+  max_ingredients: 2
+  amount: {per_serving: 20}
+  time: {active: 2, passive: 0}
+
+patty_body:
+  label: Patty Body
+  required_roles: [protein, bulk]
+  preferred_classes: [legume, grain, soy_product]
+  required_method: [boil, fry, bake, raw]
+  max_ingredients: 2
+  amount: {per_serving: 140}
+  time: {active: 15, passive: 15}
+  notes: Mash, shape, fry or bake.
+
+porridge_base:
+  label: Porridge Grain
+  required_roles: [porridge_base]
+  required_method: [boil]
+  amount: {per_serving: 200}
+  time: {active: 2, passive: 8}
+
+fruit_topping:
+  label: Fruit
+  required_roles: [sweetener]
+  required_classes: [fruit, stone_fruit]
+  required_method: [raw, boil]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 80}
+  time: {active: 2, passive: 0}
+
+batter_flour:
+  label: Flour
+  required_roles: [thickener, gluten]
+  required_method: [raw]
+  amount: {per_serving: 60}
+  time: {active: 3, passive: 0}
+
+griddle:
+  label: Cook the Pancakes
+  required_roles: [fat_emulsifier]
+  preferred_classes: [fat]
+  required_method: [fry]
+  amount: {per_serving: 5}
+  time: {active: 15, passive: 0}
+
+blend_fruit:
+  label: Fruit to Blend
+  required_roles: [sweetener]
+  required_classes: [fruit, stone_fruit]
+  required_method: [raw, blend]
+  spread: true
+  max_ingredients: 2
+  amount: {per_serving: 180}
+  time: {active: 3, passive: 0}

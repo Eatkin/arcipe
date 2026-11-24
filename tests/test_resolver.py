@@ -113,7 +113,8 @@ def test_non_staple_cannot_be_shared_between_prepared_forms():
 @pytest.mark.parametrize("seed", SEEDS)
 def test_pasta_goes_on_pasta(seed):
     r = resolve(RECIPES["green_pasta"], ["spinach", "cashews"], rng=random.Random(seed))
-    assert slot_of(r, "grain_base").assigned == ["spaghetti"]
+    (base,) = slot_of(r, "grain_base").assigned
+    assert "pasta" in INGREDIENTS[base].classes
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -127,9 +128,9 @@ def test_roasted_carrot_never_in_wilted_greens(seed):
 
 
 def test_perishable_preferred_over_equivalent_non_perishable():
-    # nettle (perishable, forage) beats frozen spinach for the saag green
-    r = resolve(RECIPES["saag"], ["nettle", "frozen_spinach", "potato"])
-    assert slot_of(r, "saag_green").assigned[0] == "nettle"
+    # fresh spinach (perishable) beats frozen spinach for the saag green
+    r = resolve(RECIPES["saag"], ["spinach", "frozen_spinach", "potato"])
+    assert slot_of(r, "saag_green").assigned[0] == "spinach"
 
 
 # ---------------------------------------------------------------------------

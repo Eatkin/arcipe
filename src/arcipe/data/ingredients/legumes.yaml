@@ -85,3 +85,39 @@ tofu:
   cuisine_context: [japanese, korean, chinese]
   nutrition: [high_protein, high_calcium]
   notes: Press well before using. Takes on sauce flavour readily.
+
+green_lentils:
+  name: Green / Brown Lentils
+  classes: [legume]
+  roles: [bulk, protein]
+  flavour: [earthy]
+  colour: brown
+  season: [all]
+  cost: very_low
+  stock_ratio: 0.4
+  nutrition: [high_protein, high_iron, high_fibre]
+  notes: Hold their shape, unlike red lentils. Tinned = stock_ratio 1 really.
+
+tempeh:
+  name: Tempeh
+  classes: [soy_product, fermented]
+  roles: [protein, bulk, umami_boost]
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  cost: medium
+  shelf_life_days: 14
+  unit_weight: 200
+  nutrition: [high_protein]
+
+soy_chunks:
+  name: Soy Chunks / TVP
+  classes: [soy_product]
+  roles: [protein, bulk]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  cost: low
+  stock_ratio: 0.35
+  nutrition: [high_protein]
+  notes: Rehydrated weight is ~3x dry.

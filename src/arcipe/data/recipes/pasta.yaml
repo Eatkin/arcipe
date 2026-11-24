@@ -1,0 +1,97 @@
+one_pot_pasta:
+  name: One-Pot Veggie Pasta
+  description: >
+    Pasta cooked straight in its sauce: soften onion, grate in veg, add pasta,
+    beans and boiling water, finish with something creamy. One pot, no draining,
+    keeps well for tomorrow's lunch.
+  colour_dominant: yellow
+  cuisine_context: [italian, eastern_european]
+  preferred_ingredients: [onion, garlic, courgette, carrot, chickpeas, plant_cream, paprika, nutritional_yeast]
+  slots: [aromatic_base, grated_veg, spice_bloom, pasta_base, protein_bulk, creamy_liquid, umami_boost, finish_herb]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1}
+    spice_bloom: {max_ingredients: 2}
+  edges:
+    - {from: aromatic_base, to: grated_veg,    type: combine}
+    - {from: grated_veg,    to: pasta_base,    type: combine}
+    - {from: spice_bloom,   to: pasta_base,    type: combine}
+    - {from: protein_bulk,  to: pasta_base,    type: fold_in}
+    - {from: pasta_base,    to: creamy_liquid, type: combine}
+    - {from: umami_boost,   to: creamy_liquid, type: fold_in}
+    - {from: finish_herb,   to: creamy_liquid, type: finish}
+  sources:
+    - https://www.vegansandra.com/2018/06/delicious-one-pot-veggie-pasta-with.html
+    - https://www.vegansandra.com/2017/04/coconut-and-lemon-pasta-with-chickpeas.html
+  notes: Water ~2.5x the dry pasta weight. Coconut milk + lemon zest is the other classic.
+
+tomato_pasta:
+  name: Tomato Pasta with Veg
+  description: >
+    The everyday one. Onion and garlic, a tomato sauce simmered with whatever veg
+    needs using, dried herbs, optional lentils or beans for a bolognese-ish version.
+  colour_dominant: red
+  cuisine_context: [italian, mediterranean]
+  preferred_ingredients: [onion, garlic, passata, canned_tomato, courgette, aubergine, mushrooms, oregano, basil]
+  slots: [aromatic_base, cooked_veg, dried_herbs, tomato_sauce_body, protein_bulk, pasta_base, umami_boost, finish_herb]
+  slot_overrides:
+    protein_bulk: {optional: true, max_ingredients: 1}
+  edges:
+    - {from: aromatic_base,     to: cooked_veg,        type: combine}
+    - {from: cooked_veg,        to: tomato_sauce_body, type: combine}
+    - {from: dried_herbs,       to: tomato_sauce_body, type: combine}
+    - {from: protein_bulk,      to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: pasta_base,        type: coat}
+    - {from: umami_boost,       to: pasta_base,        type: finish}
+    - {from: finish_herb,       to: pasta_base,        type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/07/tagliatelle-pasta-with-tomatoes-and.html
+    - https://www.vegansandra.com/2016/10/lentil-bolognese-with-black-bean.html
+    - https://www.vegansandra.com/2017/02/lemony-tomato-and-cauliflower-pasta.html
+    - https://www.vegansandra.com/2018/01/easy-spaghetti-marinara-with-cashew.html
+
+baked_pasta:
+  name: Creamy Baked Pasta / Mac
+  description: >
+    Pasta folded through a creamy, cheesy sauce with greens or courgette, topped
+    with breadcrumbs and baked until golden. Mac and cheese's grown-up cousin.
+  colour_dominant: yellow
+  cuisine_context: [american, italian, eastern_european]
+  preferred_ingredients: [garlic, onion, cashew_cheese_sauce, spinach, courgette, broccoli, brussels_sprouts, breadcrumbs]
+  slots: [pasta_base, aromatic_base, cooked_veg, creamy_sauce, umami_boost, texture_top]
+  slot_overrides:
+    creamy_sauce: {required_colour: null, preferred_classes: [nut, plant_milk]}
+    texture_top: {optional: false, preferred_classes: [bread, seed, nut]}
+  edges:
+    - {from: aromatic_base, to: cooked_veg,   type: combine}
+    - {from: cooked_veg,    to: creamy_sauce, type: fold_in}
+    - {from: umami_boost,   to: creamy_sauce, type: fold_in}
+    - {from: pasta_base,    to: creamy_sauce, type: combine}
+    - {from: creamy_sauce,  to: texture_top,  type: combine}
+  sources:
+    - https://www.vegansandra.com/2014/08/cheesy-baked-mac-and-zucchini.html
+    - https://www.vegansandra.com/2014/01/baked-pasta-with-creamy-spinach-and.html
+    - https://thefirstmess.com/2018/02/07/creamy-vegan-truffle-mac-crunchy-kale-recipe/
+  notes: Bake 20 min at 200°C — it's on the texture_top step.
+
+pasta_salad:
+  name: Pasta Salad
+  description: >
+    Cold pasta with crunchy raw veg, beans, a creamy or pesto dressing and herbs.
+    Packs well, uses up odds and ends of salad veg.
+  colour_dominant: green
+  cuisine_context: [mediterranean, eastern_european, italian]
+  meal_type: [lunch, dinner]
+  preferred_ingredients: [pesto, vegan_mayo, cucumber, bell_pepper, chickpeas, pickles, sun_dried_tomatoes]
+  slots: [pasta_base, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1}
+  edges:
+    - {from: raw_veg,        to: pasta_base, type: combine}
+    - {from: protein_bulk,   to: pasta_base, type: combine}
+    - {from: creamy_drizzle, to: pasta_base, type: coat}
+    - {from: acid_bright,    to: pasta_base, type: finish}
+    - {from: finish_herb,    to: pasta_base, type: finish}
+  sources:
+    - https://www.vegansandra.com/2018/09/vegan-pasta-salad-with-sun-dried-tomato.html
+    - https://www.vegansandra.com/2015/04/rich-and-juicy-pasta-salad-with-veggies.html
+    - https://www.vegansandra.com/2017/07/creamy-pasta-salad-with-crunchy-carrots.html

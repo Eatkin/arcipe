@@ -57,3 +57,27 @@ peas:
   cost: low
   nutrition: [high_protein, high_fibre]
   notes: Frozen peas are year-round and excellent. Genuinely polymorphic ingredient.
+
+swiss_chard:
+  name: Swiss Chard
+  classes: [leafy_green]
+  roles: [bulk, sauce_base, garnish]
+  flavour: [earthy, bitter]
+  colour: green
+  season: [summer, autumn]
+  cost: low
+  shelf_life_days: 4
+  unit_weight: 250
+  nutrition: [high_iron]
+
+beansprouts:
+  name: Beansprouts
+  classes: [legume]
+  roles: [bulk, raw_crunch, garnish]
+  flavour: [fresh, mild]
+  colour: white
+  season: [all]
+  cost: low
+  shelf_life_days: 3
+  unit_weight: 300
+  cuisine_context: [chinese, thai]

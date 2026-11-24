@@ -1,0 +1,71 @@
+buddha_bowl:
+  name: Buddha Bowl
+  description: >
+    Grain, a tray of roasted veg, a protein, something raw and crunchy, a big
+    spoon of sauce (peanut, tahini, gochujang), seeds on top.
+  colour_dominant: orange
+  cuisine_context: [korean, levantine, american]
+  preferred_ingredients: [sweet_potato, broccoli, crispy_tofu, chickpeas, cabbage, cucumber, peanut_sauce, tahini, sesame_seeds]
+  slots: [hearty_base, roast_veg, protein_bulk, raw_veg, creamy_drizzle, texture_top]
+  slot_overrides:
+    hearty_base: {preferred_classes: [rice, grain]}
+    protein_bulk: {max_ingredients: 1}
+  edges:
+    - {from: roast_veg,      to: hearty_base, type: top}
+    - {from: protein_bulk,   to: hearty_base, type: top}
+    - {from: raw_veg,        to: hearty_base, type: top}
+    - {from: creamy_drizzle, to: hearty_base, type: finish}
+    - {from: texture_top,    to: hearty_base, type: top}
+  sources:
+    - https://sweetpotatosoul.com/2020/08/korean-inspired-vegan-buddha-bowl.html
+
+tray_bake:
+  name: Veg & Bean Tray Bake
+  description: >
+    Chop, toss with oil and spice, roast. Beans or chickpeas go in for the last
+    15 minutes. Finish with a tahini or yoghurt drizzle and herbs.
+  colour_dominant: orange
+  cuisine_context: [levantine, mediterranean, british]
+  preferred_ingredients: [cauliflower, squash, carrot, sweet_potato, onion, chickpeas, tahini, smoked_paprika, parsley]
+  slots: [roast_veg, protein_bulk, spice_bloom, dressing_fat, creamy_drizzle, finish_herb]
+  slot_overrides:
+    roast_veg: {max_ingredients: 3, amount: {per_serving: 300}}
+    protein_bulk: {max_ingredients: 1, required_classes: [legume]}
+    spice_bloom: {max_ingredients: 2}
+    creamy_drizzle: {optional: true, preferred_classes: [seed]}
+    dressing_fat: {required_classes: [fat]}
+  edges:
+    - {from: dressing_fat,   to: roast_veg, type: combine}
+    - {from: spice_bloom,    to: roast_veg, type: combine}
+    - {from: protein_bulk,   to: roast_veg, type: fold_in}
+    - {from: creamy_drizzle, to: roast_veg, type: finish}
+    - {from: finish_herb,    to: roast_veg, type: finish}
+  sources:
+    - https://www.healthiersteps.com/recipe/roasted-cauliflower-in-spicy-marinara-sauce/
+    - https://www.veganricha.com/caramelized-onion-beans-charred-cauliflower/
+
+grain_salad:
+  name: Grain & Bean Salad
+  description: >
+    Cooked grain (quinoa, bulgur, barley, lentils) with raw veg, beans, a sharp
+    oily dressing, lots of herbs and some seeds. Lunchbox hero.
+  colour_dominant: green
+  cuisine_context: [levantine, mediterranean]
+  meal_type: [lunch, dinner]
+  preferred_ingredients: [quinoa, bulgur, pearl_barley, cucumber, tomato, chickpeas, parsley, mint, lemon, olive_oil]
+  slots: [hearty_base, raw_veg, protein_bulk, dressing_fat, acid_bright, finish_herb, texture_top]
+  slot_overrides:
+    hearty_base: {required_classes: [grain, legume], preferred_classes: [grain], amount: {per_serving: 150}}
+    protein_bulk: {max_ingredients: 1}
+    raw_veg: {amount: {per_serving: 100}}
+  edges:
+    - {from: raw_veg,      to: hearty_base, type: combine}
+    - {from: protein_bulk, to: hearty_base, type: combine}
+    - {from: dressing_fat, to: hearty_base, type: coat}
+    - {from: acid_bright,  to: hearty_base, type: coat}
+    - {from: finish_herb,  to: hearty_base, type: finish}
+    - {from: texture_top,  to: hearty_base, type: top}
+  sources:
+    - https://www.101cookbooks.com/anna-jones-california-salad/
+    - https://www.vegansandra.com/2022/10/easy-warm-lentil-salad-ready-in-10.html
+    - https://www.vegansandra.com/2022/10/juicy-cabbage-salad-with-apple-celery.html

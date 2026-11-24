@@ -9,6 +9,8 @@ green_pasta:
   preferred_ingredients: []
   required_ingredients: []
   slots: [grain_base, green_sauce, fat_emulsifier, aromatic_base, acid_bright, umami_boost, texture_top]
+  slot_overrides:
+    grain_base: {required_classes: [pasta]}
   edges:
     - {from: aromatic_base, to: green_sauce,  type: combine}
     - {from: fat_emulsifier, to: green_sauce,  type: emulsify}

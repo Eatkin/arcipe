@@ -1,0 +1,196 @@
+lentil_soup:
+  name: Lentil Soup
+  description: >
+    Onion, a root veg, lentils and stock, a bay leaf or a spoon of spice, lemon at
+    the end. Cheap, filling, and forgiving of whatever veg is going soft.
+  colour_dominant: orange
+  cuisine_context: [eastern_european, levantine, indian]
+  preferred_ingredients: [onion, garlic, red_lentils, carrot, celery, bay_leaf, lemon, cumin]
+  slots: [aromatic_base, soup_veg, protein_bulk, stock_liquid, dried_herbs, spice_bloom, acid_bright, finish_herb]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1, required_classes: [legume]}
+    spice_bloom: {max_ingredients: 2}
+  edges:
+    - {from: aromatic_base, to: soup_veg,     type: combine}
+    - {from: spice_bloom,   to: soup_veg,     type: combine}
+    - {from: soup_veg,      to: stock_liquid, type: combine}
+    - {from: protein_bulk,  to: stock_liquid, type: combine}
+    - {from: dried_herbs,   to: stock_liquid, type: combine}
+    - {from: acid_bright,   to: stock_liquid, type: finish}
+    - {from: finish_herb,   to: stock_liquid, type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/03/lentil-and-turnip-soup-with-lemon.html
+    - https://www.vegansandra.com/2022/05/cozy-red-lentil-soup-with-cauliflower.html
+    - https://www.gimmesomeoven.com/peanut-curry-lentil-soup/
+
+veg_soup:
+  name: Chunky Vegetable Soup
+  description: >
+    The Estonian/British everyday soup: onion, carrot, potato and whatever else in
+    stock with bay and dill, beans for body, parsley on top. Dumplings optional.
+  colour_dominant: yellow
+  cuisine_context: [eastern_european, british]
+  preferred_ingredients: [onion, garlic, carrot, potato, cabbage, celery, bay_leaf, dill, parsley, dumplings]
+  slots: [aromatic_base, soup_veg, starchy_bulk, protein_bulk, stock_liquid, dried_herbs, finish_herb]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1, optional: true}
+    starchy_bulk: {optional: false}
+  edges:
+    - {from: aromatic_base, to: soup_veg,     type: combine}
+    - {from: soup_veg,      to: stock_liquid, type: combine}
+    - {from: starchy_bulk,  to: stock_liquid, type: combine}
+    - {from: protein_bulk,  to: stock_liquid, type: fold_in}
+    - {from: dried_herbs,   to: stock_liquid, type: combine}
+    - {from: finish_herb,   to: stock_liquid, type: finish}
+  sources:
+    - https://www.vegansandra.com/2017/10/easy-vegetable-and-dumpling-soup-video.html
+    - https://www.thevegspace.co.uk/recipe-vegan-dumplings/
+
+blended_soup:
+  name: Creamy Blended Soup
+  description: >
+    One main veg — squash, broccoli, cauliflower, sweet potato, carrot — softened
+    with onion, simmered in stock, blended with something creamy. Seeds on top.
+  colour_dominant: orange
+  cuisine_context: [british, eastern_european, american]
+  preferred_ingredients: [onion, garlic, squash, broccoli, sweet_potato, cauliflower, coconut_milk, pumpkin_seeds]
+  slots: [aromatic_base, blend_veg, stock_liquid, creamy_liquid, spice_bloom, texture_top, finish_herb]
+  slot_overrides:
+    spice_bloom: {max_ingredients: 2}
+    stock_liquid: {amount: {per_serving: 200}}
+  edges:
+    - {from: aromatic_base, to: blend_veg,     type: combine}
+    - {from: spice_bloom,   to: blend_veg,     type: combine}
+    - {from: blend_veg,     to: stock_liquid,  type: combine}
+    - {from: stock_liquid,  to: creamy_liquid, type: blend}
+    - {from: texture_top,   to: creamy_liquid, type: top}
+    - {from: finish_herb,   to: creamy_liquid, type: finish}
+  sources:
+    - https://thefirstmess.com/2017/09/06/smoky-vegan-corn-chowder-potatoes-recipe/
+
+bean_chilli:
+  name: Bean Chilli
+  description: >
+    Onion, peppers, two kinds of beans, tomatoes, cumin, smoked paprika and chilli,
+    sweetcorn stirred in. Over rice or in tortillas, with avocado and lime.
+  colour_dominant: red
+  cuisine_context: [mexican, american]
+  preferred_ingredients: [onion, garlic, bell_pepper, kidney_beans, black_beans, canned_tomato, cumin, smoked_paprika, sweetcorn, avocado, lime]
+  slots: [aromatic_base, cooked_veg, spice_bloom, heat, tomato_sauce_body, protein_bulk, hearty_base, acid_bright, finish_herb]
+  slot_overrides:
+    protein_bulk: {required_classes: [legume, soy_product]}
+    spice_bloom: {max_ingredients: 3}
+    hearty_base: {preferred_classes: [rice, bread]}
+  edges:
+    - {from: aromatic_base,     to: cooked_veg,        type: combine}
+    - {from: spice_bloom,       to: cooked_veg,        type: combine}
+    - {from: heat,              to: cooked_veg,        type: combine}
+    - {from: cooked_veg,        to: tomato_sauce_body, type: combine}
+    - {from: protein_bulk,      to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: hearty_base,       type: coat}
+    - {from: acid_bright,       to: hearty_base,       type: finish}
+    - {from: finish_herb,       to: hearty_base,       type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/03/watch-how-i-cook-spicy-vegan-tex-mex.html
+    - https://www.connoisseurusveg.com/vegan-chorizo-tacos/
+
+stroganoff:
+  name: Mushroom Stroganoff
+  description: >
+    Onions and mushrooms fried hard, paprika, a splash of soy, plant cream and
+    mustard. Over buckwheat, rice, pasta or mash.
+  colour_dominant: brown
+  cuisine_context: [eastern_european]
+  preferred_ingredients: [onion, garlic, mushrooms, paprika, plant_cream, mustard, buckwheat, dill]
+  required_ingredients: [mushrooms]
+  slots: [aromatic_base, cooked_veg, spice_bloom, creamy_liquid, stir_fry_seasoning, hearty_base, finish_herb]
+  slot_overrides:
+    cooked_veg: {preferred_classes: [fungus], max_ingredients: 2}
+    spice_bloom: {max_ingredients: 2}
+    creamy_liquid: {amount: {per_serving: 100}}
+    stir_fry_seasoning: {label: Seasoning, max_ingredients: 1, amount: {per_serving: 8}}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg,    type: combine}
+    - {from: spice_bloom,        to: cooked_veg,    type: combine}
+    - {from: cooked_veg,         to: creamy_liquid, type: combine}
+    - {from: stir_fry_seasoning, to: creamy_liquid, type: fold_in}
+    - {from: creamy_liquid,      to: hearty_base,   type: coat}
+    - {from: finish_herb,        to: hearty_base,   type: finish}
+  sources:
+    - https://www.vegansandra.com/2017/11/vegan-stroganoff.html
+    - https://www.vegansandra.com/2016/08/easy-creamy-chanterelle-sauce-gluten.html
+
+goulash:
+  name: Paprika Goulash
+  description: >
+    A paprika-red stew of onion, peppers, potatoes and beans or soy chunks in
+    tomato, caraway-ish with a bay leaf. Bread on the side or nothing at all.
+  colour_dominant: red
+  cuisine_context: [eastern_european]
+  preferred_ingredients: [onion, garlic, paprika, smoked_paprika, bell_pepper, potato, soy_chunks, kidney_beans, canned_tomato, bay_leaf]
+  slots: [aromatic_base, spice_bloom, cooked_veg, starchy_bulk, protein_bulk, tomato_sauce_body, dried_herbs, finish_herb]
+  slot_overrides:
+    spice_bloom: {max_ingredients: 2}
+    starchy_bulk: {optional: false}
+    protein_bulk: {max_ingredients: 1}
+    tomato_sauce_body: {time: {active: 3, passive: 35}}
+  edges:
+    - {from: aromatic_base, to: spice_bloom,       type: combine}
+    - {from: spice_bloom,   to: cooked_veg,        type: combine}
+    - {from: cooked_veg,    to: tomato_sauce_body, type: combine}
+    - {from: starchy_bulk,  to: tomato_sauce_body, type: combine}
+    - {from: protein_bulk,  to: tomato_sauce_body, type: fold_in}
+    - {from: dried_herbs,   to: tomato_sauce_body, type: combine}
+    - {from: finish_herb,   to: tomato_sauce_body, type: finish}
+
+shepherds_pie:
+  name: Shepherd's Pie
+  description: >
+    Lentils (or buckwheat, or soy mince) and veg in a thick savoury gravy, topped
+    with mash and baked. Sunday dinner that uses up the root veg.
+  colour_dominant: brown
+  cuisine_context: [british, eastern_european]
+  preferred_ingredients: [onion, garlic, green_lentils, carrot, peas, potato, thyme, soy_sauce, tomato_puree]
+  slots: [aromatic_base, soup_veg, protein_bulk, tomato_enhancement, stir_fry_seasoning, dried_herbs, mash_base]
+  slot_overrides:
+    soup_veg: {label: Veg, required_method: [boil, fry]}
+    protein_bulk: {max_ingredients: 1, preferred_classes: [legume, soy_product, grain]}
+    tomato_enhancement: {required_roles: [thickener], required_colour: null, label: Gravy Thickener}
+    stir_fry_seasoning: {label: Savoury Seasoning, max_ingredients: 1, amount: {per_serving: 10}}
+    mash_base: {time: {active: 10, passive: 45}}
+  edges:
+    - {from: aromatic_base,      to: soup_veg,           type: combine}
+    - {from: soup_veg,           to: protein_bulk,       type: combine}
+    - {from: tomato_enhancement, to: protein_bulk,       type: fold_in}
+    - {from: stir_fry_seasoning, to: protein_bulk,       type: fold_in}
+    - {from: dried_herbs,        to: protein_bulk,       type: combine}
+    - {from: protein_bulk,       to: mash_base,          type: combine}
+  sources:
+    - https://www.vegansandra.com/2016/11/shepherds-pie-with-buckwheat-veggies.html
+    - https://www.vegansandra.com/2017/03/vegan-lentil-loaf-with-cabbage-gluten.html
+  notes: Mash time includes 25 min in the oven once assembled.
+
+sauce_over_grain:
+  name: Quick Creamy Veg Sauce over Grains
+  description: >
+    Sandra's weeknight move: a quick sauce of veg, beans and coconut milk or cream,
+    fifteen minutes in a pan, over buckwheat, rice or potatoes.
+  colour_dominant: green
+  cuisine_context: [eastern_european]
+  preferred_ingredients: [onion, garlic, green_beans, mushrooms, coconut_milk, plant_cream, buckwheat, dill]
+  slots: [hearty_base, aromatic_base, cooked_veg, protein_bulk, creamy_liquid, stir_fry_seasoning, finish_herb]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1, optional: true}
+    creamy_liquid: {amount: {per_serving: 100}}
+    stir_fry_seasoning: {label: Seasoning, max_ingredients: 1, amount: {per_serving: 8}}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg,    type: combine}
+    - {from: cooked_veg,         to: creamy_liquid, type: combine}
+    - {from: protein_bulk,       to: creamy_liquid, type: fold_in}
+    - {from: stir_fry_seasoning, to: creamy_liquid, type: fold_in}
+    - {from: creamy_liquid,      to: hearty_base,   type: coat}
+    - {from: finish_herb,        to: hearty_base,   type: finish}
+  sources:
+    - https://www.vegansandra.com/2024/05/green-bean-and-mushroom-sauce-with.html
+    - https://www.vegansandra.com/2018/05/creamy-coconut-buckwheat-with-mushrooms.html
+    - https://www.vegansandra.com/2017/04/simple-rice-and-veggies-with-peanut-and.html

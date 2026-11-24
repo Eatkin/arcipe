@@ -43,3 +43,58 @@ pine_nuts:
   max_per_serving: 15
   cuisine_context: [italian, levantine]
 
+
+sesame_seeds:
+  name: Sesame Seeds
+  classes: [seed]
+  roles: [texture_top, garnish]
+  flavour: [nutty]
+  colour: beige
+  season: [all]
+  cost: low
+  unlimited: true
+  cuisine_context: [japanese, chinese, korean]
+
+walnuts:
+  name: Walnuts
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [rich, bitter, nutty]
+  colour: brown
+  season: [all]
+  cost: medium
+  nutrition: [omega3, high_fat]
+
+almonds:
+  name: Almonds
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [nutty, sweet]
+  colour: brown
+  season: [all]
+  cost: medium
+  nutrition: [high_protein, high_calcium]
+
+flaxseed:
+  name: Ground Flaxseed
+  classes: [seed]
+  roles: [binder]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true
+  max_per_serving: 15
+  nutrition: [omega3]
+  notes: 1 tbsp + 3 tbsp water = a flax egg.
+
+peanuts:
+  name: Peanuts
+  classes: [nut, legume]
+  roles: [texture_top, protein]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  cost: low
+  nutrition: [high_protein]
+  cuisine_context: [thai, chinese]

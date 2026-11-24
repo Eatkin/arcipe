@@ -46,3 +46,15 @@ sweet_potato:
   shelf_life_days: 21
   unit_weight: 250
   nutrition: [high_carb, high_fibre]
+
+turnip:
+  name: Turnip / Swede
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable]
+  flavour: [earthy, sharp, sweet]
+  colour: white
+  season: [autumn, winter]
+  cost: very_low
+  shelf_life_days: 21
+  unit_weight: 300
+  cuisine_context: [eastern_european, british]

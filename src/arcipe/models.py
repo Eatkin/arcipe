@@ -42,6 +42,10 @@ Role = Literal[
     "raising_agent",
     "basic",  # as in, not acidic
     "meltable",
+    "heat",  # chilli in any form: fresh, flakes, hot sauce
+    "dried_herb",  # oregano, thyme, bay — the European cousin of spice_base
+    "raw_crunch",  # eaten raw for crunch and freshness: cucumber, radish, lettuce
+    "porridge_base",  # cooks into a breakfast porridge: oats, buckwheat
 ]
 
 # Broad flavour contribution
@@ -103,6 +107,16 @@ IngredientClassName = Literal[
     "soy_product",
     "vinegar",
     "raising_agent",
+    # Culinary classes — what you'd reach for, not botany
+    "pasta",
+    "noodle",
+    "rice",
+    "bread",  # loaves, tortillas, pastry
+    "fruit",
+    "sweetener",
+    "starch",  # cornflour and friends
+    "condiment",  # bottled sauces and pastes
+    "seasoning",  # stock, salt-adjacent things
 ]
 # Nutritional flags (soft constraints for meal planner)
 NutritionFlag = Literal[
@@ -178,6 +192,10 @@ CuisineContext = Literal[
     "british",
     "universal",
     "chinese",
+    "eastern_european",
+    "thai",
+    "american",
+    "mediterranean",
 ]
 
 CuisineFamily = Literal[
@@ -200,6 +218,10 @@ CUISINE_FAMILY: dict[CuisineContext, CuisineFamily] = {
     "mexican": "american",
     "british": "european",
     "universal": "universal",
+    "eastern_european": "european",
+    "thai": "east_asian",
+    "american": "american",
+    "mediterranean": "european",
 }
 
 MealType = Literal[
@@ -332,9 +354,14 @@ class ComponentSlot(DataModel):
         default_factory=list
     )  # Bonus if role covers these additional roles
     preferred_classes: list[IngredientClassName] = Field(default_factory=list)
+    # Hard filter: ingredient must belong to at least one of these (e.g. [pasta])
+    required_classes: list[IngredientClassName] = Field(default_factory=list)
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 1  # prevent slot becoming a dumping ground
+    # Share the amount between ingredients (a tray of mixed veg) instead of
+    # filling from the top-ranked one first
+    spread: bool = False
     # How much the slot needs. "trace" = too little to track (spices, raising agents)
     amount: Amount | Literal["trace"] | None = None
     time: Time = Field(default_factory=Time)
@@ -378,4 +405,6 @@ class Recipe(DataModel):
     no_ingredient_reuse: bool = True  # same ingredient can't fill two slots
     colour_dominant: ColourFamily | None = None
     serves: int = 2
+    # Real recipes this archetype was abstracted from — cook from these
+    sources: list[str] = Field(default_factory=list)
     notes: str = ""

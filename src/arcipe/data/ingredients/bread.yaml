@@ -1,0 +1,34 @@
+tortillas:
+  name: Tortillas
+  classes: [bread]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  cost: low
+  shelf_life_days: 14
+  unit_weight: 40
+  cuisine_context: [mexican, american]
+
+bread:
+  name: Bread
+  classes: [bread]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: brown
+  season: [all]
+  cost: low
+  shelf_life_days: 5
+  unit_weight: 40
+  notes: unit = a slice. Burger buns count too.
+
+breadcrumbs:
+  name: Breadcrumbs
+  classes: [bread]
+  roles: [texture_top, binder]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  cost: low
+  unlimited: true
+  staple: true

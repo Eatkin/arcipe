@@ -1,6 +1,6 @@
 spaghetti:
   name: Spaghetti
-  classes: [grain]
+  classes: [grain, pasta]
   roles: [grain_base]
   flavour: [earthy]
   colour: yellow
@@ -48,7 +48,7 @@ plain_flour:
 
 basmati_rice:
   name: Basmati Rice
-  classes: [grain]
+  classes: [grain, rice]
   roles: [grain_base]
   flavour: [earthy, floral]
   colour: white
@@ -61,7 +61,7 @@ basmati_rice:
 
 brown_rice:
   name: Brown Rice
-  classes: [grain]
+  classes: [grain, rice]
   roles: [grain_base]
   flavour: [earthy]
   colour: brown
@@ -73,7 +73,7 @@ brown_rice:
 
 sushi_rice:
   name: Sushi Rice
-  classes: [grain]
+  classes: [grain, rice]
   roles: [grain_base]
   flavour: [earthy, floral]
   colour: white
@@ -83,3 +83,123 @@ sushi_rice:
   unlimited: true
   cuisine_context: [japanese]
   nutrition: [high_carb]
+
+pasta:
+  name: Pasta (any shape)
+  classes: [grain, pasta]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  cost: very_low
+  unlimited: true
+  stock_ratio: 0.4
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+noodles:
+  name: Wheat Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  cost: low
+  stock_ratio: 0.4
+  cuisine_context: [chinese, japanese, korean]
+  nutrition: [high_carb]
+
+rice_noodles:
+  name: Rice Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  cost: low
+  stock_ratio: 0.4
+  cuisine_context: [thai, chinese]
+  nutrition: [high_carb]
+
+quinoa:
+  name: Quinoa
+  classes: [grain]
+  roles: [grain_base, protein]
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  cost: medium
+  stock_ratio: 0.35
+  nutrition: [high_protein, high_fibre]
+
+couscous:
+  name: Couscous
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  cost: low
+  stock_ratio: 0.4
+  cuisine_context: [levantine, mediterranean]
+  nutrition: [high_carb]
+
+bulgur:
+  name: Bulgur Wheat
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  cost: low
+  stock_ratio: 0.4
+  cuisine_context: [levantine]
+  nutrition: [high_fibre]
+
+pearl_barley:
+  name: Pearl Barley
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  cost: very_low
+  stock_ratio: 0.35
+  cuisine_context: [british, eastern_european]
+  nutrition: [high_fibre]
+
+buckwheat:
+  name: Buckwheat
+  classes: [grain]
+  roles: [grain_base, porridge_base]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  cost: low
+  stock_ratio: 0.4
+  cuisine_context: [eastern_european]
+  nutrition: [high_fibre]
+
+oats:
+  name: Oats
+  classes: [grain]
+  roles: [porridge_base, binder]
+  flavour: [mild, nutty]
+  colour: beige
+  season: [all]
+  cost: very_low
+  unlimited: true
+  stock_ratio: 0.25
+  nutrition: [high_fibre]
+  notes: 40g oats makes ~160g porridge, hence the stock ratio.
+
+millet:
+  name: Millet
+  classes: [grain]
+  roles: [grain_base, porridge_base, bulk]
+  flavour: [mild, nutty]
+  colour: yellow
+  season: [all]
+  cost: low
+  stock_ratio: 0.3
+  cuisine_context: [eastern_european]

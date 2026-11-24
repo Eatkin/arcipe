@@ -1,0 +1,110 @@
+noodle_stir_fry:
+  name: Noodle Stir-Fry
+  description: >
+    Hot pan, quick veg, tofu or beans, garlic and ginger, a salty-sweet sauce,
+    noodles tossed through, something crunchy on top. Chow mein, pad thai and
+    Singapore noodles are all this shape.
+  colour_dominant: brown
+  cuisine_context: [chinese, thai]
+  preferred_ingredients: [garlic, ginger, crispy_tofu, tofu, broccoli, bell_pepper, cabbage, soy_sauce, peanuts, sesame_seeds]
+  slots: [noodle_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, sweet_note, heat, texture_top]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [allium, rhizome]}
+    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume]}
+    texture_top: {preferred_classes: [nut, seed]}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg,  type: combine}
+    - {from: cooked_veg,         to: noodle_base, type: combine}
+    - {from: protein_bulk,       to: noodle_base, type: fold_in}
+    - {from: stir_fry_seasoning, to: noodle_base, type: combine}
+    - {from: sweet_note,         to: noodle_base, type: combine}
+    - {from: heat,               to: noodle_base, type: combine}
+    - {from: texture_top,        to: noodle_base, type: top}
+  sources:
+    - https://www.vegansandra.com/2017/10/quick-and-easy-vegan-noodle-stir-fry.html
+    - https://www.vegansandra.com/2017/11/rice-noodles-with-broccoli-and.html
+    - https://www.jamieoliver.com/recipes/vegetables-recipes/veggie-pad-thai/
+    - https://www.pinchofnom.com/recipes/singapore-style-noodles/
+
+noodle_soup:
+  name: Noodle Soup
+  description: >
+    Fragrant broth with ginger, garlic and chilli, veg and tofu or beans, noodles
+    in the bowl, soy or miso for depth, herbs and lime on top. Thukpa, ramen-ish,
+    whatever's in.
+  colour_dominant: brown
+  cuisine_context: [chinese, japanese, thai]
+  preferred_ingredients: [ginger, garlic, mushrooms, tofu, spinach, miso, soy_sauce, rice_noodles, lime]
+  slots: [aromatic_base, stock_liquid, cooked_veg, protein_bulk, stir_fry_seasoning, heat, noodle_base, finish_herb, acid_bright]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [rhizome, allium]}
+    protein_bulk: {max_ingredients: 1}
+  edges:
+    - {from: aromatic_base,      to: stock_liquid, type: combine}
+    - {from: cooked_veg,         to: stock_liquid, type: fold_in}
+    - {from: protein_bulk,       to: stock_liquid, type: fold_in}
+    - {from: stir_fry_seasoning, to: stock_liquid, type: fold_in}
+    - {from: heat,               to: stock_liquid, type: combine}
+    - {from: stock_liquid,       to: noodle_base,  type: coat}
+    - {from: finish_herb,        to: noodle_base,  type: finish}
+    - {from: acid_bright,        to: noodle_base,  type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/02/spicy-vegan-noodle-soup-with-mushrooms.html
+    - https://www.vegansandra.com/2017/09/tomato-and-rice-noodle-soup-with-satay.html
+    - https://www.vegansandra.com/2017/12/sweet-potato-and-rice-noodle-soup-with.html
+
+fried_rice:
+  name: Fried Rice
+  description: >
+    The best use of yesterday's rice. Garlic, whatever veg, tofu or beans, soy and
+    chilli, spring onions. Gochujang turns it Korean; peanut butter turns it into
+    Vegan Richa's peanut gochujang rice.
+  colour_dominant: brown
+  cuisine_context: [chinese, korean]
+  preferred_ingredients: [garlic, ginger, crispy_tofu, peas, carrot, sweetcorn, cabbage, soy_sauce, gochujang, green_onion]
+  slots: [rice_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, heat, finish_herb]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [allium, rhizome]}
+    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume]}
+    rice_base: {time: {active: 3, passive: 0}}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg, type: combine}
+    - {from: cooked_veg,         to: rice_base,  type: combine}
+    - {from: protein_bulk,       to: rice_base,  type: fold_in}
+    - {from: stir_fry_seasoning, to: rice_base,  type: combine}
+    - {from: heat,               to: rice_base,  type: combine}
+    - {from: finish_herb,        to: rice_base,  type: finish}
+  sources:
+    - https://www.vegansandra.com/2018/04/garlic-fried-rice-with-crispy-tofu-and.html
+    - https://www.veganricha.com/peanut-gochujang-rice/
+  notes: Rice time assumes it's already cooked (leftovers are better). Add 15 min if not.
+
+saucy_stir_fry:
+  name: Saucy Stir-Fry over Rice
+  description: >
+    Veg and tofu in a glossy sauce — soy, something sweet, vinegar, thickened with
+    cornflour — over rice. Sweet and sour cauliflower, Chinese aubergine in garlic
+    sauce, sweet chilli tofu.
+  colour_dominant: brown
+  cuisine_context: [chinese, thai]
+  preferred_ingredients: [garlic, ginger, crispy_tofu, cauliflower, aubergine, bell_pepper, broccoli, soy_sauce, rice_vinegar, sweet_chilli_sauce]
+  slots: [rice_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, sweet_note, acid_bright, slurry, heat]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [allium, rhizome]}
+    protein_bulk: {max_ingredients: 1, optional: true, preferred_classes: [soy_product]}
+    sweet_note: {optional: false}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg, type: combine}
+    - {from: protein_bulk,       to: cooked_veg, type: fold_in}
+    - {from: stir_fry_seasoning, to: slurry,     type: combine}
+    - {from: sweet_note,         to: slurry,     type: combine}
+    - {from: acid_bright,        to: slurry,     type: combine}
+    - {from: slurry,             to: cooked_veg, type: coat}
+    - {from: heat,               to: cooked_veg, type: combine}
+    - {from: cooked_veg,         to: rice_base,  type: coat}
+  sources:
+    - https://www.vegansandra.com/2017/05/sweet-and-sour-cauliflower.html
+    - https://www.vegansandra.com/2018/02/vegan-chinese-eggplant-with-spicy-garlic.html
+    - https://www.vegansandra.com/2016/11/sweet-and-sour-chinese-cabbage.html
+    - https://www.connoisseurusveg.com/sweet-chili-tofu/
+    - https://www.veganricha.com/tofu-pepper-fry/

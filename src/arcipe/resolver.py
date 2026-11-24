@@ -256,6 +256,8 @@ def matches_slot(
         dist = colour_distance(ing.colour, slot.required_colour)
         if dist / COLOUR_MAX > slot.colour_tolerance:
             return False
+    if slot.required_classes and not set(slot.required_classes) & set(ing.classes):
+        return False
     # A prepared form has a fixed method (roasted carrot is roasted); raw ingredients
     # can be cooked however the slot needs.
     prep = prepared_db.get(ing.id)
@@ -358,8 +360,8 @@ def score(
 
     if "all" in ingredient.season or CURRENT_SEASON in ingredient.season:
         s += 0.3
-    elif "forage" in ingredient.season:
-        s += 0.4  # forage ingredients are free, reward them
+        if "forage" in ingredient.season:
+            s += 0.1  # foraged and in season: free, reward it
 
     s += COST_SCORE.get(ingredient.cost, 0.5)
 
@@ -465,6 +467,9 @@ class _Assigner:
         snapshot = (dict(self.stock), set(self.claimed), Counter(self.consumed))
         taken: dict[str, float] = {}
         got = 0.0
+        share = (
+            need / slot.max_ingredients if need is not None and slot.spread else None
+        )
         for ing in ordered:
             if len(taken) >= slot.max_ingredients or (need is not None and got >= need):
                 break
@@ -474,18 +479,17 @@ class _Assigner:
                 continue
             grams = 0.0
             if need is not None:
-                grams = min(self.makeable(ing.id, servings), need - got)
+                grams = self._contribution(
+                    slot, ing.id, need, got, share, len(taken), servings
+                )
                 if grams <= 0:
-                    continue
-                # The last place in the slot goes to something that finishes it,
-                # so three capped aromatics can't crowd out the onion
-                last_place = len(taken) == slot.max_ingredients - 1
-                if last_place and got + grams < need * MIN_SLOT_COVERAGE:
                     continue
                 self.draw(ing.id, grams)
                 got += grams
             taken[ing.id] = grams
             self.claimed |= self.keys(ing.id)
+        if share is not None and need is not None:
+            got = self._top_up(taken, need, got, servings)
 
         ok = bool(taken) and (need is None or got >= need * MIN_SLOT_COVERAGE)
         if not ok:
@@ -493,6 +497,39 @@ class _Assigner:
             taken = {}
         self.chosen[slot.id] = taken
         return ok
+
+    def _contribution(
+        self,
+        slot: ComponentSlot,
+        ing_id: str,
+        need: float,
+        got: float,
+        share: float | None,
+        picked: int,
+        servings: int,
+    ) -> float:
+        """Grams this ingredient should add to the slot; 0 means skip it."""
+        grams = min(self.makeable(ing_id, servings), need - got)
+        last_place = picked == slot.max_ingredients - 1
+        if share is not None and not last_place:
+            grams = min(grams, share)
+        # The last place in the slot goes to something that finishes it,
+        # so three capped aromatics can't crowd out the onion
+        if last_place and got + grams < need * MIN_SLOT_COVERAGE:
+            return 0.0
+        return grams
+
+    def _top_up(
+        self, taken: dict[str, float], need: float, got: float, servings: int
+    ) -> float:
+        """Spread slots: if fair shares fell short, let what's there make up the rest."""
+        for ing_id in taken:
+            extra = min(self.makeable(ing_id, servings), need - got)
+            if extra > 0:
+                self.draw(ing_id, extra)
+                taken[ing_id] += extra
+                got += extra
+        return got
 
 
 def _expand_urgency(

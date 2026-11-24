@@ -39,9 +39,35 @@ def test_never_worse_than_greedy(seed):
     assert result.breakdown.objective <= result.greedy.objective + 1e-9
 
 
+# The original 14-recipe book, where few recipes use each perishable — greedy
+# walks into waste that looking ahead avoids
+SMALL_BOOK = [
+    "crumpet_meal",
+    "vegan_banana_bread",
+    "rajma",
+    "butter_chickpeas",
+    "cauliflower_madras",
+    "vindaloo",
+    "saag",
+    "katsu_curry",
+    "carrot_curry_gravy",
+    "green_pasta",
+    "green_grain_bowl",
+    "green_flatbread",
+    "creamy_tomato_lentil",
+    "creamy_tuscan_beans",
+]
+
+
 def test_beats_greedy_on_waste_when_looking_ahead_matters():
-    result = _solve(0, iterations=1500)
+    book = {rid: RECIPES[rid] for rid in SMALL_BOOK}
+    result = _solve(0, iterations=1500, recipes=book)
     assert result.breakdown.waste_g < result.greedy.waste_g
+
+
+def test_beats_greedy_overall_on_the_full_book():
+    result = _solve(0, iterations=1500)
+    assert result.breakdown.objective < result.greedy.objective
 
 
 def test_same_seed_same_plan():
