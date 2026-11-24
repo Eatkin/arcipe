@@ -10,4 +10,4 @@ wheels/
 .venv
 
 # Scraped recipe pages (other people's content, personal use only)
-corpus/
+/corpus/
