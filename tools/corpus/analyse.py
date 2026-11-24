@@ -363,7 +363,7 @@ def normalise(line: str) -> str:
     s = re.sub(r"^[\s\-•*–]+", "", s)  # noqa: RUF001 — en dashes really appear in recipes
     s = s.split(",")[0]
     s = re.split(r"\s+or\s+|\s*/\s*(?=[a-z])", s)[0]
-    s = re.sub(rf"[\d{FRACTIONS}][\d{FRACTIONS}.,/\-–+ ]*", " ", s)  # quantities
+    s = re.sub(rf"[\d{FRACTIONS}][\d{FRACTIONS}.,/\-–+ ]*", " ", s)  # noqa: RUF001 — quantities; en dashes appear in ranges
     s = re.sub(rf"\b({UNITS})\b\.?", " ", s)
     s = re.sub(rf"\b({PREP})\b", " ", s)
     for _ in range(2):
