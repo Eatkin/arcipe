@@ -284,7 +284,6 @@ ALIASES: dict[str, str] = {
     "fenugreek": "fenugreek_seed",
     "asafoetida": "asafoetida",
     "hing": "asafoetida",
-    "marjoram": "marjoram",
     "rosemary": "rosemary",
     "chives": "chives",
     "mint": "mint",
@@ -331,7 +330,6 @@ ALIASES: dict[str, str] = {
     "satay sauce": "peanut_sauce",
     "beet cubes": "beetroot",
     "beet": "beetroot",
-    "beets": "beetroot",
     "herbs": "mixed_herbs",
     "mixed herbs": "mixed_herbs",
     "italian herbs": "mixed_herbs",
@@ -362,7 +360,7 @@ ALIASES: dict[str, str] = {
 def normalise(line: str) -> str:
     s = line.lower()
     s = re.sub(r"\(.*?\)|\[.*?\]", " ", s)  # parentheticals
-    s = re.sub(r"^[\s\-•*–]+", "", s)
+    s = re.sub(r"^[\s\-•*–]+", "", s)  # noqa: RUF001 — en dashes really appear in recipes
     s = s.split(",")[0]
     s = re.split(r"\s+or\s+|\s*/\s*(?=[a-z])", s)[0]
     s = re.sub(rf"[\d{FRACTIONS}][\d{FRACTIONS}.,/\-–+ ]*", " ", s)  # quantities

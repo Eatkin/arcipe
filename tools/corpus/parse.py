@@ -132,7 +132,7 @@ def _ingredient_like(line: str) -> bool:
     return bool(QUANTITY.search(line) or UNIT.search(line) or len(line.split()) <= 4)
 
 
-def from_blogger(page: str) -> dict | None:
+def from_blogger(page: str) -> dict | None:  # noqa: C901 — heuristic scraper
     title_m = re.search(
         r"<meta content='([^']+)' property='og:title'", page
     ) or re.search(r"<h3 class=.post-title[^>]*>(.*?)</h3>", page, flags=re.S)

@@ -118,6 +118,17 @@ class _Problem:
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
 
 
+def _weighted_repeats(planned: list[MealSlot]) -> float:
+    seen: set[str] = set()
+    repeats = 0.0
+    for slot in planned:
+        if slot.recipe_id in seen:
+            repeats += REPEAT_FACTOR.get(slot.meal, 1.0)
+        elif slot.recipe_id:
+            seen.add(slot.recipe_id)
+    return repeats
+
+
 def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     """Cook the given week against the stock and score it. Deterministic."""
     if choice in p.cache:
@@ -173,7 +184,6 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     lots, gone = expire(lots, p.days + 1)
     wasted += gone
 
-    seen: set[str] = set()
     b.waste_g = sum(wasted.values())
     b.spill_g = sum(
         lot.grams
@@ -181,11 +191,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         if lot.expires_day is not None and lot.expires_day <= p.days + SPILL_DAYS
     )
     b.unplanned = len(unplanned)
-    for slot in planned:
-        if slot.recipe_id in seen:
-            b.repeats += REPEAT_FACTOR.get(slot.meal, 1.0)
-        elif slot.recipe_id:
-            seen.add(slot.recipe_id)
+    b.repeats = _weighted_repeats(planned)
     w = p.weights
     b.objective = (
         w.waste * b.waste_g / 100
