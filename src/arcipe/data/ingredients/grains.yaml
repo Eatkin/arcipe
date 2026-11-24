@@ -38,7 +38,7 @@ polenta:
 plain_flour:
   name: Plain Flour
   classes: [grain]
-  roles: [thickener, binder]
+  roles: [thickener, binder, gluten]
   flavour: [mild]
   colour: white
   season: [all]

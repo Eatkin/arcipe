@@ -40,6 +40,8 @@ from arcipe.models import PreparedIngredient
 from arcipe.models import Recipe
 from arcipe.models import Season
 from arcipe.models import colour_distance
+from arcipe.timing import Timing
+from arcipe.timing import recipe_timing
 from arcipe.utils import get_season
 
 
@@ -72,6 +74,7 @@ class Resolution:
     # Stocked grams of each raw ingredient used, prepared forms expanded to their bases
     consumed: Counter[str] = field(default_factory=Counter)
     servings: int = 0
+    timing: Timing = field(default_factory=Timing)
 
     @property
     def success(self) -> bool:
@@ -80,7 +83,12 @@ class Resolution:
         )
 
     def summary(self) -> str:
-        lines = [f"[{self.recipe_name}] {'✓' if self.success else '✗'}"]
+        lines = [
+            f"[{self.recipe_name}] {'✓' if self.success else '✗'}"
+            f"  {self.timing.total} min ({self.timing.active} hands-on)"
+        ]
+        if self.timing.make_ahead:
+            lines.append(f"  Make ahead: {', '.join(self.timing.make_ahead)}")
         for a in self.assignments:
             status = "✓" if a.filled else "✗ UNFILLABLE"
             assigned = (
@@ -452,6 +460,11 @@ class _Assigner:
                 grams = min(self.makeable(ing.id, servings), need - got)
                 if grams <= 0:
                     continue
+                # The last place in the slot goes to something that finishes it,
+                # so three capped aromatics can't crowd out the onion
+                last_place = len(taken) == slot.max_ingredients - 1
+                if last_place and got + grams < need * MIN_SLOT_COVERAGE:
+                    continue
                 self.draw(ing.id, grams)
                 got += grams
             taken[ing.id] = grams
@@ -572,6 +585,9 @@ def resolve(
         unplaceable_required=[r for r in recipe.required_ingredients if r not in used],
         consumed=Counter({k: v for k, v in picks.consumed.items() if v > 0}),
         servings=servings,
+        timing=recipe_timing(
+            recipe, {a.slot_id: a.assigned for a in assignments}, preps
+        ),
     )
 
 

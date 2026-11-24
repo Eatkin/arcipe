@@ -60,3 +60,9 @@ def test_every_slot_says_how_much_it_needs():
 def test_base_ratios_only_name_real_bases():
     for prep in PREPARED_INGREDIENTS.values():
         assert set(prep.base_ratio) <= set(prep.base_ingredients), prep.id
+
+
+def test_recipe_graphs_are_acyclic():
+    from arcipe.timing import has_cycle
+
+    assert [r for r in RECIPES.values() if has_cycle(r)] == []

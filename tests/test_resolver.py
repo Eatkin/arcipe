@@ -203,3 +203,9 @@ def test_urgency_prefers_what_expires_soonest():
         RECIPES["saag"], stock, servings=2, urgency={"kale": 0.0, "spinach": 1.0}
     )
     assert slot_of(soon_spinach, "saag_green").assigned[0] == "spinach"
+
+
+@pytest.mark.parametrize("recipe_id", sorted(RECIPES))
+def test_every_recipe_is_makeable_with_everything_in_stock(recipe_id):
+    r = resolve(RECIPES[recipe_id], EVERYTHING, servings=2, rng=random.Random(0))
+    assert r.success, r.summary()

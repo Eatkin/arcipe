@@ -4,6 +4,7 @@ grain_base:
   preferred_classes: [grain]
   required_method: [boil, bake, steam, fry]
   amount: {per_serving: 180}
+  time: {active: 5, passive: 12}
   max_ingredients: 1
 
 green_sauce:
@@ -12,6 +13,7 @@ green_sauce:
   preferred_classes: [leafy_green, legume]
   required_method: [blend]
   amount: {per_serving: 100}
+  time: {active: 5, passive: 0}
   max_ingredients: 2
   required_colour: green
   colour_tolerance: 0.15
@@ -23,6 +25,7 @@ creamy_sauce:
   preferred_classes: [legume, nut]
   required_method: [blend]
   amount: {per_serving: 80}
+  time: {active: 5, passive: 0}
   max_ingredients: 2
   required_colour: white
   colour_tolerance: 0.2
@@ -33,6 +36,7 @@ fat_emulsifier:
   preferred_classes: [nut, fat]
   required_method: [raw, blend, soak]
   amount: {per_serving: 25}
+  time: {active: 2, passive: 0}
   max_ingredients: 1
 
 aromatic_base:
@@ -41,6 +45,7 @@ aromatic_base:
   preferred_classes: [allium]
   required_method: [fry]
   amount: {per_serving: 60}
+  time: {active: 8, passive: 0}
   max_ingredients: 2
 
 protein_bulk:
@@ -49,6 +54,7 @@ protein_bulk:
   preferred_classes: [legume]
   required_method: [boil, roast, raw]
   amount: {per_serving: 120}
+  time: {active: 3, passive: 10}
   max_ingredients: 2
 
 acid_bright:
@@ -57,6 +63,7 @@ acid_bright:
   preferred_classes: [citrus, fermented]
   required_method: [raw]
   amount: {per_serving: 15}
+  time: {active: 1, passive: 0}
   optional: true
   max_ingredients: 1
 
@@ -66,6 +73,7 @@ umami_boost:
   preferred_classes: [fermented]
   required_method: [raw]
   amount: {per_serving: 10}
+  time: {active: 1, passive: 0}
   optional: true
   max_ingredients: 1
 
@@ -75,6 +83,7 @@ texture_top:
   preferred_classes: [seed, nut, fermented]
   required_method: [toast, fry, raw]
   amount: {per_serving: 15}
+  time: {active: 3, passive: 0}
   optional: true
   max_ingredients: 1
 
@@ -84,6 +93,7 @@ curry_aromatic:
   preferred_classes: [allium, rhizome]
   required_method: [fry]
   amount: {per_serving: 80}
+  time: {active: 10, passive: 0}
   max_ingredients: 3
   notes: Onion + garlic + ginger is the classic trinity.
 
@@ -93,6 +103,7 @@ spice_bloom:
   preferred_classes: [dried_spice, rhizome]
   required_method: [fry, raw]
   amount: trace
+  time: {active: 2, passive: 0}
   max_ingredients: 4
   notes: Dry spices hit the hot oil after aromatics. Always-available pantry slot.
 
@@ -102,6 +113,7 @@ whole_spice_bloom:
   preferred_classes: [dried_spice]
   required_method: [fry, toast, roast]
   amount: trace
+  time: {active: 2, passive: 0}
   max_ingredients: 3
   notes: Whole spices for texture, aromatic and flavour.
 
@@ -111,6 +123,7 @@ tomato_sauce_body:
   preferred_classes: [nightshade]
   required_method: [boil, blend, fry]
   amount: {per_serving: 200}
+  time: {active: 3, passive: 20}
   max_ingredients: 1
   required_colour: red
   colour_tolerance: 0.0
@@ -121,6 +134,7 @@ tomato_enhancement:
   required_roles: [flavour_enhancer, thickener]
   required_method: [fry, raw]
   amount: {per_serving: 15}
+  time: {active: 1, passive: 0}
   max_ingredients: 1
   required_colour: red
   colour_tolerance: 0.15
@@ -132,6 +146,7 @@ creamy_curry_fat:
   preferred_classes: [plant_milk, nut, seed]
   required_method: [raw, blend]
   amount: {per_serving: 100}
+  time: {active: 1, passive: 0}
   max_ingredients: 1
   notes: Coconut milk, cashew cream, or sunflower cream.
 
@@ -141,6 +156,7 @@ curry_protein:
   preferred_classes: [legume, brassica, soy_product]
   required_method: [boil, roast, raw, fry]
   amount: {per_serving: 120}
+  time: {active: 3, passive: 10}
   max_ingredients: 2
 
 curry_bulk:
@@ -149,6 +165,7 @@ curry_bulk:
   preferred_classes: [leafy_green, squash, fruit_veg]
   required_method: [fry, roast, raw]
   amount: {per_serving: 150}
+  time: {active: 5, passive: 15}
   max_ingredients: 2
 
 starchy_bulk:
@@ -157,6 +174,7 @@ starchy_bulk:
   preferred_classes: [root_veg]
   required_method: [boil, roast]
   amount: {per_serving: 150}
+  time: {active: 5, passive: 20}
   optional: true
   max_ingredients: 2
   notes: Potato in saag aloo, sweet potato elsewhere.
@@ -167,6 +185,7 @@ acid_component:
   preferred_classes: [vinegar]
   required_method: [raw]
   amount: {per_serving: 15}
+  time: {active: 1, passive: 0}
   optional: false
   max_ingredients: 1
   notes: Vindaloo requires this. Not optional here.
@@ -177,6 +196,7 @@ root_sauce_body:
   preferred_classes: [root_veg]
   required_method: [roast, blend]
   amount: {per_serving: 150}
+  time: {active: 5, passive: 0}
   max_ingredients: 2
   notes: Roast until caramelised, blend with stock. Carrot is canonical.
 
@@ -186,6 +206,7 @@ katsu_sauce_body:
   preferred_classes: [grain]
   required_method: [fry]
   amount: {per_serving: 30}
+  time: {active: 5, passive: 10}
   max_ingredients: 1
   notes: Roux base. Flour cooked in fat.
 
@@ -195,6 +216,7 @@ katsu_sweetener:
   preferred_classes: [stone_fruit]
   required_method: [blend, raw]
   amount: {per_serving: 40}
+  time: {active: 3, passive: 0}
   max_ingredients: 2
   notes: Apple + banana blended in. The signature katsu sweetness.
 
@@ -204,6 +226,7 @@ finish_herb:
   preferred_classes: [fresh_herb]
   required_method: [raw]
   amount: {per_serving: 5}
+  time: {active: 1, passive: 0}
   optional: true
   max_ingredients: 1
 
@@ -213,6 +236,7 @@ curry_grain_base:
   preferred_classes: [grain]
   required_method: [boil, steam, fry]
   amount: {per_serving: 180}
+  time: {active: 5, passive: 15}
   max_ingredients: 1
   notes: Rice preferred for curries. Flatbread works too.
 
@@ -222,6 +246,7 @@ saag_green:
   preferred_classes: [leafy_green]
   required_method: [blend, wilt]
   amount: {per_serving: 200}
+  time: {active: 5, passive: 10}
   max_ingredients: 2
   required_colour: green
   colour_tolerance: 0.15
@@ -232,6 +257,7 @@ fruit_sweetener:
   preferred_classes: [stone_fruit]
   required_method: [boil]
   amount: {per_serving: 60}
+  time: {active: 2, passive: 10}
   max_ingredients: 1
   notes: fruit compote or something like that
 
@@ -241,6 +267,7 @@ baking_grain_base:
   preferred_classes: [grain]
   required_method: [bake]
   amount: {per_batch: 225}
+  time: {active: 5, passive: 0}
   max_ingredients: 2
 
 fruit_binder_sweetener:
@@ -248,24 +275,28 @@ fruit_binder_sweetener:
   required_roles: [binder, sweetener]
   required_method: [blend] # mashed/pureed
   amount: {per_batch: 350}
+  time: {active: 5, passive: 55}
 
 baking_fat:
   label: "Melted/Liquid Baking Fat"
   required_roles: [fat_emulsifier]
   required_method: [raw, blend]
   amount: {per_batch: 75}
+  time: {active: 2, passive: 0}
 
 baking_leavener:
   label: "Leavening Agent"
-  required_roles: [binder, raising_agent, basic]
+  required_roles: [raising_agent]
   required_method: [raw]
   amount: trace
+  time: {active: 1, passive: 0}
 
 baking_spice_flavor:
   label: "Dry Baking Spices"
   required_roles: [baking_spice]
   required_method: [raw]
   amount: trace
+  time: {active: 1, passive: 0}
   max_ingredients: 2
 
 baking_add_ins:
@@ -273,6 +304,7 @@ baking_add_ins:
   required_roles: [texture_top, bulk]
   required_method: [raw]
   amount: {per_batch: 60}
+  time: {active: 2, passive: 0}
   optional: true
   max_ingredients: 2
 
@@ -281,6 +313,7 @@ stew_aromatic_base:
   required_roles: [aromatic]
   required_method: [fry]
   amount: {per_serving: 80}
+  time: {active: 8, passive: 15}
   max_ingredients: 3
 
 stew_bulk_umami:
@@ -288,6 +321,7 @@ stew_bulk_umami:
   required_roles: [bulk, umami_boost]
   required_method: [fry]
   amount: {per_serving: 100}
+  time: {active: 8, passive: 0}
   max_ingredients: 2
 
 stew_protein_legume:
@@ -295,18 +329,21 @@ stew_protein_legume:
   required_roles: [protein, bulk]
   required_method: [boil]
   amount: {per_serving: 120}
+  time: {active: 2, passive: 0}
   
 sauce_creamy_binder:
   label: "Creamy Sauce Emulsifier"
   required_roles: [fat_emulsifier, sauce_base]
   required_method: [blend, boil]
   amount: {per_serving: 80}
+  time: {active: 3, passive: 5}
 
 stew_meltable_finisher:
   label: "Melt-in Umami Finisher"
   required_roles: [meltable, umami_boost]
   required_method: [raw] # melts in at the end
   amount: {per_serving: 10}
+  time: {active: 1, passive: 0}
   optional: true
 
 stew_wilted_greens:
@@ -314,4 +351,5 @@ stew_wilted_greens:
   required_roles: [bulk_blendable, sauce_base] 
   required_method: [wilt]
   amount: {per_serving: 80}
+  time: {active: 2, passive: 3}
   optional: true

@@ -29,6 +29,8 @@ green_grain_bowl:
   preferred_ingredients: []
   required_ingredients: []
   slots: [grain_base, green_sauce, protein_bulk, aromatic_base, acid_bright, texture_top]
+  slot_overrides:
+    grain_base: {required_method: [boil, steam]}  # actual grains, not breads
   edges:
     - {from: aromatic_base, to: green_sauce, type: combine}
     - {from: green_sauce,   to: grain_base,  type: coat}

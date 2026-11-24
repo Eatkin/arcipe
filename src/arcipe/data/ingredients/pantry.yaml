@@ -107,7 +107,7 @@ canned_tomato:
 tomato_puree:
   name: Tomato Puree
   classes: [nightshade]
-  roles: [thickener, umami_boost]
+  roles: [thickener, umami_boost, flavour_enhancer]
   flavour: [rich, umami]
   colour: red
   season: [all]
@@ -118,7 +118,7 @@ tomato_puree:
 tomato_ketchup:
   name: Tomato Ketchup
   classes: [nightshade]
-  roles: [thickener, umami_boost, sweetener]
+  roles: [thickener, umami_boost, sweetener, flavour_enhancer]
   flavour: [rich, umami, sweet]
   colour: red
   season: [all]

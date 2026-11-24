@@ -116,3 +116,16 @@ def test_uneaten_food_past_its_date_is_waste():
         s.resolution.consumed.get("nettle", 0) for s in plan.slots if s.resolution
     )
     assert eaten + plan.wasted["nettle"] == pytest.approx(500)
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_time_limit_is_respected(seed):
+    plan = plan_week(
+        inventory={"spinach": 2, "potato": 4, "carrot": 6},
+        days=5,
+        max_minutes=30,
+        rng=random.Random(seed),
+    )
+    for slot in plan.slots:
+        if slot.resolution:
+            assert slot.resolution.timing.total <= 30

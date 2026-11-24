@@ -269,6 +269,20 @@ class Ingredient(DataModel):
 
 
 # ---------------------------------------------------------------------------
+# Time — minutes of hands-on work and of waiting
+# ---------------------------------------------------------------------------
+
+
+class Time(DataModel):
+    active: int = 0  # minutes you're actually doing something
+    passive: int = 0  # minutes it simmers / roasts / soaks without you
+
+    @property
+    def total(self) -> int:
+        return self.active + self.passive
+
+
+# ---------------------------------------------------------------------------
 # PreparedIngredient — ingredient + method = something usable in a component
 # ---------------------------------------------------------------------------
 
@@ -284,6 +298,9 @@ class PreparedIngredient(DataModel):
     unlocked_roles: list[Role]  # what roles this preparation enables
     flavour: list[FlavourNote] = []
     colour: ColourFamily | None = None
+    time: Time = Field(default_factory=Time)
+    # Can be done earlier (soaking cashews): kept off the recipe's critical path
+    make_ahead: bool = False
     notes: str = ""
 
 
@@ -320,6 +337,7 @@ class ComponentSlot(DataModel):
     max_ingredients: int = 1  # prevent slot becoming a dumping ground
     # How much the slot needs. "trace" = too little to track (spices, raising agents)
     amount: Amount | Literal["trace"] | None = None
+    time: Time = Field(default_factory=Time)
     required_colour: ColourFamily | None = None
     colour_tolerance: float = 0.4  # 0.0 = exact, 1.0 = anything goes
     notes: str = ""

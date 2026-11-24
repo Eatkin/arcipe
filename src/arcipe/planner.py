@@ -303,8 +303,13 @@ class MealPlan:
                     r = slot.resolution
                     lines.append(
                         f"  [{slot.meal.upper()}] {BOLD}{GREEN}{r.recipe_name}{RESET}"
-                        f"  (serves {r.servings})"
+                        f"  (serves {r.servings}, {r.timing.total} min,"
+                        f" {r.timing.active} hands-on)"
                     )
+                    if r.timing.make_ahead:
+                        lines.append(
+                            f"    {CYAN}⏰ make ahead: {', '.join(r.timing.make_ahead)}{RESET}"
+                        )
                     for a in r.assignments:
                         if not a.assigned:
                             continue
@@ -366,8 +371,14 @@ def _pick(
     db: dict[str, Ingredient],
     jitter: float,
     rng: random.Random,
+    max_minutes: int | None = None,
 ) -> RecipeScore | None:
-    viable = [rs for rs in ranked if rs.resolution.success]
+    viable = [
+        rs
+        for rs in ranked
+        if rs.resolution.success
+        and (max_minutes is None or rs.resolution.timing.total <= max_minutes)
+    ]
     fresh = [rs for rs in viable if rs.recipe_id not in used_recipes]
     pool = fresh or viable  # allow repeats once every recipe has been used
     if not pool:
@@ -390,6 +401,7 @@ def plan_week(
     days: int = 7,
     meals_per_day: list[str] | None = None,
     people: int = 2,
+    max_minutes: int | None = None,
     max_same_class_gap: int = 2,
     ingredient_db: dict[str, Ingredient] | None = None,
     randomise: bool = True,
@@ -413,6 +425,7 @@ def plan_week(
         days:                 number of days to plan
         meals_per_day:        list of meal names, e.g. ["lunch", "dinner"]
         people:               servings per meal
+        max_minutes:          skip recipes that take longer than this, start to plate
         max_same_class_gap:   avoid repeating ingredient class within N days
         ingredient_db:        ingredient db, defaults to INGREDIENTS
         randomise:            jitter scores slightly for variety between runs
@@ -456,6 +469,7 @@ def plan_week(
                 db,
                 jitter,
                 rng,
+                max_minutes,
             )
             if best is None:
                 planned.append(MealSlot(day=day, meal=meal))
