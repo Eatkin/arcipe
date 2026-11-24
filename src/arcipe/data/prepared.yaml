@@ -32,7 +32,7 @@ flatbread:
   notes: Flour, water, salt, baking powder. Fry 1 minute each side. Cover with damp towel to steam.
 
 dumplings:
-  base_ingredients: [flour, butter]
+  base_ingredients: [plain_flour, butter]
   method: blend
   unlocked_roles: [bulk, grain_base]
   cuisine_context: [british, french]
@@ -43,7 +43,6 @@ crumpets:
   base_ingredients: [plain_flour]
   method: fry
   unlocked_roles: [grain_base]
-  meal_type: [breakfast, lunch]
   cuisine_context: [british]
   notes: Flour, water, baking powder, yeast. Rings optional. Eaten with toppings.
 
@@ -51,7 +50,7 @@ fruit_compote:
   base_ingredients: [frozen_fruit]
   method: boil
   unlocked_roles: [texture_top]
-  notes: Flour, water, baking powder, yeast. Rings optional. Eaten with toppings.
+  notes: Simmer frozen fruit down with a splash of water until jammy.
 
 thickened_cashew_cream:
   base_ingredients: [cashews, plain_flour]

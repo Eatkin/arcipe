@@ -28,6 +28,7 @@ DATA_DIR = Path(__file__).parent / "data"
 # Loaders
 # ---------------------------------------------------------------------------
 
+
 def _load_yaml(path: Path) -> dict:
     with path.open() as f:
         return yaml.safe_load(f) or {}
@@ -74,8 +75,18 @@ def load_recipes(
         raw = _load_yaml(path)
         for recipe_id, data in raw.items():
             data["id"] = recipe_id
-            # Resolve slot ids to ComponentSlot objects
-            data["slots"] = [slots[s] for s in data["slots"]]
+            # Resolve slot ids to ComponentSlot objects, applying any per-recipe
+            # overrides, e.g. slot_overrides: {curry_protein: {max_ingredients: 1}}
+            overrides: dict[str, dict] = data.pop("slot_overrides", None) or {}
+            unknown = set(overrides) - set(data["slots"])
+            if unknown:
+                raise ValueError(
+                    f"{recipe_id}: slot_overrides for slots not in recipe: {sorted(unknown)}"
+                )
+            data["slots"] = [
+                ComponentSlot(**{**slots[s].model_dump(), **overrides.get(s, {})})
+                for s in data["slots"]
+            ]
             # Parse edges
             data["edges"] = [
                 RecipeEdge(
@@ -87,6 +98,51 @@ def load_recipes(
             ]
             recipes[recipe_id] = Recipe(**data)
     return recipes
+
+
+def _check_prepared(
+    ingredients: dict[str, Ingredient], prepared: dict[str, PreparedIngredient]
+) -> list[str]:
+    problems: list[str] = []
+    for prep in prepared.values():
+        if prep.id in ingredients:
+            problems.append(f"prepared {prep.id}: id clashes with an ingredient")
+        problems += [
+            f"prepared {prep.id}: unknown base ingredient {base!r}"
+            for base in prep.base_ingredients
+            if base not in ingredients
+        ]
+    return problems
+
+
+def _check_recipe(recipe: Recipe, known: set[str]) -> list[str]:
+    problems = [
+        f"recipe {recipe.id}: {field_name} has unknown {ing_id!r}"
+        for field_name in ("required_ingredients", "preferred_ingredients")
+        for ing_id in getattr(recipe, field_name)
+        if ing_id not in known
+    ]
+    slot_ids = {s.id for s in recipe.slots}
+    problems += [
+        f"recipe {recipe.id}: edge references missing slot {end!r}"
+        for edge in recipe.edges
+        for end in (edge.from_slot, edge.to_slot)
+        if end not in slot_ids
+    ]
+    return problems
+
+
+def check_references(
+    ingredients: dict[str, Ingredient],
+    prepared: dict[str, PreparedIngredient],
+    recipes: dict[str, Recipe],
+) -> list[str]:
+    """Return a list of dangling id references in the data. Empty means consistent."""
+    known = set(ingredients) | set(prepared)
+    problems = _check_prepared(ingredients, prepared)
+    for recipe in recipes.values():
+        problems += _check_recipe(recipe, known)
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +164,8 @@ if __name__ == "__main__":
     print(f"Prepared ingredients: {len(PREPARED_INGREDIENTS)}")
     print(f"Slots:                {len(SLOTS)}")
     print(f"Recipes:              {len(RECIPES)}")
+    for problem in check_references(INGREDIENTS, PREPARED_INGREDIENTS, RECIPES):
+        print(f"  ! {problem}")
     print()
     for r in RECIPES.values():
         print(f"  [{r.id}] {r.name} — {len(r.slots)} slots")

@@ -2,7 +2,7 @@ grain_base:
   label: Grain Base
   required_roles: [grain_base]
   preferred_classes: [grain]
-  required_method: [boil, bake, steam]
+  required_method: [boil, bake, steam, fry]
   max_ingredients: 1
 
 green_sauce:
@@ -188,7 +188,7 @@ curry_grain_base:
   label: Curry Grain Base
   required_roles: [grain_base]
   preferred_classes: [grain]
-  required_method: [boil, steam]
+  required_method: [boil, steam, fry]
   max_ingredients: 1
   notes: Rice preferred for curries. Flatbread works too.
 
@@ -235,6 +235,7 @@ baking_spice_flavor:
   label: "Dry Baking Spices"
   required_roles: [baking_spice]
   required_method: [raw]
+  max_ingredients: 2
 
 baking_add_ins:
   label: "Nuts, Seeds, or Baking Chunks"

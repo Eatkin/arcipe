@@ -44,14 +44,15 @@ cauliflower_madras:
   cuisine_context: [indian]
   preferred_ingredients: [garam_masala, chilli_powder, turmeric_dried, ginger, canned_tomato]
   required_ingredients: [cauliflower]
-  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, curry_protein, finish_herb]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, curry_bulk, curry_protein, finish_herb]
   edges:
     - {from: curry_aromatic,    to: spice_bloom,       type: combine}
     - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: curry_bulk,        to: tomato_sauce_body, type: fold_in}
     - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
     - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
     - {from: finish_herb,       to: curry_grain_base,  type: finish}
-  notes: Cauliflower preferred for curry_protein — roast at 200°C first.
+  notes: Cauliflower goes in curry_bulk — roast at 200°C first. Chickpeas or lentils as protein.
 
 vindaloo:
   name: Vindaloo

@@ -41,6 +41,7 @@ plain_flour:
   season: [all]
   cost: very_low
   unlimited: true
+  staple: true
 
 basmati_rice:
   name: Basmati Rice

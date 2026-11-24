@@ -4,10 +4,10 @@ Recipe Graph data models
 Abstract ingredient/component/recipe models for constraint-based meal planning.
 """
 
-from dataclasses import field
 from typing import Literal
 
 from pydantic import BaseModel
+from pydantic import ConfigDict
 from pydantic import Field
 
 
@@ -38,9 +38,9 @@ Role = Literal[
     "finish_herb",  # fresh coriander, basil, etc
     "baking_spice",  # mixed spice, etc
     "flavour_enhancer",  # Tomato puree, msg, soy sauce, etc
-    "gluten", # Bread, cake etc
+    "gluten",  # Bread, cake etc
     "raising_agent",
-    "basic", # as in, not acidic
+    "basic",  # as in, not acidic
     "meltable",
 ]
 
@@ -202,14 +202,23 @@ CUISINE_FAMILY: dict[CuisineContext, CuisineFamily] = {
     "universal": "universal",
 }
 
-MealType = Literal["breakfast", "lunch", "dinner", "snack", "side", "dessert", "cake", "bread"]
+MealType = Literal[
+    "breakfast", "lunch", "dinner", "snack", "side", "dessert", "cake", "bread"
+]
+
+
+class DataModel(BaseModel):
+    """Base for everything loaded from YAML: unknown keys are errors, not silently dropped."""
+
+    model_config = ConfigDict(extra="forbid")
+
 
 # ---------------------------------------------------------------------------
 # Ingredient Class — top-level ontology node
 # ---------------------------------------------------------------------------
 
 
-class IngredientClass(BaseModel):
+class IngredientClass(DataModel):
     id: str
     name: str
     typical_roles: list[Role]
@@ -223,7 +232,7 @@ class IngredientClass(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class Ingredient(BaseModel):
+class Ingredient(DataModel):
     id: str
     name: str
     classes: list[IngredientClassName]
@@ -239,6 +248,9 @@ class Ingredient(BaseModel):
     unlimited: bool = (
         False  # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
     )
+    # Functional ingredient that can appear in several slots of one recipe without
+    # breaking no_ingredient_reuse, e.g. flour in both a flatbread and a roux
+    staple: bool = False
     notes: str = ""
 
 
@@ -247,7 +259,7 @@ class Ingredient(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class PreparedIngredient(BaseModel):
+class PreparedIngredient(DataModel):
     id: str  # e.g. "spinach__wilted"
     base_ingredients: list[str]
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
@@ -263,7 +275,7 @@ class PreparedIngredient(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class ComponentSlot(BaseModel):
+class ComponentSlot(DataModel):
     id: str
     label: str  # human readable e.g. "Green Sauce Base"
     required_roles: list[Role]  # ingredient must cover ALL of these
@@ -273,7 +285,7 @@ class ComponentSlot(BaseModel):
     preferred_classes: list[IngredientClassName] = Field(default_factory=list)
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
-    max_ingredients: int = 3  # prevent slot becoming a dumping ground
+    max_ingredients: int = 1  # prevent slot becoming a dumping ground
     required_colour: ColourFamily | None = None
     colour_tolerance: float = 0.4  # 0.0 = exact, 1.0 = anything goes
     notes: str = ""
@@ -284,7 +296,7 @@ class ComponentSlot(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class RecipeEdge(BaseModel):
+class RecipeEdge(DataModel):
     from_slot: str  # ComponentSlot.id
     to_slot: str  # ComponentSlot.id
     edge_type: EdgeType
@@ -295,7 +307,7 @@ class RecipeEdge(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class Recipe(BaseModel):
+class Recipe(DataModel):
     id: str
     name: str
     description: str
@@ -304,12 +316,12 @@ class Recipe(BaseModel):
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
     # Default lunch / dinner as that's most things
     meal_type: list[MealType] = Field(default_factory=lambda: ["lunch", "dinner"])  # ty: ignore
-    preferred_ingredients: list[str] = field(
+    preferred_ingredients: list[str] = Field(
         default_factory=list
     )  # Preferential ingredients
-    required_ingredients: list[str] = field(
+    required_ingredients: list[str] = Field(
         default_factory=list
-    )  # Must be included for valid recipe
+    )  # Must be placed in a slot for the recipe to be valid
     # Hard constraints
     no_ingredient_reuse: bool = True  # same ingredient can't fill two slots
     colour_dominant: ColourFamily | None = None

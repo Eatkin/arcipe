@@ -9,9 +9,11 @@ Inventory model:
     UNLIMITED = 100 — pantry staples that never run out
 
 Flow:
-    build_pool(inventory)           -> list[str] for resolver
+    in_stock(inventory)             -> list[str] for resolver
     deplete(inventory, resolution)  -> updated inventory
     plan_week(recipes, inventory)   -> MealPlan
+
+Perishables are prioritised by the resolver's scoring, not by pool order.
 """
 
 from __future__ import annotations
@@ -41,15 +43,9 @@ UNLIMITED = 100
 # ---------------------------------------------------------------------------
 
 
-def build_pool(inventory: dict[str, int]) -> list[str]:
-    """
-    Expand dict inventory into a flat portion pool for the resolver.
-    {"carrots": 3, "spinach": 1} -> ["carrots", "carrots", "carrots", "spinach"]
-    """
-    pool = []
-    for ing_id, portions in inventory.items():
-        pool.extend([ing_id] * portions)
-    return pool
+def in_stock(inventory: dict[str, int]) -> list[str]:
+    """Ingredient ids with at least one portion left. Unlimited staples are added by the resolver."""
+    return [ing_id for ing_id, portions in inventory.items() if portions > 0]
 
 
 def deplete(
@@ -57,44 +53,19 @@ def deplete(
     resolution: Resolution,
 ) -> dict[str, int]:
     """
-    Return a new inventory dict with portions decremented for everything
-    used in the resolution. UNLIMITED ingredients (== 100) are not decremented
-    below UNLIMITED — they replenish to UNLIMITED each time.
+    Return a new inventory dict with portions decremented for every raw ingredient
+    the resolution consumed. Prepared forms count against their bases, so cashew
+    cream uses up cashews. UNLIMITED ingredients (>= 100) are left alone.
     Raises nothing on over-depletion; floors at 0.
     """
     updated = dict(inventory)
-    for assignment in resolution.assignments:
-        for ing_id in assignment.assigned:
-            if ing_id not in updated:
-                continue
-            if updated[ing_id] >= UNLIMITED:
-                continue  # pantry staple — leave it alone
-            updated[ing_id] = max(0, updated[ing_id] - 1)
-    return updated
-
-
-def perishables_first(
-    inventory: dict[str, int],
-    ingredient_db: dict[str, Ingredient] | None = None,
-) -> list[str]:
-    """
-    Return ingredient ids sorted so perishables appear first in the pool.
-    Perishables with low remaining portions get priority.
-    """
-    db = ingredient_db or INGREDIENTS
-    perishable = []
-    stable = []
-    for ing_id, portions in inventory.items():
-        ing = db.get(ing_id)
-        if ing is None:
+    for ing_id, portions in resolution.consumed.items():
+        if ing_id not in updated:
             continue
-        if getattr(ing, "perishable", False) and portions < UNLIMITED:
-            perishable.append((ing_id, portions))
-        else:
-            stable.append(ing_id)
-    # Sort perishables by portions ascending — lowest stock first
-    perishable.sort(key=lambda x: x[1])
-    return [ing_id for ing_id, _ in perishable] + stable
+        if updated[ing_id] >= UNLIMITED:
+            continue  # pantry staple — leave it alone
+        updated[ing_id] = max(0, updated[ing_id] - portions)
+    return updated
 
 
 # ---------------------------------------------------------------------------
@@ -272,13 +243,14 @@ def plan_week(
     max_same_class_gap: int = 2,
     ingredient_db: dict[str, Ingredient] | None = None,
     randomise: bool = True,
+    rng: random.Random | None = None,
 ) -> MealPlan:
     """
     Plan meals across `days` days given an inventory.
 
     For each meal slot:
-        1. Build pool from current inventory (perishables first)
-        2. Rank all recipes by resolver score against current pool
+        1. Build pool from current inventory
+        2. Rank recipes suitable for that meal (recipe.meal_type) against the pool
         3. Apply variety penalty for recently used ingredient classes
         4. Pick the best scoring recipe not already used this week
         5. Deplete inventory
@@ -290,14 +262,15 @@ def plan_week(
         days:                 number of days to plan
         meals_per_day:        list of meal names, e.g. ["lunch", "dinner"]
         max_same_class_gap:   avoid repeating ingredient class within N days
-        season:               current season for scoring
         ingredient_db:        ingredient db, defaults to INGREDIENTS
         randomise:            shuffle equal-scored recipes for variety
+        rng:                  random source, pass a seeded Random for repeatable plans
     """
     recipe_db = recipes or RECIPES
     db = ingredient_db or INGREDIENTS
     inv = dict(inventory or {})
     meals = meals_per_day or ["dinner"]
+    rng = rng or random.Random()
 
     planned_slots: list[MealSlot] = []
     unplanned: list[tuple[int, str]] = []
@@ -306,17 +279,11 @@ def plan_week(
 
     for day in range(1, days + 1):
         for meal in meals:
-            # Build pool — perishables sorted to front
-            ordered = perishables_first(inv, db)
-            # include unlimited ingredients from db that aren't already in inv
-            pool_inv = {ing: inv[ing] for ing in ordered if ing in inv}
-            for ing_id, ing in db.items():
-                if ing.unlimited and ing_id not in pool_inv:
-                    pool_inv[ing_id] = UNLIMITED
-            pool = build_pool(pool_inv)
-
-            # Rank recipes
-            ranked = rank_recipes(recipe_db, pool, db)
+            pool = in_stock(inv)
+            meal_recipes = {
+                rid: r for rid, r in recipe_db.items() if meal in r.meal_type
+            }
+            ranked = rank_recipes(meal_recipes, pool, db, rng=rng)
 
             # Filter already used this week
             candidates = [
@@ -336,7 +303,7 @@ def plan_week(
                 v = variety_score(rs.resolution, _recent, db)
                 base = rs.score * 0.7 + v * 0.3
                 if randomise:
-                    base += random.uniform(0, 0.05)
+                    base += rng.uniform(0, 0.05)
                 return base
 
             candidates.sort(key=combined_score, reverse=True)
@@ -348,7 +315,7 @@ def plan_week(
                 unplanned.append((day, meal))
             else:
                 # Re-resolve with current pool to get accurate assignment
-                final = resolve(recipe_db[best.recipe_id], pool, db)
+                final = resolve(recipe_db[best.recipe_id], pool, db, rng=rng)
                 slot = MealSlot(
                     day=day,
                     meal=meal,

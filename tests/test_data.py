@@ -1,0 +1,53 @@
+from pathlib import Path
+
+import pytest
+import yaml
+
+from arcipe.loader import INGREDIENTS
+from arcipe.loader import PREPARED_INGREDIENTS
+from arcipe.loader import RECIPES
+from arcipe.loader import SLOTS
+from arcipe.loader import check_references
+from arcipe.loader import load_recipes
+
+
+def test_data_has_no_dangling_references():
+    assert check_references(INGREDIENTS, PREPARED_INGREDIENTS, RECIPES) == []
+
+
+def test_recipe_slot_override_applies_only_to_that_recipe(tmp_path: Path):
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "r.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "lean_rajma": {
+                    "name": "Lean Rajma",
+                    "description": "x",
+                    "slots": ["curry_grain_base", "curry_protein"],
+                    "slot_overrides": {"curry_protein": {"max_ingredients": 1}},
+                }
+            }
+        )
+    )
+    recipes = load_recipes(tmp_path, slots=SLOTS)
+    protein = next(s for s in recipes["lean_rajma"].slots if s.id == "curry_protein")
+    assert protein.max_ingredients == 1
+    assert SLOTS["curry_protein"].max_ingredients == 2
+
+
+def test_override_for_slot_not_in_recipe_is_an_error(tmp_path: Path):
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "r.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "bad": {
+                    "name": "Bad",
+                    "description": "x",
+                    "slots": ["curry_grain_base"],
+                    "slot_overrides": {"curry_protein": {"max_ingredients": 1}},
+                }
+            }
+        )
+    )
+    with pytest.raises(ValueError, match="curry_protein"):
+        load_recipes(tmp_path, slots=SLOTS)
