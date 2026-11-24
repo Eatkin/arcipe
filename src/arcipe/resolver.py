@@ -3,6 +3,12 @@ Recipe Graph resolution
 =======================
 Resolves abstract recipes into concrete ingredient assignments given an inventory.
 
+Quantities:
+    Stock is grams *as stocked* per raw ingredient (dried lentils, whole carrots).
+    Slot amounts are grams *as it lands in the dish*; Ingredient.stock_ratio and
+    PreparedIngredient.base_ratio convert one to the other. Passing a plain list of
+    ids as inventory means "plenty of each".
+
 Flow:
     available_pool(inventory)   -> raw ids + unlimited staples + makeable prepared forms
     candidates(slot, pool)      -> ingredients matching the slot's roles/method/colour
@@ -49,6 +55,9 @@ class SlotAssignment:
     assigned: list[str]  # ingredient ids, up to slot.max_ingredients
     candidates: list[str]  # all valid candidates before selection
     filled: bool  # False if required slot could not be filled
+    grams: dict[str, float] = field(
+        default_factory=dict
+    )  # in-dish grams per assigned id
 
 
 @dataclass
@@ -60,8 +69,9 @@ class Resolution:
     unfillable: list[str]  # slot ids that could not be filled (required only)
     missing_required: list[str] = field(default_factory=list)  # not available at all
     unplaceable_required: list[str] = field(default_factory=list)  # no slot accepts it
-    # Raw ingredient ids actually consumed, with prepared forms expanded to their bases
+    # Stocked grams of each raw ingredient used, prepared forms expanded to their bases
     consumed: Counter[str] = field(default_factory=Counter)
+    servings: int = 0
 
     @property
     def success(self) -> bool:
@@ -73,7 +83,11 @@ class Resolution:
         lines = [f"[{self.recipe_name}] {'✓' if self.success else '✗'}"]
         for a in self.assignments:
             status = "✓" if a.filled else "✗ UNFILLABLE"
-            assigned = ", ".join(a.assigned) if a.assigned else "—"
+            assigned = (
+                ", ".join(_fmt_pick(i, a.grams.get(i)) for i in a.assigned)
+                if a.assigned
+                else "—"
+            )
             lines.append(f"  {a.slot_label:<22} {status}  →  {assigned}")
         if self.missing_required:
             lines.append(f"\n  Missing required: {', '.join(self.missing_required)}")
@@ -86,22 +100,77 @@ class Resolution:
         return "\n".join(lines)
 
 
+def _fmt_pick(ing_id: str, grams: float | None) -> str:
+    return f"{ing_id} {grams:.0f}g" if grams else ing_id
+
+
 # ---------------------------------------------------------------------------
 # Inventory expansion
 # ---------------------------------------------------------------------------
 
 
+INF = float("inf")
+
+Inventory = list[str] | dict[str, float]
+
+
+def normalise_stock(
+    inventory: Inventory, ingredient_db: dict[str, Ingredient]
+) -> dict[str, float]:
+    """
+    Stocked grams per raw ingredient. A list means plenty of each. Unlimited
+    staples are infinite unless the inventory tracks them explicitly.
+    """
+    if isinstance(inventory, dict):
+        stock = {i: float(g) for i, g in inventory.items() if i in ingredient_db}
+    else:
+        stock = {i: INF for i in inventory if i in ingredient_db}
+    for ing_id, ing in ingredient_db.items():
+        if ing.unlimited and ing_id not in stock:
+            stock[ing_id] = INF
+    return stock
+
+
+def stocked_per_gram(
+    ing_id: str,
+    ingredient_db: dict[str, Ingredient],
+    prepared_db: dict[str, PreparedIngredient],
+) -> dict[str, float]:
+    """Stocked grams of each raw ingredient needed per in-dish gram of `ing_id`."""
+    prep = prepared_db.get(ing_id)
+    if prep is None:
+        return {ing_id: ingredient_db[ing_id].stock_ratio}
+    return {
+        b: prep.base_ratio.get(b, 1.0) * ingredient_db[b].stock_ratio
+        for b in prep.base_ingredients
+    }
+
+
+def makeable_grams(
+    ing_id: str,
+    stock: dict[str, float],
+    ingredient_db: dict[str, Ingredient],
+    prepared_db: dict[str, PreparedIngredient],
+) -> float:
+    """How many in-dish grams of `ing_id` the stock can provide."""
+    per_gram = stocked_per_gram(ing_id, ingredient_db, prepared_db)
+    return min(
+        (stock.get(raw, 0.0) / ratio if ratio > 0 else INF)
+        for raw, ratio in per_gram.items()
+    )
+
+
 def available_pool(
-    inventory: list[str],
+    inventory: Inventory,
     ingredient_db: dict[str, Ingredient],
     prepared_db: dict[str, PreparedIngredient],
 ) -> set[str]:
     """
-    Everything that could go into a recipe: raw ingredients on hand, unlimited
-    staples, and any prepared form whose base ingredients are all available.
+    Everything that could go into a recipe: raw ingredients in stock, unlimited
+    staples, and any prepared form whose base ingredients are all in stock.
     """
-    raw = {i for i in inventory if i in ingredient_db}
-    raw |= {i for i, ing in ingredient_db.items() if ing.unlimited}
+    stock = normalise_stock(inventory, ingredient_db)
+    raw = {i for i, g in stock.items() if g > 0}
     makeable = {
         p.id for p in prepared_db.values() if all(b in raw for b in p.base_ingredients)
     }
@@ -109,7 +178,7 @@ def available_pool(
 
 
 def expand_inventory(
-    inventory: list[str],
+    inventory: Inventory,
     ingredient_db: dict[str, Ingredient],
     prepared_db: dict[str, PreparedIngredient],
 ) -> dict[str, Ingredient]:
@@ -124,6 +193,7 @@ def expand_inventory(
             continue
         bases = [ingredient_db[b] for b in prep.base_ingredients]
         base = bases[0]
+        lives = [b.shelf_life_days for b in bases if b.shelf_life_days is not None]
         expanded[prep.id] = Ingredient(
             id=prep.id,
             name=f"{prep.id.replace('_', ' ')} (prepared)",
@@ -134,7 +204,7 @@ def expand_inventory(
             season=base.season,
             cost=base.cost,
             nutrition=base.nutrition,
-            perishable=any(b.perishable for b in bases),
+            shelf_life_days=min(lives) if lives else None,
             unlimited=all(b.unlimited for b in bases),
             cuisine_context=prep.cuisine_context,
             notes=prep.notes,
@@ -224,7 +294,12 @@ COST_SCORE: dict[str, float] = {
 }
 
 
-def score(ingredient: Ingredient, slot: ComponentSlot, recipe: Recipe) -> float:
+def score(
+    ingredient: Ingredient,
+    slot: ComponentSlot,
+    recipe: Recipe,
+    urgency: dict[str, float] | None = None,
+) -> float:
     """
     Score an ingredient against a slot. Higher is better.
 
@@ -236,7 +311,8 @@ def score(ingredient: Ingredient, slot: ComponentSlot, recipe: Recipe) -> float:
         season            — bonus if ingredient is in season or available all year
         cost              — cheaper ingredients score higher (maximise use of cheap staples)
         role_depth        — ingredients with more roles are more versatile, slight bonus
-        perishable        — use things that go off before things that don't
+        urgency           — use things about to go off first. urgency[id] is 0..1
+                            (1 = expires today); without it, a flat perishable bonus
         preferred         — recipe.preferred_ingredients bonus
         cuisine_context   — bonus for exact cuisine match, small bonus for same family,
                             heavy penalty for a different family
@@ -262,7 +338,9 @@ def score(ingredient: Ingredient, slot: ComponentSlot, recipe: Recipe) -> float:
 
     s += min(len(ingredient.roles) / 10, 0.2)
 
-    if ingredient.perishable:
+    if urgency is not None:
+        s += 0.8 * urgency.get(ingredient.id, 0.0)
+    elif ingredient.perishable:
         s += 0.3
 
     if ingredient.id in recipe.preferred_ingredients:
@@ -284,11 +362,12 @@ def rank(
     slot: ComponentSlot,
     recipe: Recipe,
     rng: random.Random | None = None,
+    urgency: dict[str, float] | None = None,
 ) -> list[Ingredient]:
     """Sort by score descending, shuffling within equal-score groups for variety."""
     rng = rng or random.Random()
     scored = sorted(
-        ((score(ing, slot, recipe), ing.id, ing) for ing in viable),
+        ((score(ing, slot, recipe, urgency), ing.id, ing) for ing in viable),
         key=lambda t: (-t[0], t[1]),
     )
     ranked: list[Ingredient] = []
@@ -304,104 +383,195 @@ def rank(
 # ---------------------------------------------------------------------------
 
 
+# A slot counts as filled at this fraction of its amount — cooking is forgiving
+MIN_SLOT_COVERAGE = 0.75
+
+
+def slot_grams(slot: ComponentSlot, servings: int) -> float | None:
+    """In-dish grams the slot needs, or None for trace/untracked slots."""
+    if slot.amount is None or slot.amount == "trace":
+        return None
+    return slot.amount.grams(servings)
+
+
 @dataclass
 class _Assigner:
-    """Tracks what has been put in each slot and which raw ingredients are claimed."""
+    """Tracks slot picks, claimed raw ingredients and the grams left in stock."""
 
     recipe: Recipe
     ingredient_db: dict[str, Ingredient]
     prepared_db: dict[str, PreparedIngredient]
-    chosen: dict[str, list[str]] = field(default_factory=dict)
+    stock: dict[str, float]
+    chosen: dict[str, dict[str, float]] = field(default_factory=dict)
     claimed: set[str] = field(default_factory=set)
+    consumed: Counter[str] = field(default_factory=Counter)
 
-    def __post_init__(self) -> None:
-        self.chosen = {slot.id: [] for slot in self.recipe.slots}
-
-    def _keys(self, ing_id: str) -> set[str]:
+    def keys(self, ing_id: str) -> set[str]:
         if not self.recipe.no_ingredient_reuse:
             return set()
         return reuse_keys(ing_id, self.ingredient_db, self.prepared_db)
 
-    def can_take(self, slot: ComponentSlot, ing_id: str) -> bool:
-        current = self.chosen[slot.id]
-        if len(current) >= slot.max_ingredients or ing_id in current:
-            return False
-        return not self._keys(ing_id) & self.claimed
+    def makeable(self, ing_id: str, servings: int) -> float:
+        grams = makeable_grams(ing_id, self.stock, self.ingredient_db, self.prepared_db)
+        ing = self.ingredient_db.get(ing_id)
+        if ing is not None and ing.max_per_serving is not None:
+            grams = min(grams, ing.max_per_serving * servings)
+        return grams
 
-    def take(self, slot: ComponentSlot, ing_id: str) -> None:
-        self.chosen[slot.id].append(ing_id)
-        self.claimed |= self._keys(ing_id)
+    def draw(self, ing_id: str, grams: float) -> None:
+        for raw, ratio in stocked_per_gram(
+            ing_id, self.ingredient_db, self.prepared_db
+        ).items():
+            self.stock[raw] -= grams * ratio
+            self.consumed[raw] += grams * ratio
+
+    def fill(
+        self,
+        slot: ComponentSlot,
+        ordered: list[Ingredient],
+        need: float | None,
+        reserved: set[str],
+        servings: int,
+    ) -> bool:
+        """
+        Take ingredients in order until the slot's amount is covered (or, for trace
+        slots, until max_ingredients). Rolls back if coverage stays too low.
+        """
+        snapshot = (dict(self.stock), set(self.claimed), Counter(self.consumed))
+        taken: dict[str, float] = {}
+        got = 0.0
+        for ing in ordered:
+            if len(taken) >= slot.max_ingredients or (need is not None and got >= need):
+                break
+            if ing.id in taken:
+                continue
+            if ing.id not in reserved and self.keys(ing.id) & self.claimed:
+                continue
+            grams = 0.0
+            if need is not None:
+                grams = min(self.makeable(ing.id, servings), need - got)
+                if grams <= 0:
+                    continue
+                self.draw(ing.id, grams)
+                got += grams
+            taken[ing.id] = grams
+            self.claimed |= self.keys(ing.id)
+
+        ok = bool(taken) and (need is None or got >= need * MIN_SLOT_COVERAGE)
+        if not ok:
+            self.stock, self.claimed, self.consumed = snapshot
+            taken = {}
+        self.chosen[slot.id] = taken
+        return ok
+
+
+def _expand_urgency(
+    urgency: dict[str, float] | None, prepared_db: dict[str, PreparedIngredient]
+) -> dict[str, float] | None:
+    """A prepared form is as urgent as its most urgent base."""
+    if urgency is None:
+        return None
+    out = dict(urgency)
+    for prep in prepared_db.values():
+        out[prep.id] = max(
+            (urgency.get(b, 0.0) for b in prep.base_ingredients), default=0.0
+        )
+    return out
 
 
 def resolve(
     recipe: Recipe,
-    inventory: list[str],
+    inventory: Inventory,
     ingredient_db: dict[str, Ingredient] | None = None,
     prepared_db: dict[str, PreparedIngredient] | None = None,
     rng: random.Random | None = None,
+    servings: int | None = None,
+    urgency: dict[str, float] | None = None,
 ) -> Resolution:
     """
     Resolve a recipe against an inventory.
 
-        1. Build the pool: inventory + unlimited staples + makeable prepared forms
-        2. Every required ingredient must be in the pool, and is placed first into
-           the slot that accepts it and scores it highest
-        3. Each slot (in order) is topped up to max_ingredients with the best-scoring
-           candidates that don't break the reuse rule
-        4. Required slots left empty are recorded as unfillable
+        1. Build the pool: stock + unlimited staples + makeable prepared forms
+        2. Every required ingredient must be in the pool, and is reserved for the
+           slot that accepts it and scores it highest
+        3. Each slot (in order) draws grams from the best-scoring candidates that
+           don't break the reuse rule, until its amount is covered
+        4. Required slots that can't reach MIN_SLOT_COVERAGE are unfillable
+
+    servings defaults to recipe.serves. urgency (0..1 per ingredient id) boosts
+    ingredients that are about to expire.
     """
     db = ingredient_db or INGREDIENTS
     preps = PREPARED_INGREDIENTS if prepared_db is None else prepared_db
-    expanded_db = expand_inventory(inventory, db, preps)
-    pool = sorted(available_pool(inventory, db, preps))
-    failed = Resolution(recipe.id, recipe.name, [], set(), [])
+    servings = servings or recipe.serves
+    stock = normalise_stock(inventory, db)
+    expanded_db = expand_inventory(stock, db, preps)
+    pool = sorted(available_pool(stock, db, preps))
+    urg = _expand_urgency(urgency, preps)
+    failed = Resolution(recipe.id, recipe.name, [], set(), [], servings=servings)
 
     failed.missing_required = [i for i in recipe.required_ingredients if i not in pool]
     if failed.missing_required:
         return failed
 
-    picks = _Assigner(recipe, db, preps)
+    picks = _Assigner(recipe, db, preps, stock=dict(stock))
 
-    # Place required ingredients first so nothing else can take their slot
+    # Reserve a slot for each required ingredient before anything else is picked
+    reserved: dict[str, list[str]] = {slot.id: [] for slot in recipe.slots}
     for req in recipe.required_ingredients:
         ing = expanded_db[req]
         accepting = [
             slot
             for slot in recipe.slots
-            if matches_slot(ing, slot, preps) and picks.can_take(slot, req)
+            if matches_slot(ing, slot, preps)
+            and len(reserved[slot.id]) < slot.max_ingredients
+            and not picks.keys(req) & picks.claimed
         ]
         if not accepting:
             failed.unplaceable_required.append(req)
             continue
-        picks.take(max(accepting, key=lambda sl, i=ing: score(i, sl, recipe)), req)
+        best = max(accepting, key=lambda sl, i=ing: score(i, sl, recipe, urg))
+        reserved[best.id].append(req)
+        picks.claimed |= picks.keys(req)
     if failed.unplaceable_required:
         return failed
 
     assignments: list[SlotAssignment] = []
     for slot in recipe.slots:
-        viable = candidates(slot, pool, expanded_db, prepared_db=preps)
-        ranked = rank(viable, slot, recipe, rng)
-        for ing in ranked:
-            if picks.can_take(slot, ing.id):
-                picks.take(slot, ing.id)
+        ranked = rank(
+            candidates(slot, pool, expanded_db, prepared_db=preps),
+            slot,
+            recipe,
+            rng,
+            urg,
+        )
+        must = reserved[slot.id]
+        ordered = [expanded_db[i] for i in must] + [
+            i for i in ranked if i.id not in must
+        ]
+        ok = picks.fill(slot, ordered, slot_grams(slot, servings), set(must), servings)
+        taken = picks.chosen[slot.id]
         assignments.append(
             SlotAssignment(
                 slot_id=slot.id,
                 slot_label=slot.label,
-                assigned=list(picks.chosen[slot.id]),
+                assigned=list(taken),
                 candidates=[ing.id for ing in ranked],
-                filled=bool(picks.chosen[slot.id]) or slot.optional,
+                filled=ok or slot.optional,
+                grams={i: g for i, g in taken.items() if g},
             )
         )
 
-    chosen_ids = [i for ids in picks.chosen.values() for i in ids]
+    used = {i for a in assignments for i in a.assigned}
     return Resolution(
         recipe_id=recipe.id,
         recipe_name=recipe.name,
         assignments=assignments,
-        used=set(chosen_ids),
+        used=used,
         unfillable=[a.slot_id for a in assignments if not a.filled],
-        consumed=Counter(raw for i in chosen_ids for raw in consumes(i, preps)),
+        unplaceable_required=[r for r in recipe.required_ingredients if r not in used],
+        consumed=Counter({k: v for k, v in picks.consumed.items() if v > 0}),
+        servings=servings,
     )
 
 
@@ -420,9 +590,11 @@ class RecipeScore:
 
 def rank_recipes(
     recipes: dict[str, Recipe],
-    inventory: list[str],
+    inventory: Inventory,
     ingredient_db: dict[str, Ingredient] | None = None,
     rng: random.Random | None = None,
+    servings: int | None = None,
+    urgency: dict[str, float] | None = None,
 ) -> list[RecipeScore]:
     """
     Resolve all recipes against inventory and rank by how completely they can be filled.
@@ -430,7 +602,14 @@ def rank_recipes(
     """
     results = []
     for recipe in recipes.values():
-        r = resolve(recipe, inventory, ingredient_db, rng=rng)
+        r = resolve(
+            recipe,
+            inventory,
+            ingredient_db,
+            rng=rng,
+            servings=servings,
+            urgency=urgency,
+        )
         required_slots = [
             a for a in r.assignments if not _slot_is_optional(a.slot_id, recipe)
         ]

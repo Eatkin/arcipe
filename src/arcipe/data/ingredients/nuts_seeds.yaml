@@ -40,5 +40,6 @@ pine_nuts:
   colour: white
   season: [all]
   cost: high
+  max_per_serving: 15
   cuisine_context: [italian, levantine]
 

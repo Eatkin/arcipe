@@ -78,9 +78,10 @@ def test_ingredient_and_its_prepared_form_never_both_used(seed):
 
 def test_prepared_form_consumes_its_bases():
     recipe = RECIPES["katsu_curry"]
-    r = resolve(recipe, ["apple", "tofu", "butter"])
-    assert r.consumed["butter"] == 1
-    assert r.consumed["plain_flour"] >= 1
+    r = resolve(recipe, ["apple", "tofu", "butter"], servings=2)
+    # 30g roux per serving, half butter half flour
+    assert r.consumed["butter"] == pytest.approx(30)
+    assert r.consumed["plain_flour"] >= 30
     assert "roux" not in r.consumed
 
 
@@ -96,9 +97,10 @@ def _flatbread_and_roux() -> Recipe:
 
 
 def test_staple_can_be_shared_between_prepared_forms():
-    r = resolve(_flatbread_and_roux(), ["butter"])
+    r = resolve(_flatbread_and_roux(), ["butter"], servings=2)
     assert r.success, r.summary()
-    assert r.consumed["plain_flour"] == 2
+    # 360g flatbread at 0.6 flour + 60g roux at 0.5 flour
+    assert r.consumed["plain_flour"] == pytest.approx(246)
 
 
 def test_non_staple_cannot_be_shared_between_prepared_forms():
@@ -128,3 +130,76 @@ def test_perishable_preferred_over_equivalent_non_perishable():
     # nettle (perishable, forage) beats frozen spinach for the saag green
     r = resolve(RECIPES["saag"], ["nettle", "frozen_spinach", "potato"])
     assert slot_of(r, "saag_green").assigned[0] == "nettle"
+
+
+# ---------------------------------------------------------------------------
+# Quantities
+# ---------------------------------------------------------------------------
+
+
+def test_not_enough_of_anything_leaves_slot_unfillable():
+    # saag needs 400g of greens for 2; 100g of spinach won't do
+    r = resolve(RECIPES["saag"], {"spinach": 100.0, "potato": 1000.0}, servings=2)
+    assert "saag_green" in r.unfillable
+
+
+def test_slot_combines_odds_and_ends_to_reach_its_amount():
+    r = resolve(RECIPES["saag"], {"spinach": 200.0, "kale": 200.0}, servings=2)
+    greens = slot_of(r, "saag_green")
+    assert greens.filled
+    assert set(greens.assigned) == {"spinach", "kale"}
+    assert sum(greens.grams.values()) == pytest.approx(400)
+
+
+def test_optional_slot_that_cant_be_covered_consumes_nothing():
+    r = resolve(RECIPES["saag"], {"spinach": 400.0, "coriander_leaf": 1.0}, servings=2)
+    assert slot_of(r, "finish_herb").assigned == []
+    assert "coriander_leaf" not in r.consumed
+
+
+def test_dried_ingredients_consume_dry_weight():
+    r = resolve(RECIPES["rajma"], {"red_lentils": 1000.0}, servings=2)
+    protein = slot_of(r, "curry_protein")
+    if "red_lentils" in protein.assigned:
+        in_dish = protein.grams["red_lentils"]
+        assert r.consumed["red_lentils"] == pytest.approx(in_dish * 0.4)
+
+
+def test_prepared_form_consumes_bases_by_ratio():
+    db = dict(INGREDIENTS)
+    # make cashew cream the only fat option
+    recipe = Recipe(
+        id="t",
+        name="T",
+        description="",
+        slots=[SLOTS["creamy_curry_fat"]],
+        edges=[],
+        required_ingredients=["cashew_cream"],
+    )
+    r = resolve(recipe, {"cashews": 500.0}, ingredient_db=db, servings=2)
+    assert slot_of(r, "creamy_curry_fat").grams["cashew_cream"] == pytest.approx(200)
+    assert r.consumed["cashews"] == pytest.approx(80)
+
+
+def test_strong_flavours_are_capped_per_serving():
+    r = resolve(RECIPES["rajma"], ["kidney_beans"], servings=2)
+    aromatics = slot_of(r, "curry_aromatic").grams
+    assert aromatics.get("garlic", 0) <= 16
+    assert sum(aromatics.values()) == pytest.approx(160)
+
+
+def test_tracked_unlimited_ingredient_can_run_out():
+    r = resolve(RECIPES["katsu_curry"], {"butter": 100.0, "plain_flour": 0.0})
+    assert r.missing_required == ["roux"]
+
+
+def test_urgency_prefers_what_expires_soonest():
+    stock = {"spinach": 400.0, "kale": 400.0}
+    soon_kale = resolve(
+        RECIPES["saag"], stock, servings=2, urgency={"kale": 1.0, "spinach": 0.0}
+    )
+    assert slot_of(soon_kale, "saag_green").assigned[0] == "kale"
+    soon_spinach = resolve(
+        RECIPES["saag"], stock, servings=2, urgency={"kale": 0.0, "spinach": 1.0}
+    )
+    assert slot_of(soon_spinach, "saag_green").assigned[0] == "spinach"

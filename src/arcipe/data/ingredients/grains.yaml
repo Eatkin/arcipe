@@ -6,6 +6,7 @@ spaghetti:
   colour: yellow
   season: [all]
   cost: very_low
+  stock_ratio: 0.4
   unlimited: true
   cuisine_context: [italian]
   nutrition: [high_carb]
@@ -18,6 +19,7 @@ farro:
   colour: brown
   season: [all]
   cost: medium
+  stock_ratio: 0.4
   cuisine_context: [italian]
   nutrition: [high_carb, high_fibre]
 
@@ -29,6 +31,7 @@ polenta:
   colour: yellow
   season: [all]
   cost: low
+  stock_ratio: 0.25
   cuisine_context: [italian]
   nutrition: [high_carb]
 
@@ -51,6 +54,7 @@ basmati_rice:
   colour: white
   season: [all]
   cost: very_low
+  stock_ratio: 0.35
   unlimited: true
   cuisine_context: [indian, levantine]
   nutrition: [high_carb]
@@ -63,6 +67,7 @@ brown_rice:
   colour: brown
   season: [all]
   cost: very_low
+  stock_ratio: 0.35
   unlimited: true
   nutrition: [high_carb]
 
@@ -74,6 +79,7 @@ sushi_rice:
   colour: white
   season: [all]
   cost: low
+  stock_ratio: 0.35
   unlimited: true
   cuisine_context: [japanese]
   nutrition: [high_carb]

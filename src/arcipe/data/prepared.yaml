@@ -1,17 +1,20 @@
 sunflower_cream:
   base_ingredients: [sunflower_seeds]
+  base_ratio: {sunflower_seeds: 0.4}
   method: blend
   unlocked_roles: [fat_emulsifier, sauce_base]
   notes: Soak 4hrs, drain, blend with water. Cheaper cashew cream substitute.
 
 cashew_cream:
   base_ingredients: [cashews]
+  base_ratio: {cashews: 0.4}
   method: blend
   unlocked_roles: [fat_emulsifier, sauce_base]
   notes: Soak 2hrs, drain, blend with water until very smooth.
 
 roasted_carrot:
   base_ingredients: [carrot]
+  base_ratio: {carrot: 1.3}
   method: roast
   unlocked_roles: [sauce_base, bulk_blendable]
   colour: brown
@@ -19,6 +22,7 @@ roasted_carrot:
 
 roux:
   base_ingredients: [plain_flour, butter]
+  base_ratio: {plain_flour: 0.5, butter: 0.5}
   method: fry
   unlocked_roles: [thickener, sauce_base]
   cuisine_context: [french, japanese]
@@ -26,6 +30,7 @@ roux:
 
 flatbread:
   base_ingredients: [plain_flour]
+  base_ratio: {plain_flour: 0.6}
   method: fry
   unlocked_roles: [grain_base]
   cuisine_context: [levantine, indian]
@@ -33,6 +38,7 @@ flatbread:
 
 dumplings:
   base_ingredients: [plain_flour, butter]
+  base_ratio: {plain_flour: 0.6, butter: 0.3}
   method: blend
   unlocked_roles: [bulk, grain_base]
   cuisine_context: [british, french]
@@ -41,6 +47,7 @@ dumplings:
 
 crumpets:
   base_ingredients: [plain_flour]
+  base_ratio: {plain_flour: 0.5}
   method: fry
   unlocked_roles: [grain_base]
   cuisine_context: [british]
@@ -48,12 +55,14 @@ crumpets:
 
 fruit_compote:
   base_ingredients: [frozen_fruit]
+  base_ratio: {frozen_fruit: 1.1}
   method: boil
   unlocked_roles: [texture_top]
   notes: Simmer frozen fruit down with a splash of water until jammy.
 
 thickened_cashew_cream:
   base_ingredients: [cashews, plain_flour]
+  base_ratio: {cashews: 0.4, plain_flour: 0.05}
   method: blend
   unlocked_roles: [fat_emulsifier, sauce_base, thickener]
   notes: Cashews, water, and a pinch of flour blended smooth. Thicken via simmering.

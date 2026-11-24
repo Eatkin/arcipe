@@ -6,7 +6,9 @@ ginger:
   colour: yellow
   season: [all]
   cost: low
-  perishable: true
+  max_per_serving: 8
+  shelf_life_days: 21
+  unit_weight: 30
 
 turmeric_fresh:
   name: Fresh Turmeric
@@ -16,7 +18,8 @@ turmeric_fresh:
   colour: orange
   season: [all]
   cost: medium
-  perishable: true
+  max_per_serving: 5
+  shelf_life_days: 14
 
 garam_masala:
   name: Garam Masala

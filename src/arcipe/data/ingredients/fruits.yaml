@@ -17,6 +17,8 @@ apple:
   colour: green
   season: [autumn]
   cost: low
+  shelf_life_days: 30
+  unit_weight: 150
   notes: Grated or blended into katsu sauce for natural sweetness.
 
 banana:
@@ -27,6 +29,8 @@ banana:
   colour: yellow
   season: [all]
   cost: very_low
+  shelf_life_days: 5
+  unit_weight: 120
   notes: Blended into katsu sauce. Sounds wrong, tastes right.
 
 lemon:
@@ -37,5 +41,9 @@ lemon:
   colour: yellow
   season: [all]
   cost: low
+  max_per_serving: 15
+  shelf_life_days: 21
+  unit_weight: 60
+  stock_ratio: 2.0
   unlimited: true
 

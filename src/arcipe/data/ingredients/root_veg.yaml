@@ -6,6 +6,8 @@ potato:
   colour: yellow
   season: [all]
   cost: very_low
+  shelf_life_days: 30
+  unit_weight: 200
   nutrition: [high_carb, high_fibre]
 
 carrot:
@@ -16,7 +18,8 @@ carrot:
   colour: orange
   season: [all]
   cost: very_low
-  perishable: true
+  shelf_life_days: 21
+  unit_weight: 80
   nutrition: [high_fibre]
   notes: Roast then blend = extraordinary cheap curry gravy base.
 
@@ -28,7 +31,8 @@ parsnip:
   colour: white
   season: [autumn, winter]
   cost: very_low
-  perishable: true
+  shelf_life_days: 14
+  unit_weight: 150
   nutrition: [high_fibre]
 
 sweet_potato:
@@ -39,5 +43,6 @@ sweet_potato:
   colour: orange
   season: [all]
   cost: low
-  perishable: true
+  shelf_life_days: 21
+  unit_weight: 250
   nutrition: [high_carb, high_fibre]

@@ -6,6 +6,8 @@ spinach:
   colour: green
   season: [all]
   cost: low
+  shelf_life_days: 4
+  unit_weight: 200
   nutrition: [high_iron, high_calcium]
 
 nettle:
@@ -16,7 +18,7 @@ nettle:
   colour: green
   season: [spring, forage]
   cost: very_low
-  perishable: true
+  shelf_life_days: 2
   nutrition: [high_iron]
   notes: Blanch first to neutralise sting. Remarkable spring ingredient.
 
@@ -28,7 +30,8 @@ kale:
   colour: green
   season: [autumn, winter]
   cost: low
-  perishable: true
+  shelf_life_days: 5
+  unit_weight: 200
   nutrition: [high_iron, high_calcium, high_fibre]
 
 cauliflower:
@@ -39,7 +42,8 @@ cauliflower:
   colour: white
   season: [all]
   cost: low
-  perishable: true
+  shelf_life_days: 7
+  unit_weight: 600
   nutrition: [high_fibre]
   notes: Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.
 

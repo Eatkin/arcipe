@@ -51,3 +51,12 @@ def test_override_for_slot_not_in_recipe_is_an_error(tmp_path: Path):
     )
     with pytest.raises(ValueError, match="curry_protein"):
         load_recipes(tmp_path, slots=SLOTS)
+
+
+def test_every_slot_says_how_much_it_needs():
+    assert [s for s, slot in SLOTS.items() if slot.amount is None] == []
+
+
+def test_base_ratios_only_name_real_bases():
+    for prep in PREPARED_INGREDIENTS.values():
+        assert set(prep.base_ratio) <= set(prep.base_ingredients), prep.id

@@ -6,6 +6,7 @@ capers:
   colour: green
   season: [all]
   cost: medium
+  max_per_serving: 10
   cuisine_context: [italian, levantine]
   notes: Fried capers are a texture revelation.
 
@@ -17,6 +18,7 @@ white_wine_vinegar:
   colour: white
   season: [all]
   cost: low
+  max_per_serving: 15
   notes: Structural acid in vindaloo — required, not optional.
 
 apple_cider_vinegar:
@@ -27,6 +29,7 @@ apple_cider_vinegar:
   colour: yellow
   season: [all]
   cost: low
+  max_per_serving: 15
 
 miso:
   name: White Miso
@@ -36,6 +39,7 @@ miso:
   colour: yellow
   season: [all]
   cost: medium
+  max_per_serving: 15
   cuisine_context: [japanese, korean]
   nutrition: [b12_source]
 
@@ -47,6 +51,7 @@ nutritional_yeast:
   colour: yellow
   season: [all]
   cost: medium
+  max_per_serving: 10
   unlimited: true
   nutrition: [b12_source]
 
@@ -81,6 +86,7 @@ coconut_milk:
   colour: white
   season: [all]
   cost: low
+  unit_weight: 400
   cuisine_context: [indian, chinese]
   nutrition: [high_fat]
   notes: Full fat only. The lite stuff is a waste of everyone's time.
@@ -93,6 +99,7 @@ canned_tomato:
   colour: red
   season: [all]
   cost: very_low
+  unit_weight: 400
   unlimited: true
   nutrition: [high_fibre]
   notes: Year-round pantry staple. Often better than out-of-season fresh.
@@ -105,6 +112,7 @@ tomato_puree:
   colour: red
   season: [all]
   cost: low
+  max_per_serving: 15
   unlimited: true
 
 tomato_ketchup:
@@ -115,6 +123,7 @@ tomato_ketchup:
   colour: red
   season: [all]
   cost: low
+  max_per_serving: 20
   unlimited: true
 
 bicarbonate_of_soda:
@@ -135,6 +144,8 @@ sun_dried_tomatoes:
   colour: red
   season: [all]
   cost: medium
+  max_per_serving: 30
+  unit_weight: 280
   cuisine_context: [italian]
 
 vegan_parmesan:
@@ -145,4 +156,5 @@ vegan_parmesan:
   colour: beige
   season: [all]
   cost: high
+  max_per_serving: 15
   cuisine_context: [italian]

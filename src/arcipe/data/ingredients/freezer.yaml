@@ -7,4 +7,3 @@ frozen_spinach:
   season: [all]
   cost: very_low
   nutrition: [high_iron, high_calcium]
-  perishable: false

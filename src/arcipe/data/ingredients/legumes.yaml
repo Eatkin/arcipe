@@ -6,6 +6,7 @@ chickpeas:
   colour: yellow
   season: [all]
   cost: low
+  unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
   notes: Aquafaba (liquid) is separately useful as binder/emulsifier.
@@ -18,6 +19,7 @@ cannellini_beans:
   colour: white
   season: [all]
   cost: low
+  unit_weight: 240
   nutrition: [high_protein, high_fibre]
   notes: Blended white beans make an incredibly creamy sauce base.
 
@@ -29,6 +31,7 @@ butter_beans:
   colour: white
   season: [all]
   cost: low
+  unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
 
@@ -40,6 +43,7 @@ black_beans:
   colour: black
   season: [all]
   cost: low
+  unit_weight: 240
   unlimited: true
   cuisine_context: [mexican]
   nutrition: [high_protein, high_fibre]
@@ -52,6 +56,7 @@ red_lentils:
   colour: orange
   season: [all]
   cost: very_low
+  stock_ratio: 0.4
   nutrition: [high_protein, high_iron, high_fibre]
 
 kidney_beans:
@@ -62,6 +67,7 @@ kidney_beans:
   colour: red
   season: [all]
   cost: very_low
+  unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
   notes: The canonical rajma bean. Canned is fine, dried is better.
@@ -74,6 +80,8 @@ tofu:
   colour: white
   season: [all]
   cost: low
+  shelf_life_days: 7
+  unit_weight: 280
   cuisine_context: [japanese, korean, chinese]
   nutrition: [high_protein, high_calcium]
   notes: Press well before using. Takes on sauce flavour readily.

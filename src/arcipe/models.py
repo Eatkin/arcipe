@@ -244,7 +244,17 @@ class Ingredient(DataModel):
     cost: CostTier
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
     nutrition: list[NutritionFlag] = Field(default_factory=list)
-    perishable: bool = False
+    # Days a fresh one keeps once bought. None = keeps for ages (tins, dried, frozen)
+    shelf_life_days: int | None = None
+    # Grams of one natural unit: a carrot, a tin, a block of tofu. Lets inventory
+    # say "3 carrots" instead of "240g"
+    unit_weight: float | None = None
+    # Grams as stocked per gram as it lands in the dish. Dried things swell:
+    # 100g cooked lentils needs ~40g dried, so red_lentils has stock_ratio 0.4
+    stock_ratio: float = 1.0
+    # Strong flavours can only make up so much of a slot: garlic fills 8g per
+    # serving of an aromatic base, not all 80g. None = no cap
+    max_per_serving: float | None = None
     unlimited: bool = (
         False  # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
     )
@@ -252,6 +262,10 @@ class Ingredient(DataModel):
     # breaking no_ingredient_reuse, e.g. flour in both a flatbread and a roux
     staple: bool = False
     notes: str = ""
+
+    @property
+    def perishable(self) -> bool:
+        return self.shelf_life_days is not None
 
 
 # ---------------------------------------------------------------------------
@@ -262,12 +276,30 @@ class Ingredient(DataModel):
 class PreparedIngredient(DataModel):
     id: str  # e.g. "spinach__wilted"
     base_ingredients: list[str]
+    # Grams of each base (as it lands in the dish) per gram of the prepared form.
+    # Bases left out default to 1.0. Cashew cream is mostly water: {cashews: 0.4}
+    base_ratio: dict[str, float] = Field(default_factory=dict)
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
     method: Method
     unlocked_roles: list[Role]  # what roles this preparation enables
     flavour: list[FlavourNote] = []
     colour: ColourFamily | None = None
     notes: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Amount — how much of a slot a recipe needs
+# ---------------------------------------------------------------------------
+
+
+class Amount(DataModel):
+    """Grams as it lands in the dish. Total = per_serving * servings + per_batch."""
+
+    per_serving: float = 0.0
+    per_batch: float = 0.0  # cakes and bread scale by loaf, not by person
+
+    def grams(self, servings: int) -> float:
+        return self.per_serving * servings + self.per_batch
 
 
 # ---------------------------------------------------------------------------
@@ -286,6 +318,8 @@ class ComponentSlot(DataModel):
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 1  # prevent slot becoming a dumping ground
+    # How much the slot needs. "trace" = too little to track (spices, raising agents)
+    amount: Amount | Literal["trace"] | None = None
     required_colour: ColourFamily | None = None
     colour_tolerance: float = 0.4  # 0.0 = exact, 1.0 = anything goes
     notes: str = ""

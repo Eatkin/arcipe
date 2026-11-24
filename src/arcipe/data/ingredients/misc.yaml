@@ -6,6 +6,8 @@ garlic:
   colour: white
   season: [all]
   cost: very_low
+  max_per_serving: 8
+  unit_weight: 5
   unlimited: true
 
 onion:
@@ -16,6 +18,7 @@ onion:
   colour: white
   season: [all]
   cost: very_low
+  unit_weight: 150
   unlimited: true
 
 green_onion:
@@ -26,6 +29,9 @@ green_onion:
   colour: green
   season: [all]
   cost: low
+  max_per_serving: 20
+  shelf_life_days: 7
+  unit_weight: 15
 
 mushrooms:
   name: Mushrooms
@@ -35,6 +41,8 @@ mushrooms:
   colour: brown
   season: [autumn, winter]
   cost: low
+  shelf_life_days: 5
+  unit_weight: 250
   cuisine_context: [chinese, japanese]
   nutrition: [high_fibre]
 
@@ -46,7 +54,8 @@ tomato:
   colour: red
   season: [summer]
   cost: low
-  perishable: true
+  shelf_life_days: 7
+  unit_weight: 100
   nutrition: [high_fibre]
 
 coriander_leaf:
@@ -57,5 +66,7 @@ coriander_leaf:
   colour: green
   season: [all]
   cost: low
-  perishable: true
+  max_per_serving: 5
+  shelf_life_days: 5
+  unit_weight: 30
 
