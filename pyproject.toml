@@ -11,6 +11,9 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
+[project.scripts]
+arcipe-dashboard = "arcipe.dashboard:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/arcipe"]
 

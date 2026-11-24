@@ -123,7 +123,7 @@ carrot_curry_gravy:
     Carrot is canonical but parsnip, squash, sweet potato all work.
   colour_dominant: orange
   cuisine_context: [indian]
-  preferred_ingredients: []
+  preferred_ingredients: [carrot, roasted_carrot, sweet_potato, parsnip]
   required_ingredients: []
   slots: [curry_grain_base, curry_aromatic, spice_bloom, root_sauce_body, tomato_sauce_body, curry_protein, finish_herb]
   edges:
