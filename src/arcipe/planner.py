@@ -20,10 +20,10 @@ import random
 from dataclasses import dataclass
 from dataclasses import field
 
+from arcipe.loader import INGREDIENTS
+from arcipe.loader import RECIPES
 from arcipe.models import Ingredient
 from arcipe.models import Recipe
-from arcipe.ontology import INGREDIENTS
-from arcipe.ontology import RECIPES
 from arcipe.resolver import Resolution
 from arcipe.resolver import rank_recipes
 from arcipe.resolver import resolve
@@ -180,36 +180,70 @@ class MealPlan:
         filled = sum(1 for s in self.slots if s.filled)
         return filled / len(self.slots) if self.slots else 0.0
 
-    def summary(self) -> str:
+    def summary(self, use_color: bool = True) -> str:
+        # Simple ANSI escape sequences for clean terminal aesthetics
+        CYAN = "\033[36m" if use_color else ""
+        GREEN = "\033[32m" if use_color else ""
+        YELLOW = "\033[33m" if use_color else ""
+        RED = "\033[31m" if use_color else ""
+        BOLD = "\033[1m" if use_color else ""
+        RESET = "\033[0m" if use_color else ""
+
+        filled_count = sum(1 for s in self.slots if s.filled)
+
         lines = [
-            f"Meal Plan — {self.days} days x {self.meals_per_day}",
-            f"Planned: {sum(1 for s in self.slots if s.filled)}/{len(self.slots)} meals",
+            f"{BOLD}=================================================={RESET}",
+            f"{BOLD}📅 Meal Plan — {self.days} days x {self.meals_per_day}{RESET}",
+            f"📊 Planned: {GREEN if filled_count == len(self.slots) else YELLOW}{filled_count}/{len(self.slots)} meals{RESET}",
+            f"{BOLD}=================================================={RESET}",
             "",
         ]
+
         for day in range(1, self.days + 1):
-            lines.append(f"Day {day}")
-            for slot in self.slots:
-                if slot.day != day:
-                    continue
+            lines.append(f"{CYAN}{BOLD}♦ Day {day}{RESET}")
+
+            day_slots = [s for s in self.slots if s.day == day]
+            if not day_slots:
+                lines.append("  (No meals scheduled)")
+                continue
+
+            for slot in day_slots:
                 if slot.filled and slot.resolution:
                     r = slot.resolution
-                    assignments = ", ".join(
-                        f"{a.slot_label}: {', '.join(a.assigned)}"
-                        for a in r.assignments
-                        if a.assigned
+                    lines.append(
+                        f"  [{slot.meal.upper()}] {BOLD}{GREEN}{r.recipe_name}{RESET}"
                     )
-                    lines.append(f"  [{slot.meal}] {r.recipe_name}")
-                    lines.append(f"    {assignments}")
+
+                    # Instead of a single giant line, print each slot assignment as an indented sub-tree leaf
+                    for a in r.assignments:
+                        if not a.assigned:
+                            continue
+                        # Aligns the slot labels nicely to a 28-character width
+                        label_str = f"{a.slot_label}:"
+                        ingredients_str = ", ".join(a.assigned)
+                        lines.append(
+                            f"    • {label_str:<28} {YELLOW}{ingredients_str}{RESET}"
+                        )
                 else:
-                    lines.append(f"  [{slot.meal}] ✗ unplanned")
-        lines.append("")
-        lines.append("Inventory remaining:")
+                    lines.append(f"  [{slot.meal.upper()}] {RED}✗ unplanned{RESET}")
+            lines.append("")  # Spacer between days
+
+        lines.append(f"{BOLD}=================================================={RESET}")
+        lines.append(f"{BOLD}📦 Inventory Status{RESET}")
+        lines.append(f"{BOLD}=================================================={RESET}")
+
         for ing_id, portions in sorted(self.inventory_remaining.items()):
             if portions >= UNLIMITED:
-                continue  # don't clutter output with unlimited staples
+                continue
             start = self.inventory_start.get(ing_id, 0)
             used = start - portions
-            lines.append(f"  {ing_id:<25} {portions:>2} remaining  (used {used})")
+
+            # Highlight if you completely cleared out an item
+            stock_color = RED if portions == 0 else RESET
+
+            lines.append(
+                f"  {ing_id:<25} -> {stock_color}{portions:>2} remaining{RESET}  (used {used})"
+            )
         return "\n".join(lines)
 
     def shopping_list(self) -> str:
@@ -341,22 +375,26 @@ def plan_week(
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    from arcipe.ontology import RECIPES as REC_DB
+    from arcipe.loader import RECIPES as REC_DB
 
     demo_inventory: dict[str, int] = {
-        # Perishables — limited portions
+        # --- Your Existing Inventory ---
         "spinach": 2,
         "carrot": 8,
         "cauliflower": 2,
         "tomato": 3,
         "coriander_leaf": 2,
         "potato": 4,
-        # Proteins — a few cans/portions each
-        "lentils": 4,
-        # Grains
-        "flatbread": 3,
-        # Pantry staples — unlimited
+        "red_lentils": 4,
         "coconut_milk": 3,
+        # --- Add These to Unlock Creamy Tuscan Beans ---
+        "cannellini_beans": 2,  # Satisfies stew_protein_legume
+        "cashews": 3,  # Unlocks thickened_cashew_cream
+        "mushrooms": 2,  # Satisfies stew_bulk_umami
+        "sun_dried_tomatoes": 1,  # Satisfies stew_bulk_umami
+        "frozen_spinach": 2,  # Satisfies stew_wilted_greens
+        "vegan_parmesan": 1,  # Satisfies stew_meltable_finisher
+        "green_onion": 1,  # Optional/Extra for stew_aromatic_base
     }
 
     plan = plan_week(

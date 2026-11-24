@@ -1,0 +1,10 @@
+frozen_spinach:
+  name: Frozen Spinach
+  classes: [leafy_green]
+  roles: [sauce_base, bulk_blendable]
+  flavour: [earthy, mild]
+  colour: green
+  season: [all]
+  cost: very_low
+  nutrition: [high_iron, high_calcium]
+  perishable: false

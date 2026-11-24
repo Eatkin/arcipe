@@ -1,0 +1,41 @@
+frozen_fruit:
+  name: Frozen Fruit
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet, rich, floral]
+  colour: red
+  season: [all]
+  cost: low
+  nutrition: []
+  notes: Frozen mixed berries, cheap stuff
+
+apple:
+  name: Apple
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet, sharp]
+  colour: green
+  season: [autumn]
+  cost: low
+  notes: Grated or blended into katsu sauce for natural sweetness.
+
+banana:
+  name: Banana
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable, binder]
+  flavour: [sweet]
+  colour: yellow
+  season: [all]
+  cost: very_low
+  notes: Blended into katsu sauce. Sounds wrong, tastes right.
+
+lemon:
+  name: Lemon
+  classes: [citrus]
+  roles: [acid_bright, garnish]
+  flavour: [sharp, floral]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+

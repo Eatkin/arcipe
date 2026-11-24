@@ -1,0 +1,78 @@
+spaghetti:
+  name: Spaghetti
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [earthy]
+  colour: yellow
+  season: [all]
+  cost: very_low
+  unlimited: true
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+farro:
+  name: Farro
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  cost: medium
+  cuisine_context: [italian]
+  nutrition: [high_carb, high_fibre]
+
+polenta:
+  name: Polenta
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [sweet, earthy]
+  colour: yellow
+  season: [all]
+  cost: low
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+plain_flour:
+  name: Plain Flour
+  classes: [grain]
+  roles: [thickener, binder]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  cost: very_low
+  unlimited: true
+
+basmati_rice:
+  name: Basmati Rice
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [earthy, floral]
+  colour: white
+  season: [all]
+  cost: very_low
+  unlimited: true
+  cuisine_context: [indian, levantine]
+  nutrition: [high_carb]
+
+brown_rice:
+  name: Brown Rice
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [earthy]
+  colour: brown
+  season: [all]
+  cost: very_low
+  unlimited: true
+  nutrition: [high_carb]
+
+sushi_rice:
+  name: Sushi Rice
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [earthy, floral]
+  colour: white
+  season: [all]
+  cost: low
+  unlimited: true
+  cuisine_context: [japanese]
+  nutrition: [high_carb]

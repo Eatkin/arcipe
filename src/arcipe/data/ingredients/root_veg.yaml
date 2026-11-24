@@ -1,0 +1,43 @@
+potato:
+  name: Potato
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable]
+  flavour: [earthy, mild]
+  colour: yellow
+  season: [all]
+  cost: very_low
+  nutrition: [high_carb, high_fibre]
+
+carrot:
+  name: Carrot
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy, mild]
+  colour: orange
+  season: [all]
+  cost: very_low
+  perishable: true
+  nutrition: [high_fibre]
+  notes: Roast then blend = extraordinary cheap curry gravy base.
+
+parsnip:
+  name: Parsnip
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy, mild]
+  colour: white
+  season: [autumn, winter]
+  cost: very_low
+  perishable: true
+  nutrition: [high_fibre]
+
+sweet_potato:
+  name: Sweet Potato
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy]
+  colour: orange
+  season: [all]
+  cost: low
+  perishable: true
+  nutrition: [high_carb, high_fibre]

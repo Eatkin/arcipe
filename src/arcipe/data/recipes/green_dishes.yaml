@@ -1,0 +1,111 @@
+green_pasta:
+  name: Green Pasta
+  description: >
+    Silky blended green sauce coating long pasta.
+    Sauce base can be peas, spinach, nettle, or any blendable green.
+    Fat emulsifier (cashews, white beans) gives body.
+  colour_dominant: green
+  cuisine_context: [italian]
+  preferred_ingredients: []
+  required_ingredients: []
+  slots: [grain_base, green_sauce, fat_emulsifier, aromatic_base, acid_bright, umami_boost, texture_top]
+  edges:
+    - {from: aromatic_base, to: green_sauce,  type: combine}
+    - {from: fat_emulsifier, to: green_sauce,  type: emulsify}
+    - {from: umami_boost,    to: green_sauce,  type: fold_in}
+    - {from: green_sauce,    to: grain_base,   type: coat}
+    - {from: acid_bright,    to: grain_base,   type: finish}
+    - {from: texture_top,    to: grain_base,   type: top}
+  notes: spaghetti + peas + cashews + garlic + lemon + nooch + pine nuts is the canonical fill.
+
+green_grain_bowl:
+  name: Green Grain Bowl
+  description: >
+    Hearty grain base with a punchy blended green sauce,
+    substantial protein/bulk, acid, and a seedy top.
+    More rustic than the pasta — sauce is more of a dressing than a coating.
+  colour_dominant: green
+  cuisine_context: []
+  preferred_ingredients: []
+  required_ingredients: []
+  slots: [grain_base, green_sauce, protein_bulk, aromatic_base, acid_bright, texture_top]
+  edges:
+    - {from: aromatic_base, to: green_sauce, type: combine}
+    - {from: green_sauce,   to: grain_base,  type: coat}
+    - {from: protein_bulk,  to: grain_base,  type: combine}
+    - {from: acid_bright,   to: grain_base,  type: finish}
+    - {from: texture_top,   to: grain_base,  type: top}
+  notes: >
+    farro + nettle pesto + white beans + garlic + lemon + pumpkin seeds.
+    Or: polenta + kale sauce + chickpeas + capers + pumpkin seeds.
+
+green_flatbread:
+  name: Green Flatbread
+  description: >
+    Flatbread as the base. Green sauce is spread not coated.
+    Bulk veg goes on top rather than folded in.
+    Different texture register — crispy base, soft spread, chunky top.
+  colour_dominant: green
+  cuisine_context: [levantine, indian]
+  preferred_ingredients: []
+  required_ingredients: [flatbread]
+  slots: [grain_base, green_sauce, protein_bulk, fat_emulsifier, acid_bright, texture_top]
+  edges:
+    - {from: fat_emulsifier, to: green_sauce, type: emulsify}
+    - {from: green_sauce,    to: grain_base,  type: coat}
+    - {from: protein_bulk,   to: grain_base,  type: top}
+    - {from: acid_bright,    to: grain_base,  type: finish}
+    - {from: texture_top,    to: grain_base,  type: top}
+  notes: flatbread + pea & basil spread + chickpeas + olive oil + capers + fried capers.
+
+creamy_tomato_lentil:
+  name: Creamy Tomato Lentil
+  description: >
+    A rich tomato-based sauce with lentils as the protein.
+    Cashews or white beans as fat emulsifier give it creaminess without dairy.
+  colour_dominant: red
+  cuisine_context: [italian]
+  preferred_ingredients: [red_lentils]
+  required_ingredients: []
+  slots: [grain_base, creamy_sauce, protein_bulk, aromatic_base, umami_boost, acid_bright, texture_top]
+  edges:
+    - {from: aromatic_base, to: creamy_sauce, type: combine}
+    - {from: umami_boost,   to: creamy_sauce, type: fold_in}
+    - {from: protein_bulk,  to: creamy_sauce, type: fold_in}
+    - {from: creamy_sauce,  to: grain_base,   type: coat}
+    - {from: acid_bright,   to: creamy_sauce, type: finish}
+    - {from: texture_top,   to: grain_base,   type: top}
+  notes: Miso is the secret — rounds out the tomato.
+
+creamy_tuscan_beans:
+  id: creamy_tuscan_beans
+  name: Creamy Tuscan White Beans
+  description: >
+    A rich, velvety white bean stew loaded with sautéed mushrooms, 
+    sun-dried tomatoes, and greens, finished with melted vegan parm.
+  colour_dominant: beige
+  cuisine_context: [italian]
+  meal_type: [lunch, dinner]
+  serves: 3
+  no_ingredient_reuse: true
+  
+  slots:
+    - stew_aromatic_base        # Onion, garlic, green onion
+    - stew_bulk_umami           # Mushrooms, sun-dried tomatoes
+    - sauce_creamy_binder       # Thickened cashew cream
+    - stew_protein_legume       # Cannellini / white beans
+    - stew_meltable_finisher    # Vegan parmesan
+    - stew_wilted_greens        # Frozen spinach
+    - finish_herb               # Parsley, red pepper flakes
+
+  edges:
+    - {from: stew_bulk_umami, to: stew_aromatic_base, type: combine}
+    - {from: sauce_creamy_binder, to: stew_aromatic_base, type: deglaze}
+    - {from: stew_protein_legume, to: sauce_creamy_binder, type: fold_in}
+    - {from: stew_meltable_finisher, to: sauce_creamy_binder, type: emulsify}
+    - {from: stew_wilted_greens, to: sauce_creamy_binder, type: fold_in}
+    - {from: finish_herb, to: stew_protein_legume, type: top}
+
+  notes: >
+    Serve alongside good sourdough or garlic bread. If the sauce thickens 
+    too much while boiling the cashew cream, loosen with a splash of water.

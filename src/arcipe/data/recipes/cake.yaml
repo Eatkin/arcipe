@@ -1,0 +1,24 @@
+# recipes.yaml
+vegan_banana_bread:
+  id: vegan_banana_bread
+  name: The Best Vegan Banana Bread
+  description: >
+    Moist classic banana bread utilizing overripe bananas for structure,
+    with an optional crunchy/sweet fold-in.
+  colour_dominant: brown
+  cuisine_context: [universal]
+  meal_type: [breakfast, snack, cake]
+  serves: 10
+  required_ingredients: [banana]
+  no_ingredient_reuse: true
+  
+  slots: [baking_grain_base, fruit_binder_sweetener, baking_fat, baking_leavener, baking_spice_flavor, baking_add_ins]
+
+  edges:
+    - {from: fruit_binder_sweetener, to: baking_fat, type: combine}
+    - {from: baking_leavener, to: baking_grain_base, type: combine}
+    - {from: baking_spice_flavor, to: baking_grain_base, type: combine}
+    - {from: baking_grain_base, to: fruit_binder_sweetener, type: fold_in}
+    - {from: baking_add_ins, to: fruit_binder_sweetener, type: fold_in}
+    
+  notes: "Canonical fill: plain_flour + ripe_bananas + coconut_oil + baking_soda + cinnamon. Ref - https://www.ambitiouskitchen.com/vegan-banana-bread/"

@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from datetime import date
 from itertools import groupby
 
+from arcipe.loader import INGREDIENTS
+from arcipe.loader import PREPARED_INGREDIENTS
 from arcipe.models import COLOUR_MAX
 from arcipe.models import CUISINE_FAMILY
 from arcipe.models import ComponentSlot
@@ -24,8 +26,6 @@ from arcipe.models import PreparedIngredient
 from arcipe.models import Recipe
 from arcipe.models import Season
 from arcipe.models import colour_distance
-from arcipe.ontology import INGREDIENTS
-from arcipe.ontology import PREPARED_INGREDIENTS
 from arcipe.utils import get_season
 
 
@@ -296,12 +296,16 @@ def resolve(  # noqa: C901
 
         # Remove assigned ingredients from pool (no-reuse)
         if recipe.no_ingredient_reuse:
-            # After assigning chosen_ids, also remove base ingredients of any prepared forms
             for ing_id in chosen_ids:
+                # remove the ingredient itself
+                if ing_id in remaining:
+                    remaining.remove(ing_id)
+                # also remove base ingredients of any prepared forms
                 prep = PREPARED_INGREDIENTS.get(ing_id)
-                if prep and all(i in remaining for i in prep.base_ingredients):
-                    for ing in prep.base_ingredients:
-                        remaining.remove(ing)
+                if prep:
+                    for base_id in prep.base_ingredients:
+                        if base_id in remaining:
+                            remaining.remove(base_id)
             used.update(chosen_ids)
 
         filled = bool(chosen) or slot.optional
@@ -358,7 +362,13 @@ def rank_recipes(
         ]
         filled = sum(1 for a in required_slots if a.filled)
         total = len(required_slots)
-        recipe_score = 0.0 if "required_ingredient_missing" in r.unfillable else filled / total if total else 1.0
+        recipe_score = (
+            0.0
+            if "required_ingredient_missing" in r.unfillable
+            else filled / total
+            if total
+            else 1.0
+        )
         results.append(
             RecipeScore(
                 recipe_id=recipe.id,
@@ -382,7 +392,7 @@ def _slot_is_optional(slot_id: str, recipe: Recipe) -> bool:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    from arcipe.ontology import RECIPES
+    from arcipe.loader import RECIPES
 
     # We always got spices
     BASE_INVENTORY = [
@@ -411,7 +421,7 @@ if __name__ == "__main__":
     inventory_b = [
         "farro",
         "kale",
-        "white_beans",
+        "cannellini_beans",
         "lemon",
     ]
 
@@ -419,7 +429,7 @@ if __name__ == "__main__":
     inventory_c = [
         "spaghetti",
         "tomato",
-        "lentils",
+        "red_lentils",
         "cashews",
         "onion",
         "garlic",

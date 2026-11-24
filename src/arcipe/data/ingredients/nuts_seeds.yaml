@@ -1,0 +1,44 @@
+cashews:
+  name: Cashews
+  classes: [nut]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [rich, sweet, nutty]
+  colour: white
+  season: [all]
+  cost: medium
+  unlimited: true
+  nutrition: [high_fat]
+  notes: Soaked and blended = exceptional creamy base.
+
+sunflower_seeds:
+  name: Sunflower Seeds
+  classes: [seed]
+  roles: [fat_emulsifier, texture_top, garnish]
+  flavour: [mild, nutty]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+  nutrition: [high_fat, omega3]
+  notes: Soaked and blended = sunflower cream, excellent cheaper cashew alternative.
+
+pumpkin_seeds:
+  name: Pumpkin Seeds
+  classes: [seed]
+  roles: [texture_top, garnish]
+  flavour: [nutty]
+  colour: green
+  season: [all]
+  cost: low
+  nutrition: [high_protein, omega3]
+
+pine_nuts:
+  name: Pine Nuts
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [rich, nutty]
+  colour: white
+  season: [all]
+  cost: high
+  cuisine_context: [italian, levantine]
+

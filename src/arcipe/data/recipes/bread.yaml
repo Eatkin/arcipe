@@ -1,0 +1,13 @@
+crumpet_meal:
+  name: Crumpets
+  description: >
+    They're crumpets
+  colour_dominant: beige
+  cuisine_context: [british]
+  meal_type: [breakfast, lunch]
+  required_ingredients: [crumpets]
+  slots: [grain_base, fat_emulsifier, texture_top]  # butter slot, topping slot
+  edges:
+    - {from: grain_base, to: fat_emulsifier,  type: combine}
+    - {from: grain_base, to: texture_top,  type: combine}
+

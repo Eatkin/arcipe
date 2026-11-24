@@ -1,0 +1,79 @@
+chickpeas:
+  name: Chickpeas
+  classes: [legume]
+  roles: [bulk, protein, sauce_base]
+  flavour: [nutty, earthy]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+  nutrition: [high_protein, high_fibre]
+  notes: Aquafaba (liquid) is separately useful as binder/emulsifier.
+
+cannellini_beans:
+  name: Cannellini Beans
+  classes: [legume]
+  roles: [bulk, protein, sauce_base, fat_emulsifier]
+  flavour: [earthy, rich]
+  colour: white
+  season: [all]
+  cost: low
+  nutrition: [high_protein, high_fibre]
+  notes: Blended white beans make an incredibly creamy sauce base.
+
+butter_beans:
+  name: Butter Beans
+  classes: [legume]
+  roles: [bulk, protein, sauce_base, fat_emulsifier]
+  flavour: [earthy, rich]
+  colour: white
+  season: [all]
+  cost: low
+  unlimited: true
+  nutrition: [high_protein, high_fibre]
+
+black_beans:
+  name: Black Beans
+  classes: [legume]
+  roles: [bulk, protein]
+  flavour: [earthy, rich]
+  colour: black
+  season: [all]
+  cost: low
+  unlimited: true
+  cuisine_context: [mexican]
+  nutrition: [high_protein, high_fibre]
+
+red_lentils:
+  name: Red Lentils
+  classes: [legume]
+  roles: [bulk, protein, sauce_base]
+  flavour: [earthy, umami]
+  colour: orange
+  season: [all]
+  cost: very_low
+  nutrition: [high_protein, high_iron, high_fibre]
+
+kidney_beans:
+  name: Kidney Beans
+  classes: [legume]
+  roles: [bulk, protein]
+  flavour: [earthy, rich]
+  colour: red
+  season: [all]
+  cost: very_low
+  unlimited: true
+  nutrition: [high_protein, high_fibre]
+  notes: The canonical rajma bean. Canned is fine, dried is better.
+
+tofu:
+  name: Tofu (firm)
+  classes: [soy_product]
+  roles: [bulk, protein]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  cost: low
+  cuisine_context: [japanese, korean, chinese]
+  nutrition: [high_protein, high_calcium]
+  notes: Press well before using. Takes on sauce flavour readily.

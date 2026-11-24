@@ -1,0 +1,122 @@
+ginger:
+  name: Fresh Ginger
+  classes: [rhizome]
+  roles: [aromatic, spice_base]
+  flavour: [spicy, fresh, floral]
+  colour: yellow
+  season: [all]
+  cost: low
+  perishable: true
+
+turmeric_fresh:
+  name: Fresh Turmeric
+  classes: [rhizome]
+  roles: [aromatic, spice_base]
+  flavour: [earthy, spicy]
+  colour: orange
+  season: [all]
+  cost: medium
+  perishable: true
+
+garam_masala:
+  name: Garam Masala
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy, floral, earthy]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true
+  cuisine_context: [indian]
+
+fenugreek_seed:
+  name: Fenugreek Seed
+  classes: [dried_spice]
+  roles: [spice_base, texture_spice]
+  flavour: [earthy, bitter, floral]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+
+cumin:
+  name: Cumin
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [earthy, spicy, smoky]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true
+
+coriander_seed:
+  name: Coriander Seed
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [floral, earthy, spicy]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true
+
+chilli_powder:
+  name: Chilli Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy]
+  colour: red
+  season: [all]
+  cost: low
+  unlimited: true
+
+smoked_paprika:
+  name: Smoked Paprika
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [smoky, spicy, sweet]
+  colour: red
+  season: [all]
+  cost: low
+  unlimited: true
+
+turmeric_dried:
+  name: Turmeric (dried)
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [earthy, spicy]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+
+curry_powder:
+  name: Curry Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy, earthy, floral]
+  colour: yellow
+  season: [all]
+  cost: low
+  unlimited: true
+  cuisine_context: [indian, japanese]
+  notes: Generic blend. Fine for katsu or mild curries.
+
+mixed_spice:
+  name: Mixed Spice
+  classes: [dried_spice]
+  roles: [spice_base, baking_spice]
+  flavour: [sweet, spicy, nutty]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true
+
+cinnamon_ground:
+  name: Ground Cinnamon
+  classes: [dried_spice]
+  roles: [spice_base, baking_spice]
+  flavour: [sweet, spicy, earthy]
+  colour: brown
+  season: [all]
+  cost: low
+  unlimited: true

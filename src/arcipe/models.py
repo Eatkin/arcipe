@@ -38,6 +38,10 @@ Role = Literal[
     "finish_herb",  # fresh coriander, basil, etc
     "baking_spice",  # mixed spice, etc
     "flavour_enhancer",  # Tomato puree, msg, soy sauce, etc
+    "gluten", # Bread, cake etc
+    "raising_agent",
+    "basic", # as in, not acidic
+    "meltable",
 ]
 
 # Broad flavour contribution
@@ -86,6 +90,7 @@ IngredientClassName = Literal[
     "nightshade",
     "fruit_veg",  # courgette, pepper, cucumber — veg by use, fruit by botany
     "citrus",
+    "stone_fruit",
     "nut",
     "seed",
     "fresh_herb",
@@ -96,10 +101,9 @@ IngredientClassName = Literal[
     "sea_veg",
     "rhizome",
     "soy_product",
-    "stone_fruit",
     "vinegar",
+    "raising_agent",
 ]
-
 # Nutritional flags (soft constraints for meal planner)
 NutritionFlag = Literal[
     "high_protein",
@@ -118,7 +122,15 @@ CostTier = Literal["very_low", "low", "medium", "high"]
 
 # Colour — used for harmony constraints in meal planner
 ColourFamily = Literal[
-    "green", "red", "orange", "yellow", "white", "brown", "purple", "black"
+    "green",
+    "red",
+    "orange",
+    "yellow",
+    "white",
+    "brown",
+    "purple",
+    "black",
+    "beige",
 ]
 
 COLOUR_RGB: dict[str, tuple[int, int, int]] = {
@@ -130,6 +142,7 @@ COLOUR_RGB: dict[str, tuple[int, int, int]] = {
     "brown": (140, 90, 50),
     "purple": (130, 70, 160),
     "black": (30, 30, 30),
+    "beige": (245, 245, 220),
 }
 
 
@@ -189,6 +202,8 @@ CUISINE_FAMILY: dict[CuisineContext, CuisineFamily] = {
     "universal": "universal",
 }
 
+MealType = Literal["breakfast", "lunch", "dinner", "snack", "side", "dessert", "cake", "bread"]
+
 # ---------------------------------------------------------------------------
 # Ingredient Class — top-level ontology node
 # ---------------------------------------------------------------------------
@@ -238,6 +253,7 @@ class PreparedIngredient(BaseModel):
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
     method: Method
     unlocked_roles: list[Role]  # what roles this preparation enables
+    flavour: list[FlavourNote] = []
     colour: ColourFamily | None = None
     notes: str = ""
 
@@ -286,6 +302,8 @@ class Recipe(BaseModel):
     slots: list[ComponentSlot]
     edges: list[RecipeEdge]
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
+    # Default lunch / dinner as that's most things
+    meal_type: list[MealType] = Field(default_factory=lambda: ["lunch", "dinner"])  # ty: ignore
     preferred_ingredients: list[str] = field(
         default_factory=list
     )  # Preferential ingredients

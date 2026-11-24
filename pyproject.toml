@@ -8,6 +8,7 @@ authors = [{ name = "Ed", email = "edwardatkin@edwardatkin.co.uk" }]
 license = { text = "MIT" }
 dependencies = [
     "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -1,0 +1,61 @@
+garlic:
+  name: Garlic
+  classes: [allium]
+  roles: [aromatic, umami_boost]
+  flavour: [umami, spicy]
+  colour: white
+  season: [all]
+  cost: very_low
+  unlimited: true
+
+onion:
+  name: Onion
+  classes: [allium]
+  roles: [aromatic]
+  flavour: [sweet, umami]
+  colour: white
+  season: [all]
+  cost: very_low
+  unlimited: true
+
+green_onion:
+  name: Green Onion
+  classes: [allium]
+  roles: [aromatic, garnish, finish_herb]
+  flavour: [fresh, sharp]
+  colour: green
+  season: [all]
+  cost: low
+
+mushrooms:
+  name: Mushrooms
+  classes: [fungus]
+  roles: [bulk, umami_boost]
+  flavour: [umami, earthy]
+  colour: brown
+  season: [autumn, winter]
+  cost: low
+  cuisine_context: [chinese, japanese]
+  nutrition: [high_fibre]
+
+tomato:
+  name: Tomato
+  classes: [nightshade]
+  roles: [sauce_base, bulk, acid_bright]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [summer]
+  cost: low
+  perishable: true
+  nutrition: [high_fibre]
+
+coriander_leaf:
+  name: Fresh Coriander
+  classes: [fresh_herb]
+  roles: [garnish, finish_herb]
+  flavour: [fresh, floral]
+  colour: green
+  season: [all]
+  cost: low
+  perishable: true
+

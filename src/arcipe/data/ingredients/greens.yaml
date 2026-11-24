@@ -1,0 +1,55 @@
+spinach:
+  name: Spinach
+  classes: [leafy_green]
+  roles: [sauce_base, bulk, garnish]
+  flavour: [earthy, mild, fresh]
+  colour: green
+  season: [all]
+  cost: low
+  nutrition: [high_iron, high_calcium]
+
+nettle:
+  name: Nettle
+  classes: [leafy_green]
+  roles: [sauce_base, bulk]
+  flavour: [earthy, grassy]
+  colour: green
+  season: [spring, forage]
+  cost: very_low
+  perishable: true
+  nutrition: [high_iron]
+  notes: Blanch first to neutralise sting. Remarkable spring ingredient.
+
+kale:
+  name: Kale
+  classes: [leafy_green, brassica]
+  roles: [bulk, sauce_base, garnish]
+  flavour: [bitter, earthy]
+  colour: green
+  season: [autumn, winter]
+  cost: low
+  perishable: true
+  nutrition: [high_iron, high_calcium, high_fibre]
+
+cauliflower:
+  name: Cauliflower
+  classes: [brassica]
+  roles: [bulk, bulk_blendable]
+  flavour: [mild, earthy, nutty]
+  colour: white
+  season: [all]
+  cost: low
+  perishable: true
+  nutrition: [high_fibre]
+  notes: Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.
+
+peas:
+  name: Peas
+  classes: [legume]
+  roles: [sauce_base, bulk, protein, garnish]
+  flavour: [sweet, fresh, grassy]
+  colour: green
+  season: [spring, summer]
+  cost: low
+  nutrition: [high_protein, high_fibre]
+  notes: Frozen peas are year-round and excellent. Genuinely polymorphic ingredient.

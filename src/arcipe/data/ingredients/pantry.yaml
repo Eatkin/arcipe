@@ -1,0 +1,148 @@
+capers:
+  name: Capers
+  classes: [fermented]
+  roles: [acid_bright, umami_boost, texture_top, garnish]
+  flavour: [sharp, umami]
+  colour: green
+  season: [all]
+  cost: medium
+  cuisine_context: [italian, levantine]
+  notes: Fried capers are a texture revelation.
+
+white_wine_vinegar:
+  name: White Wine Vinegar
+  classes: [vinegar]
+  roles: [acid_component, acid_bright]
+  flavour: [sharp]
+  colour: white
+  season: [all]
+  cost: low
+  notes: Structural acid in vindaloo — required, not optional.
+
+apple_cider_vinegar:
+  name: Apple Cider Vinegar
+  classes: [vinegar]
+  roles: [acid_component, acid_bright]
+  flavour: [sharp, sweet]
+  colour: yellow
+  season: [all]
+  cost: low
+
+miso:
+  name: White Miso
+  classes: [fermented]
+  roles: [umami_boost, fat_emulsifier]
+  flavour: [umami, rich]
+  colour: yellow
+  season: [all]
+  cost: medium
+  cuisine_context: [japanese, korean]
+  nutrition: [b12_source]
+
+nutritional_yeast:
+  name: Nutritional Yeast
+  classes: [fermented]
+  roles: [umami_boost]
+  flavour: [umami, nutty]
+  colour: yellow
+  season: [all]
+  cost: medium
+  unlimited: true
+  nutrition: [b12_source]
+
+olive_oil:
+  name: Olive Oil
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, earthy]
+  colour: yellow
+  season: [all]
+  cost: medium
+  unlimited: true
+  nutrition: [high_fat]
+
+butter:
+  name: Butter
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, nutty]
+  colour: yellow
+  season: [all]
+  cost: medium
+  cuisine_context: [french, british]
+  nutrition: [high_fat]
+  notes: May sub for vegan alternative.
+
+coconut_milk:
+  name: Coconut Milk (full fat)
+  classes: [plant_milk]
+  roles: [fat_emulsifier, liquid, sauce_base]
+  flavour: [rich, sweet, mild]
+  colour: white
+  season: [all]
+  cost: low
+  cuisine_context: [indian, chinese]
+  nutrition: [high_fat]
+  notes: Full fat only. The lite stuff is a waste of everyone's time.
+
+canned_tomato:
+  name: Canned Tomatoes
+  classes: [nightshade]
+  roles: [sauce_base, liquid]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [all]
+  cost: very_low
+  unlimited: true
+  nutrition: [high_fibre]
+  notes: Year-round pantry staple. Often better than out-of-season fresh.
+
+tomato_puree:
+  name: Tomato Puree
+  classes: [nightshade]
+  roles: [thickener, umami_boost]
+  flavour: [rich, umami]
+  colour: red
+  season: [all]
+  cost: low
+  unlimited: true
+
+tomato_ketchup:
+  name: Tomato Ketchup
+  classes: [nightshade]
+  roles: [thickener, umami_boost, sweetener]
+  flavour: [rich, umami, sweet]
+  colour: red
+  season: [all]
+  cost: low
+  unlimited: true
+
+bicarbonate_of_soda:
+  name: Bicarbonate of Soda
+  classes: [raising_agent]
+  roles: [raising_agent, basic]
+  flavour: []
+  colour: white
+  cost: low
+  unlimited: true
+  season: [all]
+
+sun_dried_tomatoes:
+  name: Sun-dried Tomatoes
+  classes: [nightshade]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami, sharp, sweet]
+  colour: red
+  season: [all]
+  cost: medium
+  cuisine_context: [italian]
+
+vegan_parmesan:
+  name: Vegan Parmesan
+  classes: [fat]
+  roles: [umami_boost, flavour_enhancer, meltable]
+  flavour: [umami, rich, sharp]
+  colour: beige
+  season: [all]
+  cost: high
+  cuisine_context: [italian]
