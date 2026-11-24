@@ -5,7 +5,8 @@ frozen_fruit:
   flavour: [sweet, rich, floral]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   nutrition: []
   notes: Frozen mixed berries, cheap stuff
 
@@ -16,7 +17,8 @@ apple:
   flavour: [sweet, sharp]
   colour: green
   season: [autumn]
-  cost: low
+  price: moderate
+  pack_weight: 150
   shelf_life_days: 30
   unit_weight: 150
   notes: Grated or blended into katsu sauce for natural sweetness.
@@ -28,7 +30,8 @@ banana:
   flavour: [sweet]
   colour: yellow
   season: [all]
-  cost: very_low
+  price: cheap
+  pack_weight: 120
   shelf_life_days: 5
   unit_weight: 120
   notes: Blended into katsu sauce. Sounds wrong, tastes right.
@@ -40,7 +43,7 @@ lemon:
   flavour: [sharp, floral]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 15
   shelf_life_days: 21
   unit_weight: 60
@@ -55,7 +58,7 @@ lime:
   flavour: [sharp, fresh]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 14
   unit_weight: 60
   stock_ratio: 2.0
@@ -69,7 +72,8 @@ raisins:
   flavour: [sweet]
   colour: black
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 250
   max_per_serving: 30
 
 dates:
@@ -79,5 +83,6 @@ dates:
   flavour: [sweet, rich]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   max_per_serving: 30

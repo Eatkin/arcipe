@@ -5,7 +5,7 @@ chickpeas:
   flavour: [nutty, earthy]
   colour: yellow
   season: [all]
-  cost: low
+  price: cheap
   unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
@@ -18,7 +18,7 @@ cannellini_beans:
   flavour: [earthy, rich]
   colour: white
   season: [all]
-  cost: low
+  price: cheap
   unit_weight: 240
   nutrition: [high_protein, high_fibre]
   notes: Blended white beans make an incredibly creamy sauce base.
@@ -30,7 +30,7 @@ butter_beans:
   flavour: [earthy, rich]
   colour: white
   season: [all]
-  cost: low
+  price: cheap
   unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
@@ -42,7 +42,7 @@ black_beans:
   flavour: [earthy, rich]
   colour: black
   season: [all]
-  cost: low
+  price: cheap
   unit_weight: 240
   unlimited: true
   cuisine_context: [mexican]
@@ -55,7 +55,8 @@ red_lentils:
   flavour: [earthy, umami]
   colour: orange
   season: [all]
-  cost: very_low
+  price: cheap
+  pack_weight: 500
   stock_ratio: 0.4
   nutrition: [high_protein, high_iron, high_fibre]
 
@@ -66,7 +67,7 @@ kidney_beans:
   flavour: [earthy, rich]
   colour: red
   season: [all]
-  cost: very_low
+  price: cheap
   unit_weight: 240
   unlimited: true
   nutrition: [high_protein, high_fibre]
@@ -79,7 +80,8 @@ tofu:
   flavour: [mild]
   colour: white
   season: [all]
-  cost: low
+  price: pricey
+  pack_weight: 280
   shelf_life_days: 7
   unit_weight: 280
   cuisine_context: [japanese, korean, chinese]
@@ -93,7 +95,8 @@ green_lentils:
   flavour: [earthy]
   colour: brown
   season: [all]
-  cost: very_low
+  price: cheap
+  pack_weight: 500
   stock_ratio: 0.4
   nutrition: [high_protein, high_iron, high_fibre]
   notes: Hold their shape, unlike red lentils. Tinned = stock_ratio 1 really.
@@ -105,7 +108,8 @@ tempeh:
   flavour: [nutty, earthy]
   colour: beige
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 200
   shelf_life_days: 14
   unit_weight: 200
   nutrition: [high_protein]
@@ -117,7 +121,8 @@ soy_chunks:
   flavour: [mild]
   colour: beige
   season: [all]
-  cost: low
+  price: cheap
+  pack_weight: 300
   stock_ratio: 0.35
   nutrition: [high_protein]
   notes: Rehydrated weight is ~3x dry.

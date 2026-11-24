@@ -5,7 +5,7 @@ parsley:
   flavour: [fresh, grassy]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 30
   max_per_serving: 5
@@ -18,7 +18,7 @@ basil:
   flavour: [fresh, floral, sweet]
   colour: green
   season: [summer]
-  cost: low
+  price: moderate
   shelf_life_days: 5
   unit_weight: 30
   max_per_serving: 5
@@ -31,7 +31,7 @@ dill:
   flavour: [fresh, grassy]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 6
   unit_weight: 30
   max_per_serving: 5
@@ -44,7 +44,7 @@ chives:
   flavour: [fresh, sharp]
   colour: green
   season: [spring, summer]
-  cost: low
+  price: moderate
   shelf_life_days: 6
   unit_weight: 20
   max_per_serving: 5
@@ -56,7 +56,7 @@ mint:
   flavour: [fresh, sweet]
   colour: green
   season: [summer]
-  cost: low
+  price: moderate
   shelf_life_days: 6
   unit_weight: 30
   max_per_serving: 5

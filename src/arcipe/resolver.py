@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import random
 from collections import Counter
+from collections.abc import Collection
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import date
@@ -186,6 +187,14 @@ def available_pool(
     return raw | makeable
 
 
+# Prepared forms as Ingredients, built once per (prep, bases) and reused, so that
+# slot-match results can be cached against them
+_SYNTHETIC: dict[tuple[int, ...], tuple[Ingredient, PreparedIngredient, list]] = {}
+# (slot, ingredient, prepared_db, min_coverage) -> does it fit. Values hold the
+# objects too, so a cached id is never reused by a different object
+_MATCHES: dict[tuple[int, int, int, float], tuple[bool, object, object, object]] = {}
+
+
 def expand_inventory(
     inventory: Inventory,
     ingredient_db: dict[str, Ingredient],
@@ -201,6 +210,10 @@ def expand_inventory(
         if prep.id not in pool:
             continue
         bases = [ingredient_db[b] for b in prep.base_ingredients]
+        key = (id(prep), *map(id, bases))
+        if key in _SYNTHETIC:
+            expanded[prep.id] = _SYNTHETIC[key][0]
+            continue
         base = bases[0]
         lives = [b.shelf_life_days for b in bases if b.shelf_life_days is not None]
         expanded[prep.id] = Ingredient(
@@ -211,13 +224,15 @@ def expand_inventory(
             flavour=prep.flavour or base.flavour,
             colour=prep.colour or base.colour,
             season=base.season,
-            cost=base.cost,
+            price=max(b.price for b in bases),
             nutrition=base.nutrition,
             shelf_life_days=min(lives) if lives else None,
             unlimited=all(b.unlimited for b in bases),
             cuisine_context=prep.cuisine_context,
             notes=prep.notes,
         )
+        # keep prep and bases alive alongside, so their ids can't be reused
+        _SYNTHETIC[key] = (expanded[prep.id], prep, bases)
     return expanded
 
 
@@ -271,6 +286,36 @@ def matches_slot(
     return coverage >= min_coverage
 
 
+_UNIVERSE: dict[
+    tuple[int, int, int], tuple[tuple[str, ...], object, object, object]
+] = {}
+
+
+def slot_universe(
+    slot: ComponentSlot,
+    ingredient_db: dict[str, Ingredient],
+    prepared_db: dict[str, PreparedIngredient],
+) -> tuple[str, ...]:
+    """
+    Every ingredient or prepared form that could ever fill this slot, ignoring
+    stock. Cached: matching only depends on the slot and the ingredient data.
+    """
+    key = (id(slot), id(ingredient_db), id(prepared_db))
+    hit = _UNIVERSE.get(key)
+    if hit is None:
+        everything = expand_inventory(list(ingredient_db), ingredient_db, prepared_db)
+        ids = tuple(
+            sorted(
+                i
+                for i, ing in everything.items()
+                if matches_slot(ing, slot, prepared_db)
+            )
+        )
+        hit = (ids, slot, ingredient_db, prepared_db)
+        _UNIVERSE[key] = hit
+    return hit[0]
+
+
 def candidates(
     slot: ComponentSlot,
     inventory: list[str],
@@ -288,7 +333,14 @@ def candidates(
     result = []
     for ing_id in inventory:
         ing = db.get(ing_id)
-        if ing is not None and matches_slot(ing, slot, preps, min_coverage):
+        if ing is None:
+            continue
+        key = (id(slot), id(ing), id(preps), min_coverage)
+        hit = _MATCHES.get(key)
+        if hit is None:
+            hit = (matches_slot(ing, slot, preps, min_coverage), slot, ing, preps)
+            _MATCHES[key] = hit
+        if hit[0]:
             result.append(ing)
     return result
 
@@ -299,12 +351,17 @@ def candidates(
 
 CURRENT_SEASON: Season = get_season(date.today())
 
-COST_SCORE: dict[str, float] = {
-    "very_low": 1.0,
-    "low": 0.8,
-    "medium": 0.5,
-    "high": 0.2,
-}
+# Cheaper ingredients score higher: lean on the cheap staples
+PRICE_SCORE: dict[int, float] = {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.45, 4: 0.2}
+
+# Something you'd have to buy: always worse than what's already in, and pricier
+# things more so. Only applies when resolve() is given `buyable`.
+BUY_PENALTY = 1.0
+BUY_PENALTY_PER_PRICE = 0.3
+
+
+def buy_penalty(ingredient: Ingredient) -> float:
+    return BUY_PENALTY + BUY_PENALTY_PER_PRICE * int(ingredient.price)
 
 
 def _cuisine_fit(ingredient: Ingredient, recipe: Recipe) -> float:
@@ -328,7 +385,7 @@ def score(
     slot: ComponentSlot,
     recipe: Recipe,
     urgency: dict[str, float] | None = None,
-    affinity: dict[str, float] | None = None,
+    bias: dict[str, float] | None = None,
 ) -> float:
     """
     Score an ingredient against a slot. Higher is better.
@@ -339,14 +396,15 @@ def score(
         preferred_class   — bonus if ingredient is in slot.preferred_classes
         preferred_role    — bonus if ingredient also covers a slot.preferred_roles role
         season            — bonus if ingredient is in season or available all year
-        cost              — cheaper ingredients score higher (maximise use of cheap staples)
+        price             — cheaper ingredients score higher (lean on cheap staples)
         role_depth        — ingredients with more roles are more versatile, slight bonus
         urgency           — use things about to go off first. urgency[id] is 0..1
                             (1 = expires today); without it, a flat perishable bonus
         preferred         — recipe.preferred_ingredients bonus
         cuisine_context   — bonus for exact cuisine match, small bonus for same family,
                             heavy penalty for a different family
-        affinity          — learned from your ratings (arcipe.vibes), -1..1 per id
+        bias              — additive nudge per id: learned taste (arcipe.vibes) and
+                            the penalty for having to buy it
     """
     s = 0.0
 
@@ -365,7 +423,7 @@ def score(
         if "forage" in ingredient.season:
             s += 0.1  # foraged and in season: free, reward it
 
-    s += COST_SCORE.get(ingredient.cost, 0.5)
+    s += PRICE_SCORE[int(ingredient.price)]
 
     s += min(len(ingredient.roles) / 10, 0.2)
 
@@ -379,8 +437,8 @@ def score(
 
     s += _cuisine_fit(ingredient, recipe)
 
-    if affinity:
-        s += VIBES_SCALE * affinity.get(ingredient.id, 0.0)
+    if bias:
+        s += bias.get(ingredient.id, 0.0)
 
     return s
 
@@ -391,12 +449,12 @@ def rank(
     recipe: Recipe,
     rng: random.Random | None = None,
     urgency: dict[str, float] | None = None,
-    affinity: dict[str, float] | None = None,
+    bias: dict[str, float] | None = None,
 ) -> list[Ingredient]:
     """Sort by score descending, shuffling within equal-score groups for variety."""
     rng = rng or random.Random()
     scored = sorted(
-        ((score(ing, slot, recipe, urgency, affinity), ing.id, ing) for ing in viable),
+        ((score(ing, slot, recipe, urgency, bias), ing.id, ing) for ing in viable),
         key=lambda t: (-t[0], t[1]),
     )
     ranked: list[Ingredient] = []
@@ -434,6 +492,10 @@ class _Assigner:
     chosen: dict[str, dict[str, float]] = field(default_factory=dict)
     claimed: set[str] = field(default_factory=set)
     consumed: Counter[str] = field(default_factory=Counter)
+    to_buy: set[str] = field(default_factory=set)  # raw ids not in stock, buyable
+
+    def needs_buying(self, ing_id: str) -> bool:
+        return any(raw in self.to_buy for raw in consumes(ing_id, self.prepared_db))
 
     def keys(self, ing_id: str) -> set[str]:
         if not self.recipe.no_ingredient_reuse:
@@ -479,6 +541,8 @@ class _Assigner:
                 continue
             if ing.id not in reserved and self.keys(ing.id) & self.claimed:
                 continue
+            if slot.optional and ing.id not in reserved and self.needs_buying(ing.id):
+                continue  # nobody goes shopping for a garnish
             grams = 0.0
             if need is not None:
                 grams = self._contribution(
@@ -548,6 +612,33 @@ def _expand_urgency(
     return out
 
 
+def _bias(
+    stock: dict[str, float],
+    db: dict[str, Ingredient],
+    preps: dict[str, PreparedIngredient],
+    affinity: dict[str, float] | None,
+    buyable: Collection[str] | None,
+) -> tuple[dict[str, float], set[str]]:
+    """
+    Learned taste plus the cost of buying. Makes anything buyable-but-not-in-stock
+    available (mutates `stock`) and marks it down; prepared forms inherit the
+    penalty of whichever bases would need buying.
+    """
+    bias = {i: VIBES_SCALE * a for i, a in (affinity or {}).items()}
+    if not buyable:
+        return bias, set()
+    have = {i for i, g in stock.items() if g > 0}
+    penalty = {i: buy_penalty(db[i]) for i in buyable if i in db and i not in have}
+    for i, pen in penalty.items():
+        stock[i] = INF
+        bias[i] = bias.get(i, 0.0) - pen
+    for prep in preps.values():
+        extra = sum(penalty.get(b, 0.0) for b in prep.base_ingredients)
+        if extra:
+            bias[prep.id] = bias.get(prep.id, 0.0) - extra
+    return bias, set(penalty)
+
+
 def resolve(
     recipe: Recipe,
     inventory: Inventory,
@@ -557,6 +648,7 @@ def resolve(
     servings: int | None = None,
     urgency: dict[str, float] | None = None,
     affinity: dict[str, float] | None = None,
+    buyable: Collection[str] | None = None,
 ) -> Resolution:
     """
     Resolve a recipe against an inventory.
@@ -569,15 +661,19 @@ def resolve(
         4. Required slots that can't reach MIN_SLOT_COVERAGE are unfillable
 
     servings defaults to recipe.serves. urgency (0..1 per ingredient id) boosts
-    ingredients that are about to expire. affinity (-1..1 per ingredient id, from
+    ingredients that are about to expire. buyable ingredients count as available
+    in any amount but score worse than what's in stock (you'd have to buy them).
+    affinity (-1..1 per ingredient id, from
     arcipe.vibes) nudges towards what you've liked in this kind of dish.
     """
     db = ingredient_db or INGREDIENTS
     preps = PREPARED_INGREDIENTS if prepared_db is None else prepared_db
     servings = servings or recipe.serves
     stock = normalise_stock(inventory, db)
+    bias, to_buy = _bias(stock, db, preps, affinity, buyable)
     expanded_db = expand_inventory(stock, db, preps)
     pool = sorted(available_pool(stock, db, preps))
+    pool_set = set(pool)
     urg = _expand_urgency(urgency, preps)
     failed = Resolution(recipe.id, recipe.name, [], set(), [], servings=servings)
 
@@ -585,7 +681,7 @@ def resolve(
     if failed.missing_required:
         return failed
 
-    picks = _Assigner(recipe, db, preps, stock=dict(stock))
+    picks = _Assigner(recipe, db, preps, stock=dict(stock), to_buy=to_buy)
 
     # Reserve a slot for each required ingredient before anything else is picked
     reserved: dict[str, list[str]] = {slot.id: [] for slot in recipe.slots}
@@ -601,7 +697,7 @@ def resolve(
         if not accepting:
             failed.unplaceable_required.append(req)
             continue
-        best = max(accepting, key=lambda sl, i=ing: score(i, sl, recipe, urg, affinity))
+        best = max(accepting, key=lambda sl, i=ing: score(i, sl, recipe, urg, bias))
         reserved[best.id].append(req)
         picks.claimed |= picks.keys(req)
     if failed.unplaceable_required:
@@ -610,12 +706,12 @@ def resolve(
     assignments: list[SlotAssignment] = []
     for slot in recipe.slots:
         ranked = rank(
-            candidates(slot, pool, expanded_db, prepared_db=preps),
+            [expanded_db[i] for i in slot_universe(slot, db, preps) if i in pool_set],
             slot,
             recipe,
             rng,
             urg,
-            affinity,
+            bias,
         )
         must = reserved[slot.id]
         ordered = [expanded_db[i] for i in must] + [
@@ -671,6 +767,7 @@ def rank_recipes(
     servings: int | None = None,
     urgency: dict[str, float] | None = None,
     feedback: Feedback | None = None,
+    buyable: Collection[str] | None = None,
 ) -> list[RecipeScore]:
     """
     Resolve all recipes against inventory and rank by how completely they can be filled.
@@ -686,6 +783,7 @@ def rank_recipes(
             servings=servings,
             urgency=urgency,
             affinity=feedback.ingredient_affinity(recipe) if feedback else None,
+            buyable=buyable,
         )
         required_slots = [
             a for a in r.assignments if not _slot_is_optional(a.slot_id, recipe)

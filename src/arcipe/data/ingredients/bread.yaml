@@ -5,7 +5,8 @@ tortillas:
   flavour: [mild]
   colour: beige
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 320
   shelf_life_days: 14
   unit_weight: 40
   cuisine_context: [mexican, american]
@@ -17,7 +18,8 @@ bread:
   flavour: [mild]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 800
   shelf_life_days: 5
   unit_weight: 40
   notes: unit = a slice. Burger buns count too.
@@ -29,6 +31,6 @@ breadcrumbs:
   flavour: [mild]
   colour: beige
   season: [all]
-  cost: low
+  price: cheap
   unlimited: true
   staple: true

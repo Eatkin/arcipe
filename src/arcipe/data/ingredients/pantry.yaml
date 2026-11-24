@@ -5,7 +5,8 @@ capers:
   flavour: [sharp, umami]
   colour: green
   season: [all]
-  cost: medium
+  price: moderate
+  pack_weight: 100
   max_per_serving: 10
   cuisine_context: [italian, levantine]
   notes: Fried capers are a texture revelation.
@@ -17,7 +18,8 @@ white_wine_vinegar:
   flavour: [sharp]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 350
   max_per_serving: 15
   notes: Structural acid in vindaloo — required, not optional.
 
@@ -28,7 +30,8 @@ apple_cider_vinegar:
   flavour: [sharp, sweet]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 350
   max_per_serving: 15
 
 miso:
@@ -38,7 +41,8 @@ miso:
   flavour: [umami, rich]
   colour: yellow
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   max_per_serving: 15
   cuisine_context: [japanese, korean]
   nutrition: [b12_source]
@@ -50,7 +54,8 @@ nutritional_yeast:
   flavour: [umami, nutty]
   colour: yellow
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 150
   max_per_serving: 10
   unlimited: true
   nutrition: [b12_source]
@@ -62,7 +67,7 @@ olive_oil:
   flavour: [rich, earthy]
   colour: yellow
   season: [all]
-  cost: medium
+  price: moderate
   max_per_serving: 15
   unlimited: true
   nutrition: [high_fat]
@@ -74,7 +79,8 @@ butter:
   flavour: [rich, nutty]
   colour: yellow
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   cuisine_context: [french, british]
   nutrition: [high_fat]
   notes: May sub for vegan alternative.
@@ -86,7 +92,8 @@ coconut_milk:
   flavour: [rich, sweet, mild]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 400
   unit_weight: 400
   cuisine_context: [indian, chinese]
   nutrition: [high_fat]
@@ -99,7 +106,7 @@ canned_tomato:
   flavour: [umami, sweet, sharp]
   colour: red
   season: [all]
-  cost: very_low
+  price: cheap
   unit_weight: 400
   unlimited: true
   nutrition: [high_fibre]
@@ -112,7 +119,8 @@ tomato_puree:
   flavour: [rich, umami]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   max_per_serving: 15
   unlimited: true
 
@@ -123,7 +131,8 @@ tomato_ketchup:
   flavour: [rich, umami, sweet]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   max_per_serving: 20
   unlimited: true
 
@@ -133,7 +142,7 @@ bicarbonate_of_soda:
   roles: [raising_agent, basic]
   flavour: []
   colour: white
-  cost: low
+  price: negligible
   unlimited: true
   season: [all]
 
@@ -144,7 +153,8 @@ sun_dried_tomatoes:
   flavour: [umami, sharp, sweet]
   colour: red
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 280
   max_per_serving: 30
   unit_weight: 280
   cuisine_context: [italian]
@@ -156,7 +166,8 @@ vegan_parmesan:
   flavour: [umami, rich, sharp]
   colour: beige
   season: [all]
-  cost: high
+  price: fancy
+  pack_weight: 150
   max_per_serving: 15
   cuisine_context: [italian]
 
@@ -167,7 +178,7 @@ vegetable_oil:
   flavour: [mild]
   colour: yellow
   season: [all]
-  cost: low
+  price: cheap
   max_per_serving: 15
   unlimited: true
   staple: true
@@ -179,7 +190,8 @@ coconut_oil:
   flavour: [rich, sweet]
   colour: white
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 300
   max_per_serving: 15
 
 sesame_oil:
@@ -189,7 +201,8 @@ sesame_oil:
   flavour: [nutty, rich]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   max_per_serving: 8
   cuisine_context: [chinese, japanese, korean]
 
@@ -200,7 +213,7 @@ vegetable_stock:
   flavour: [umami, mild]
   colour: yellow
   season: [all]
-  cost: very_low
+  price: negligible
   unlimited: true
   staple: true
   notes: Cubes or bouillon powder — water + a cube counts as stock.
@@ -212,7 +225,7 @@ passata:
   flavour: [umami, sweet, sharp]
   colour: red
   season: [all]
-  cost: very_low
+  price: cheap
   unit_weight: 500
   nutrition: [high_fibre]
 
@@ -223,7 +236,7 @@ soy_sauce:
   flavour: [umami]
   colour: black
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 15
   unlimited: true
   cuisine_context: [chinese, japanese, korean, thai]
@@ -235,7 +248,8 @@ plant_milk:
   flavour: [mild, sweet]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 1000
   unit_weight: 1000
   nutrition: [high_calcium, b12_source]
   notes: unit = a carton. Soy, oat, whatever.
@@ -247,7 +261,8 @@ plant_cream:
   flavour: [rich, mild]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   unit_weight: 200
   nutrition: [high_fat]
   notes: Oat / soy cooking cream, a 200ml carton.
@@ -259,9 +274,10 @@ peanut_butter:
   flavour: [nutty, rich, sweet]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 30
   unlimited: true
+  cuisine_context: [thai, chinese, american, indian]
   nutrition: [high_protein, high_fat]
 
 tahini:
@@ -271,7 +287,8 @@ tahini:
   flavour: [nutty, bitter, rich]
   colour: beige
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 300
   max_per_serving: 20
   cuisine_context: [levantine, mediterranean]
   nutrition: [high_calcium, high_fat]
@@ -283,7 +300,8 @@ maple_syrup:
   flavour: [sweet]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   max_per_serving: 15
 
 sugar:
@@ -293,7 +311,7 @@ sugar:
   flavour: [sweet]
   colour: white
   season: [all]
-  cost: very_low
+  price: negligible
   max_per_serving: 15
   unlimited: true
   staple: true
@@ -305,7 +323,7 @@ cornflour:
   flavour: [mild]
   colour: white
   season: [all]
-  cost: very_low
+  price: negligible
   max_per_serving: 15
   unlimited: true
   staple: true
@@ -317,7 +335,7 @@ baking_powder:
   flavour: []
   colour: white
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   staple: true
 
@@ -328,7 +346,7 @@ yeast:
   flavour: [umami]
   colour: beige
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 mustard:
@@ -338,7 +356,8 @@ mustard:
   flavour: [sharp, spicy]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   max_per_serving: 10
 
 rice_vinegar:
@@ -348,7 +367,8 @@ rice_vinegar:
   flavour: [sharp, sweet]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 250
   max_per_serving: 15
   cuisine_context: [japanese, chinese, korean]
 
@@ -359,7 +379,8 @@ gochujang:
   flavour: [spicy, umami, sweet]
   colour: red
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 250
   max_per_serving: 20
   cuisine_context: [korean]
 
@@ -370,7 +391,8 @@ hot_sauce:
   flavour: [spicy, sharp]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 150
   max_per_serving: 10
 
 sweet_chilli_sauce:
@@ -380,7 +402,8 @@ sweet_chilli_sauce:
   flavour: [sweet, spicy]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 250
   max_per_serving: 30
   cuisine_context: [thai]
 
@@ -391,7 +414,8 @@ plant_yogurt:
   flavour: [sharp, mild]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   shelf_life_days: 10
   unit_weight: 500
   notes: Soy or coconut. Dolloped on curries, chilli, porridge.
@@ -403,7 +427,8 @@ kimchi:
   flavour: [sharp, spicy, umami]
   colour: red
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 400
   max_per_serving: 80
   cuisine_context: [korean]
 
@@ -414,7 +439,8 @@ nori:
   flavour: [umami]
   colour: black
   season: [all]
-  cost: medium
+  price: moderate
+  pack_weight: 25
   max_per_serving: 5
   cuisine_context: [japanese, korean]
   nutrition: [b12_source]

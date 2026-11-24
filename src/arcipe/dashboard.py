@@ -10,7 +10,8 @@ week, rate what you cooked. Standard library only.
 Endpoints:
     GET  /            the page
     GET  /api/meta    ingredients, recipes, default weights
-    POST /api/plan    {inventory, days, meals, people, max_minutes, weights, effort, seed}
+    POST /api/plan    {inventory, days, meals, people, max_minutes, weights, effort, seed,
+                       shopping}
     POST /api/rate    {recipe_id, ingredients, rating, note}
 """
 
@@ -63,6 +64,8 @@ def meta() -> dict[str, Any]:
                 "unit_weight": ing.unit_weight,
                 "shelf_life_days": ing.shelf_life_days,
                 "unlimited": ing.unlimited,
+                "price": int(ing.price),
+                "price_word": ing.price.word,
             }
             for ing in sorted(INGREDIENTS.values(), key=lambda i: i.name)
         ],
@@ -79,6 +82,7 @@ def meta() -> dict[str, Any]:
             "variety": "per meal, for eating the same kinds of thing",
             "time": "per hour of cooking",
             "liked": "pull towards recipes you've rated well",
+            "price": "per price point spent, when shopping is on",
         },
         "meals": list(MEALS),
     }
@@ -134,8 +138,10 @@ def _plan(plan: MealPlan) -> dict[str, Any]:
             )
         days.append({"day": day, "meals": meals})
     stock = []
-    for ing_id in sorted(plan.inventory_start, key=_display_name):
-        start = plan.inventory_start[ing_id]
+    bought = {i: n * INGREDIENTS[i].pack_grams for i, n in plan.bought.items()}
+    for ing_id in sorted(set(plan.inventory_start) | set(bought), key=_display_name):
+        start = plan.inventory_start.get(ing_id, 0.0)
+        extra = bought.get(ing_id, 0.0)
         left = plan.inventory_remaining.get(ing_id, 0.0)
         wasted = plan.wasted.get(ing_id, 0.0)
         stock.append(
@@ -143,12 +149,13 @@ def _plan(plan: MealPlan) -> dict[str, Any]:
                 "id": ing_id,
                 "name": _display_name(ing_id),
                 "start": round(start),
-                "used": round(start - left - wasted),
+                "bought": round(extra),
+                "used": round(start + extra - left - wasted),
                 "left": round(left),
                 "wasted": round(wasted),
             }
         )
-    return {"days": days, "stock": stock}
+    return {"days": days, "stock": stock, "shopping": plan.shopping_items()}
 
 
 def result_json(result: SolverResult) -> dict[str, Any]:
@@ -207,6 +214,7 @@ def plan_request(body: dict, feedback: Feedback) -> dict[str, Any]:
             restarts=restarts,
             rng=random.Random(_int(body, "seed", 0, 0, 2**31)),
             feedback=feedback,
+            shopping=bool(body.get("shopping")),
         )
     except (KeyError, ValueError) as e:
         raise BadRequestError(str(e).strip("'\"")) from e

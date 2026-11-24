@@ -90,3 +90,24 @@ def test_server_serves_page_and_api():
         assert e.value.code == 400
     finally:
         server.shutdown()
+
+
+def test_plan_request_with_shopping_lists_things_to_buy():
+    out = plan_request(
+        {
+            "inventory": {"carrot": 2},
+            "days": 3,
+            "effort": 1,
+            "seed": 0,
+            "shopping": True,
+        },
+        Feedback(recipes=RECIPES),
+    )
+    shop = out["plan"]["shopping"]
+    for row in shop:
+        assert {"name", "packs", "grams", "price_word"} <= set(row)
+    bought = {row["id"] for row in out["plan"]["stock"] if row["bought"]}
+    assert bought == {row["id"] for row in shop}
+    assert out["breakdown"]["price_points"] == sum(
+        r["price"] * r["packs"] for r in shop
+    )

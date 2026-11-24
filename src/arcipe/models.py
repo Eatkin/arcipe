@@ -4,9 +4,12 @@ Recipe Graph data models
 Abstract ingredient/component/recipe models for constraint-based meal planning.
 """
 
+from enum import IntEnum
+from typing import Annotated
 from typing import Literal
 
 from pydantic import BaseModel
+from pydantic import BeforeValidator
 from pydantic import ConfigDict
 from pydantic import Field
 
@@ -132,7 +135,59 @@ NutritionFlag = Literal[
 
 Season = Literal["spring", "summer", "autumn", "winter", "all", "forage"]
 
-CostTier = Literal["very_low", "low", "medium", "high"]
+
+class Price(IntEnum):
+    """What it costs to buy one pack, roughly. Not money — a feel for it."""
+
+    NEGLIGIBLE = 0  # spices, stock cubes: you never think about it
+    CHEAP = 1  # carrots, cabbage, tins of beans, pasta
+    MODERATE = 2  # cauliflower, broccoli, plant milk
+    PRICEY = 3  # tofu, cashews, miso
+    FANCY = 4  # pine nuts, vegan parmesan
+
+    @property
+    def word(self) -> str:
+        return self.name.lower()
+
+
+# Natural-language names for each level, for YAML and for people typing
+PRICE_WORDS: dict[str, Price] = {
+    "negligible": Price.NEGLIGIBLE,
+    "free": Price.NEGLIGIBLE,
+    "basically free": Price.NEGLIGIBLE,
+    "cheap": Price.CHEAP,
+    "budget": Price.CHEAP,
+    "moderate": Price.MODERATE,
+    "normal": Price.MODERATE,
+    "mid": Price.MODERATE,
+    "average": Price.MODERATE,
+    "pricey": Price.PRICEY,
+    "expensive": Price.PRICEY,
+    "spendy": Price.PRICEY,
+    "fancy": Price.FANCY,
+    "luxury": Price.FANCY,
+    "treat": Price.FANCY,
+}
+
+
+def parse_price(value: object) -> Price:
+    """0-4, or a word like "cheap" / "pricey" / "fancy"."""
+    if isinstance(value, Price):
+        return value
+    if isinstance(value, int) and not isinstance(value, bool):
+        return Price(value)
+    if isinstance(value, str):
+        text = value.strip().lower()
+        if text.isdigit():
+            return Price(int(text))
+        if text in PRICE_WORDS:
+            return PRICE_WORDS[text]
+    raise ValueError(
+        f"price must be 0-4 or one of {sorted(set(PRICE_WORDS))}, got {value!r}"
+    )
+
+
+PriceLevel = Annotated[Price, BeforeValidator(parse_price)]
 
 # Colour — used for harmony constraints in meal planner
 ColourFamily = Literal[
@@ -263,7 +318,9 @@ class Ingredient(DataModel):
     flavour: list[FlavourNote]
     colour: ColourFamily
     season: list[Season]
-    cost: CostTier
+    price: PriceLevel
+    # Grams you buy at once (a bag, a tin, a block). Defaults to unit_weight or 500g
+    pack_weight: float | None = None
     cuisine_context: list[CuisineContext] = Field(default_factory=list)
     nutrition: list[NutritionFlag] = Field(default_factory=list)
     # Days a fresh one keeps once bought. None = keeps for ages (tins, dried, frozen)
@@ -288,6 +345,10 @@ class Ingredient(DataModel):
     @property
     def perishable(self) -> bool:
         return self.shelf_life_days is not None
+
+    @property
+    def pack_grams(self) -> float:
+        return self.pack_weight or self.unit_weight or 500.0
 
 
 # ---------------------------------------------------------------------------

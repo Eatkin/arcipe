@@ -5,7 +5,8 @@ spinach:
   flavour: [earthy, mild, fresh]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   shelf_life_days: 4
   unit_weight: 200
   nutrition: [high_iron, high_calcium]
@@ -17,7 +18,7 @@ nettle:
   flavour: [earthy, grassy]
   colour: green
   season: [spring, forage]
-  cost: very_low
+  price: cheap
   shelf_life_days: 2
   nutrition: [high_iron]
   notes: Blanch first to neutralise sting. Remarkable spring ingredient.
@@ -29,7 +30,7 @@ kale:
   flavour: [bitter, earthy]
   colour: green
   season: [autumn, winter]
-  cost: low
+  price: moderate
   shelf_life_days: 5
   unit_weight: 200
   nutrition: [high_iron, high_calcium, high_fibre]
@@ -41,7 +42,7 @@ cauliflower:
   flavour: [mild, earthy, nutty]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 600
   nutrition: [high_fibre]
@@ -54,7 +55,8 @@ peas:
   flavour: [sweet, fresh, grassy]
   colour: green
   season: [spring, summer]
-  cost: low
+  price: cheap
+  pack_weight: 900
   nutrition: [high_protein, high_fibre]
   notes: Frozen peas are year-round and excellent. Genuinely polymorphic ingredient.
 
@@ -65,7 +67,8 @@ swiss_chard:
   flavour: [earthy, bitter]
   colour: green
   season: [summer, autumn]
-  cost: low
+  price: moderate
+  pack_weight: 250
   shelf_life_days: 4
   unit_weight: 250
   nutrition: [high_iron]
@@ -77,7 +80,7 @@ beansprouts:
   flavour: [fresh, mild]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 3
   unit_weight: 300
   cuisine_context: [chinese, thai]

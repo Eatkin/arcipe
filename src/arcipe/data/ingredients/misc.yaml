@@ -5,7 +5,7 @@ garlic:
   flavour: [umami, spicy]
   colour: white
   season: [all]
-  cost: very_low
+  price: cheap
   max_per_serving: 8
   unit_weight: 5
   unlimited: true
@@ -17,7 +17,7 @@ onion:
   flavour: [sweet, umami]
   colour: white
   season: [all]
-  cost: very_low
+  price: cheap
   unit_weight: 150
   unlimited: true
 
@@ -28,7 +28,8 @@ green_onion:
   flavour: [fresh, sharp]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 100
   max_per_serving: 20
   shelf_life_days: 7
   unit_weight: 15
@@ -40,7 +41,8 @@ mushrooms:
   flavour: [umami, earthy]
   colour: brown
   season: [autumn, winter]
-  cost: low
+  price: moderate
+  pack_weight: 250
   shelf_life_days: 5
   unit_weight: 250
   cuisine_context: [chinese, japanese]
@@ -53,7 +55,8 @@ tomato:
   flavour: [umami, sweet, sharp]
   colour: red
   season: [summer]
-  cost: low
+  price: moderate
+  pack_weight: 400
   shelf_life_days: 7
   unit_weight: 100
   nutrition: [high_fibre]
@@ -65,7 +68,7 @@ coriander_leaf:
   flavour: [fresh, floral]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 5
   shelf_life_days: 5
   unit_weight: 30

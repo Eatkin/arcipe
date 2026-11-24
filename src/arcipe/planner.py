@@ -260,6 +260,7 @@ class MealPlan:
     unplanned: list[tuple[int, str]] = field(default_factory=list)
     wasted: Counter[str] = field(default_factory=Counter)  # grams expired unused
     remaining_lots: list[Lot] = field(default_factory=list)
+    bought: Counter[str] = field(default_factory=Counter)  # packs, from one shop
 
     @property
     def success_rate(self) -> float:
@@ -344,16 +345,39 @@ class MealPlan:
         ]
         return "\n".join(lines)
 
-    def shopping_list(self) -> str:
-        """
-        Return ingredients needed that weren't in the starting inventory.
-        Placeholder — needs gap analysis once we have target recipes.
-        """
-        lines = ["Shopping list: (gaps from unplanned slots)"]
-        for day, meal in self.unplanned:
-            lines.append(
-                f"  Day {day} {meal} — could not be planned with current inventory"
+    def shopping_items(
+        self, ingredient_db: dict[str, Ingredient] | None = None
+    ) -> list[dict]:
+        """One row per thing to buy: id, name, packs, grams, price level."""
+        db = ingredient_db or INGREDIENTS
+        rows = []
+        for ing_id, packs in sorted(self.bought.items(), key=lambda kv: db[kv[0]].name):
+            ing = db[ing_id]
+            rows.append(
+                {
+                    "id": ing_id,
+                    "name": ing.name,
+                    "packs": packs,
+                    "grams": round(packs * ing.pack_grams),
+                    "price": int(ing.price),
+                    "price_word": ing.price.word,
+                }
             )
+        return rows
+
+    def shopping_list(self, ingredient_db: dict[str, Ingredient] | None = None) -> str:
+        rows = self.shopping_items(ingredient_db)
+        if not rows:
+            lines = ["Shopping list: nothing to buy"]
+        else:
+            spend = sum(r["price"] * r["packs"] for r in rows)
+            lines = [f"Shopping list ({spend} price points):"]
+            for r in rows:
+                lines.append(
+                    f"  {r['packs']} x {r['name']:<26} ({r['grams']}g)  {r['price_word']}"
+                )
+        for day, meal in self.unplanned:
+            lines.append(f"  Day {day} {meal} — nothing to cook even with the shop")
         return "\n".join(lines)
 
 

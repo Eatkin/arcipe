@@ -5,5 +5,6 @@ frozen_spinach:
   flavour: [earthy, mild]
   colour: green
   season: [all]
-  cost: very_low
+  price: cheap
+  pack_weight: 900
   nutrition: [high_iron, high_calcium]

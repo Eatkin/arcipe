@@ -56,6 +56,23 @@ Slot amounts are grams **as they land in the dish**. Stock is grams **as stocked
 counts (`carrot: 6`), measures (`red_lentils: "500g"`), and with explicit expiry
 (`spinach: {amount: 1, expires: 2}`).
 
+### Price and shopping
+
+Every ingredient has a `price` from 0 to 4, written as a number or a word:
+
+| 0 | 1 | 2 | 3 | 4 |
+| --- | --- | --- | --- | --- |
+| negligible / free | cheap / budget | moderate / normal | pricey / expensive | fancy / luxury |
+| spices, stock | carrots, cabbage, tins | cauliflower, broccoli | tofu, cashews | pine nuts |
+
+It's per pack (`pack_weight`, else `unit_weight`, else 500g). Cheaper things score
+a little higher when filling slots. With `shopping=True` (the dashboard's "Shop for
+what's missing"), the solver may buy whole packs on a single day-1 shop: the spend
+(price × packs) counts against the plan via the `price` weight, leftovers from a
+pack stay in stock for later meals (or go to waste), fresh things can't be bought
+for meals after they'd have gone off, and optional slots never trigger a purchase.
+`plan.shopping_list()` prints the list.
+
 ### Taste
 
 Ratings live in `~/.arcipe/feedback.yaml` (or `$ARCIPE_HOME`). They nudge

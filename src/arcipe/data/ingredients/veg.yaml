@@ -5,7 +5,7 @@ courgette:
   flavour: [mild, fresh]
   colour: green
   season: [summer]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 200
   nutrition: [high_fibre]
@@ -18,7 +18,7 @@ aubergine:
   flavour: [mild, rich, smoky]
   colour: purple
   season: [summer, autumn]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 300
   nutrition: [high_fibre]
@@ -30,7 +30,7 @@ bell_pepper:
   flavour: [sweet, fresh]
   colour: red
   season: [summer, autumn]
-  cost: low
+  price: moderate
   shelf_life_days: 10
   unit_weight: 160
 
@@ -41,7 +41,7 @@ sweetcorn:
   flavour: [sweet]
   colour: yellow
   season: [all]
-  cost: very_low
+  price: cheap
   unit_weight: 200
   notes: Tinned (drained) or frozen — both keep. Fresh cobs are a summer treat.
 
@@ -52,7 +52,7 @@ squash:
   flavour: [sweet, earthy, nutty]
   colour: orange
   season: [autumn, winter]
-  cost: low
+  price: moderate
   shelf_life_days: 30
   unit_weight: 1000
   nutrition: [high_fibre]
@@ -64,7 +64,7 @@ cucumber:
   flavour: [fresh, mild]
   colour: green
   season: [summer]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 300
 
@@ -75,7 +75,7 @@ avocado:
   flavour: [rich, mild]
   colour: green
   season: [all]
-  cost: medium
+  price: pricey
   shelf_life_days: 4
   unit_weight: 150
   cuisine_context: [mexican, american]
@@ -88,7 +88,7 @@ fresh_chilli:
   flavour: [spicy, fresh]
   colour: red
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 10
   unit_weight: 15
   max_per_serving: 8
@@ -100,7 +100,8 @@ celery:
   flavour: [fresh, grassy]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 400
   shelf_life_days: 14
   unit_weight: 40
   max_per_serving: 40
@@ -113,7 +114,7 @@ leek:
   flavour: [sweet, mild]
   colour: green
   season: [autumn, winter, spring]
-  cost: low
+  price: moderate
   shelf_life_days: 10
   unit_weight: 250
 
@@ -124,7 +125,8 @@ green_beans:
   flavour: [fresh, grassy]
   colour: green
   season: [summer]
-  cost: low
+  price: moderate
+  pack_weight: 400
   shelf_life_days: 5
   nutrition: [high_fibre]
 
@@ -135,7 +137,7 @@ broccoli:
   flavour: [earthy, grassy]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 6
   unit_weight: 350
   nutrition: [high_fibre, high_calcium]
@@ -147,7 +149,7 @@ cabbage:
   flavour: [mild, sweet, earthy]
   colour: green
   season: [all]
-  cost: very_low
+  price: cheap
   shelf_life_days: 21
   unit_weight: 900
   nutrition: [high_fibre]
@@ -160,7 +162,7 @@ brussels_sprouts:
   flavour: [bitter, nutty, earthy]
   colour: green
   season: [winter]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   nutrition: [high_fibre]
 
@@ -171,7 +173,7 @@ asparagus:
   flavour: [grassy, fresh]
   colour: green
   season: [spring]
-  cost: medium
+  price: pricey
   shelf_life_days: 3
   unit_weight: 250
 
@@ -182,7 +184,7 @@ lettuce:
   flavour: [fresh, mild]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   shelf_life_days: 5
   unit_weight: 250
 
@@ -193,7 +195,7 @@ radish:
   flavour: [sharp, fresh, spicy]
   colour: red
   season: [spring, summer]
-  cost: low
+  price: moderate
   shelf_life_days: 7
   unit_weight: 200
   notes: unit = a bunch.
@@ -205,7 +207,7 @@ beetroot:
   flavour: [sweet, earthy]
   colour: purple
   season: [autumn, winter]
-  cost: very_low
+  price: cheap
   shelf_life_days: 21
   unit_weight: 150
   cuisine_context: [eastern_european]
@@ -217,7 +219,8 @@ olives:
   flavour: [sharp, umami, rich]
   colour: black
   season: [all]
-  cost: medium
+  price: moderate
+  pack_weight: 300
   max_per_serving: 30
   cuisine_context: [mediterranean, italian]
 
@@ -228,7 +231,7 @@ pickles:
   flavour: [sharp]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 40
   cuisine_context: [eastern_european]
 
@@ -239,6 +242,6 @@ sauerkraut:
   flavour: [sharp]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 80
   cuisine_context: [eastern_european]

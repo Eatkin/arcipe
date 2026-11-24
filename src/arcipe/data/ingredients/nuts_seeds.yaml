@@ -5,7 +5,8 @@ cashews:
   flavour: [rich, sweet, nutty]
   colour: white
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 200
   unlimited: true
   nutrition: [high_fat]
   notes: Soaked and blended = exceptional creamy base.
@@ -17,7 +18,8 @@ sunflower_seeds:
   flavour: [mild, nutty]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   unlimited: true
   nutrition: [high_fat, omega3]
   notes: Soaked and blended = sunflower cream, excellent cheaper cashew alternative.
@@ -29,7 +31,8 @@ pumpkin_seeds:
   flavour: [nutty]
   colour: green
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 200
   nutrition: [high_protein, omega3]
 
 pine_nuts:
@@ -39,7 +42,8 @@ pine_nuts:
   flavour: [rich, nutty]
   colour: white
   season: [all]
-  cost: high
+  price: fancy
+  pack_weight: 100
   max_per_serving: 15
   cuisine_context: [italian, levantine]
 
@@ -51,7 +55,8 @@ sesame_seeds:
   flavour: [nutty]
   colour: beige
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 100
   unlimited: true
   cuisine_context: [japanese, chinese, korean]
 
@@ -62,7 +67,8 @@ walnuts:
   flavour: [rich, bitter, nutty]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 150
   nutrition: [omega3, high_fat]
 
 almonds:
@@ -72,7 +78,8 @@ almonds:
   flavour: [nutty, sweet]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 200
   nutrition: [high_protein, high_calcium]
 
 flaxseed:
@@ -82,7 +89,7 @@ flaxseed:
   flavour: [nutty]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
   unlimited: true
   max_per_serving: 15
   nutrition: [omega3]
@@ -95,6 +102,6 @@ peanuts:
   flavour: [nutty]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
   nutrition: [high_protein]
   cuisine_context: [thai, chinese]

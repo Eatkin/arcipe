@@ -5,7 +5,7 @@ ginger:
   flavour: [spicy, fresh, floral]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
   max_per_serving: 8
   shelf_life_days: 21
   unit_weight: 30
@@ -17,7 +17,7 @@ turmeric_fresh:
   flavour: [earthy, spicy]
   colour: orange
   season: [all]
-  cost: medium
+  price: pricey
   max_per_serving: 5
   shelf_life_days: 14
 
@@ -28,7 +28,7 @@ garam_masala:
   flavour: [spicy, floral, earthy]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [indian]
 
@@ -39,7 +39,7 @@ fenugreek_seed:
   flavour: [earthy, bitter, floral]
   colour: yellow
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 cumin:
@@ -49,7 +49,7 @@ cumin:
   flavour: [earthy, spicy, smoky]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 coriander_seed:
@@ -59,7 +59,7 @@ coriander_seed:
   flavour: [floral, earthy, spicy]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 chilli_powder:
@@ -69,7 +69,7 @@ chilli_powder:
   flavour: [spicy]
   colour: red
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 smoked_paprika:
@@ -79,7 +79,7 @@ smoked_paprika:
   flavour: [smoky, spicy, sweet]
   colour: red
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 turmeric_dried:
@@ -89,7 +89,7 @@ turmeric_dried:
   flavour: [earthy, spicy]
   colour: yellow
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 curry_powder:
@@ -99,7 +99,7 @@ curry_powder:
   flavour: [spicy, earthy, floral]
   colour: yellow
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [indian, japanese]
   notes: Generic blend. Fine for katsu or mild curries.
@@ -111,7 +111,7 @@ mixed_spice:
   flavour: [sweet, spicy, nutty]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 cinnamon_ground:
@@ -121,7 +121,7 @@ cinnamon_ground:
   flavour: [sweet, spicy, earthy]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 paprika:
@@ -131,7 +131,7 @@ paprika:
   flavour: [sweet, earthy]
   colour: red
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 chilli_flakes:
@@ -141,7 +141,7 @@ chilli_flakes:
   flavour: [spicy]
   colour: red
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 garlic_powder:
@@ -151,7 +151,7 @@ garlic_powder:
   flavour: [umami, spicy]
   colour: white
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 onion_powder:
@@ -161,7 +161,7 @@ onion_powder:
   flavour: [sweet, umami]
   colour: white
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 black_pepper:
@@ -171,7 +171,7 @@ black_pepper:
   flavour: [spicy]
   colour: black
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 oregano:
@@ -181,7 +181,7 @@ oregano:
   flavour: [earthy, bitter]
   colour: green
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [italian, mediterranean, mexican]
 
@@ -192,7 +192,7 @@ thyme:
   flavour: [earthy, floral]
   colour: green
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [french, british, eastern_european, mediterranean]
 
@@ -203,7 +203,7 @@ bay_leaf:
   flavour: [floral, earthy]
   colour: green
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
 
 cardamom:
@@ -213,7 +213,7 @@ cardamom:
   flavour: [floral, sweet]
   colour: green
   season: [all]
-  cost: medium
+  price: negligible
   unlimited: true
   cuisine_context: [indian]
 
@@ -224,7 +224,7 @@ mustard_seeds:
   flavour: [spicy, nutty]
   colour: yellow
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [indian]
 
@@ -235,7 +235,7 @@ rosemary:
   flavour: [earthy, floral]
   colour: green
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   cuisine_context: [italian, mediterranean, british]
 
@@ -246,7 +246,7 @@ mixed_herbs:
   flavour: [earthy, floral]
   colour: green
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true
   notes: Italian herbs, herbes de Provence, marjoram — one jar covers it.
 
@@ -257,5 +257,5 @@ nutmeg:
   flavour: [sweet, earthy]
   colour: brown
   season: [all]
-  cost: low
+  price: negligible
   unlimited: true

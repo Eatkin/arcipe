@@ -5,7 +5,7 @@ spaghetti:
   flavour: [earthy]
   colour: yellow
   season: [all]
-  cost: very_low
+  price: cheap
   stock_ratio: 0.4
   unlimited: true
   cuisine_context: [italian]
@@ -18,7 +18,8 @@ farro:
   flavour: [nutty, earthy]
   colour: brown
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 500
   stock_ratio: 0.4
   cuisine_context: [italian]
   nutrition: [high_carb, high_fibre]
@@ -30,7 +31,8 @@ polenta:
   flavour: [sweet, earthy]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.25
   cuisine_context: [italian]
   nutrition: [high_carb]
@@ -42,7 +44,7 @@ plain_flour:
   flavour: [mild]
   colour: white
   season: [all]
-  cost: very_low
+  price: cheap
   unlimited: true
   staple: true
 
@@ -53,7 +55,7 @@ basmati_rice:
   flavour: [earthy, floral]
   colour: white
   season: [all]
-  cost: very_low
+  price: cheap
   stock_ratio: 0.35
   unlimited: true
   cuisine_context: [indian, levantine]
@@ -66,7 +68,7 @@ brown_rice:
   flavour: [earthy]
   colour: brown
   season: [all]
-  cost: very_low
+  price: cheap
   stock_ratio: 0.35
   unlimited: true
   nutrition: [high_carb]
@@ -78,7 +80,8 @@ sushi_rice:
   flavour: [earthy, floral]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.35
   unlimited: true
   cuisine_context: [japanese]
@@ -91,7 +94,7 @@ pasta:
   flavour: [mild]
   colour: yellow
   season: [all]
-  cost: very_low
+  price: cheap
   unlimited: true
   stock_ratio: 0.4
   cuisine_context: [italian]
@@ -104,7 +107,8 @@ noodles:
   flavour: [mild]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 300
   stock_ratio: 0.4
   cuisine_context: [chinese, japanese, korean]
   nutrition: [high_carb]
@@ -116,7 +120,8 @@ rice_noodles:
   flavour: [mild]
   colour: white
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 250
   stock_ratio: 0.4
   cuisine_context: [thai, chinese]
   nutrition: [high_carb]
@@ -128,7 +133,8 @@ quinoa:
   flavour: [nutty, earthy]
   colour: beige
   season: [all]
-  cost: medium
+  price: pricey
+  pack_weight: 500
   stock_ratio: 0.35
   nutrition: [high_protein, high_fibre]
 
@@ -139,7 +145,8 @@ couscous:
   flavour: [mild]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.4
   cuisine_context: [levantine, mediterranean]
   nutrition: [high_carb]
@@ -151,7 +158,8 @@ bulgur:
   flavour: [nutty]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.4
   cuisine_context: [levantine]
   nutrition: [high_fibre]
@@ -163,7 +171,8 @@ pearl_barley:
   flavour: [nutty, earthy]
   colour: beige
   season: [all]
-  cost: very_low
+  price: cheap
+  pack_weight: 500
   stock_ratio: 0.35
   cuisine_context: [british, eastern_european]
   nutrition: [high_fibre]
@@ -175,7 +184,8 @@ buckwheat:
   flavour: [nutty, earthy]
   colour: brown
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.4
   cuisine_context: [eastern_european]
   nutrition: [high_fibre]
@@ -187,7 +197,7 @@ oats:
   flavour: [mild, nutty]
   colour: beige
   season: [all]
-  cost: very_low
+  price: cheap
   unlimited: true
   stock_ratio: 0.25
   nutrition: [high_fibre]
@@ -200,6 +210,7 @@ millet:
   flavour: [mild, nutty]
   colour: yellow
   season: [all]
-  cost: low
+  price: moderate
+  pack_weight: 500
   stock_ratio: 0.3
   cuisine_context: [eastern_european]

@@ -16,6 +16,11 @@ never disagrees with what the planner would actually cook:
               + variety    * ingredient-class overlap with recent meals (0..1 each)
               + time       * hours of cooking
               - liked      * how much you've liked each recipe cooked (-1..1)
+              + price      * price points spent (Price level x packs bought)
+
+Shopping (optional): one shop on day 1. Anything short is bought in whole packs;
+whatever's left in the pack stays in stock for later meals (or goes to waste).
+Fresh things only count as buyable for meals within their shelf life.
 
 Search: start from the greedy plan, then simulated annealing over "change one
 meal" and "swap two meals" moves. Evaluations are cached by plan.
@@ -72,6 +77,7 @@ class Weights:
     variety: float = 1.0  # per meal, fraction of its ingredient classes eaten recently
     time: float = 0.2  # per hour of total cooking time
     liked: float = 2.0  # per meal, times its learned recipe score (-1..1)
+    price: float = 0.5  # per price point spent when shopping (a pricey pack = 3)
 
 
 @dataclass
@@ -84,6 +90,7 @@ class Breakdown:
     minutes: int = 0
     weighted_hours: float = 0.0  # cooking time with breakfast/lunch weighted up
     liked: float = 0.0
+    price_points: int = 0  # sum of Price level x packs bought
     objective: float = 0.0
 
     def describe(self) -> str:
@@ -92,6 +99,7 @@ class Breakdown:
             f" | spill {self.spill_g:5.0f}g | unplanned {self.unplanned}"
             f" | repeats {self.repeats:g} | variety {self.variety:4.2f}"
             f" | {self.minutes} min cooking | liked {self.liked:+.2f}"
+            f" | spend {self.price_points}"
         )
 
 
@@ -115,6 +123,8 @@ class _Problem:
     gap: int
     weights: Weights
     feedback: Feedback | None = None
+    shopping: bool = False
+    buyable_cache: dict[int, frozenset[str]] = field(default_factory=dict)
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
 
 
@@ -129,6 +139,52 @@ def _weighted_repeats(planned: list[MealSlot]) -> float:
     return repeats
 
 
+def buyable_on(day: int, p: _Problem) -> frozenset[str]:
+    """What the day-1 shop could provide for a meal on `day`."""
+    if not p.shopping:
+        return frozenset()
+    if day not in p.buyable_cache:
+        p.buyable_cache[day] = frozenset(
+            i
+            for i, ing in p.ingredient_db.items()
+            if not ing.unlimited
+            and (ing.shelf_life_days is None or ing.shelf_life_days >= day)
+        )
+    return p.buyable_cache[day]
+
+
+def _cook(p: _Problem, recipe_id: str, lots: list[Lot], day: int, meal: str):
+    """Resolve one meal against current stock (+ the shop); None if it can't be made."""
+    recipe = p.recipes[recipe_id]
+    res = resolve(
+        recipe,
+        totals(lots),
+        p.ingredient_db,
+        servings=p.people,
+        urgency=urgency(lots, day),
+        rng=random.Random(0),
+        affinity=p.feedback.ingredient_affinity(recipe) if p.feedback else None,
+        buyable=buyable_on(day, p),
+    )
+    too_long = p.max_minutes is not None and res.timing.total > p.max_minutes
+    return None if not res.success or too_long else res
+
+
+def _buy(p: _Problem, consumed: Counter[str], lots: list[Lot]) -> Counter[str]:
+    """Buy whole packs of whatever the meal needs beyond stock. Adds them as lots."""
+    have = totals(lots)
+    packs: Counter[str] = Counter()
+    for raw, grams in consumed.items():
+        short = grams - have.get(raw, 0.0)
+        ing = p.ingredient_db.get(raw)
+        if short <= 1e-6 or ing is None or ing.unlimited:
+            continue
+        n = math.ceil(short / ing.pack_grams - 1e-9)
+        packs[raw] = n
+        lots.append(Lot(raw, n * ing.pack_grams, ing.shelf_life_days))
+    return packs
+
+
 def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     """Cook the given week against the stock and score it. Deterministic."""
     if choice in p.cache:
@@ -138,6 +194,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     planned: list[MealSlot] = []
     unplanned: list[tuple[int, str]] = []
     wasted: Counter[str] = Counter()
+    bought: Counter[str] = Counter()
     b = Breakdown()
     picks = iter(choice)
 
@@ -146,27 +203,8 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         wasted += gone
         for meal in p.meals:
             recipe_id = next(picks)
-            res = None
-            if recipe_id is not None:
-                res = resolve(
-                    p.recipes[recipe_id],
-                    totals(lots),
-                    p.ingredient_db,
-                    servings=p.people,
-                    urgency=urgency(lots, day),
-                    rng=random.Random(0),
-                    affinity=(
-                        p.feedback.ingredient_affinity(p.recipes[recipe_id])
-                        if p.feedback
-                        else None
-                    ),
-                )
-                too_long = (
-                    p.max_minutes is not None and res.timing.total > p.max_minutes
-                )
-                if not res.success or too_long:
-                    res = None
-            if res is None:
+            res = _cook(p, recipe_id, lots, day, meal) if recipe_id else None
+            if res is None or recipe_id is None:
                 planned.append(MealSlot(day=day, meal=meal))
                 unplanned.append((day, meal))
                 continue
@@ -174,11 +212,12 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
             b.variety += 1.0 - variety_score(res, recent, p.ingredient_db)
             b.minutes += res.timing.total
             b.weighted_hours += res.timing.total / 60 * TIME_FACTOR.get(meal, 1.0)
-            if p.feedback and recipe_id:
+            if p.feedback:
                 b.liked += p.feedback.recipe_score(recipe_id)
             planned.append(
                 MealSlot(day=day, meal=meal, recipe_id=recipe_id, resolution=res)
             )
+            bought += _buy(p, res.consumed, lots)
             lots = consume(lots, res.consumed)
 
     lots, gone = expire(lots, p.days + 1)
@@ -192,6 +231,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     )
     b.unplanned = len(unplanned)
     b.repeats = _weighted_repeats(planned)
+    b.price_points = sum(int(p.ingredient_db[i].price) * n for i, n in bought.items())
     w = p.weights
     b.objective = (
         w.waste * b.waste_g / 100
@@ -201,6 +241,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         + w.variety * b.variety
         + w.time * b.weighted_hours
         - w.liked * b.liked
+        + w.price * b.price_points
     )
 
     plan = MealPlan(
@@ -212,6 +253,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         unplanned=unplanned,
         wasted=wasted,
         remaining_lots=lots,
+        bought=bought,
     )
     p.cache[choice] = (plan, b)
     return plan, b
@@ -227,7 +269,12 @@ def _options(p: _Problem) -> list[list[str | None]]:
         rid
         for rid, r in p.recipes.items()
         if resolve(
-            r, start, p.ingredient_db, servings=p.people, rng=random.Random(0)
+            r,
+            start,
+            p.ingredient_db,
+            servings=p.people,
+            rng=random.Random(0),
+            buyable=buyable_on(1, p),
         ).success
     }
     per_meal = {
@@ -287,11 +334,14 @@ def optimise_week(
     ingredient_db: dict[str, Ingredient] | None = None,
     rng: random.Random | None = None,
     feedback: Feedback | None = None,
+    shopping: bool = False,
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
     Same arguments as plan_week, plus weights and search effort.
     Never does worse than the greedy planner: the search starts from its plan.
+    shopping=True lets the plan buy things (see module docstring); the bill is
+    in result.plan.bought and result.plan.shopping_list().
     """
     rng = rng or random.Random()
     db = ingredient_db or INGREDIENTS
@@ -307,6 +357,7 @@ def optimise_week(
         gap=max_same_class_gap,
         weights=weights or Weights(),
         feedback=feedback,
+        shopping=shopping,
     )
     options = _options(p)
 
