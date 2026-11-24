@@ -58,7 +58,9 @@ REWRITE = {
 
 
 def get(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en"})
+    req = urllib.request.Request(
+        url, headers={"User-Agent": UA, "Accept-Language": "en"}
+    )
     with urllib.request.urlopen(req, timeout=30) as resp:
         return resp.read()
 

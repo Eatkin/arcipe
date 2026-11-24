@@ -8,7 +8,7 @@ buddha_bowl:
   preferred_ingredients: [sweet_potato, broccoli, crispy_tofu, chickpeas, cabbage, cucumber, peanut_sauce, tahini, sesame_seeds]
   slots: [hearty_base, roast_veg, protein_bulk, raw_veg, creamy_drizzle, texture_top]
   slot_overrides:
-    hearty_base: {preferred_classes: [rice, grain]}
+    hearty_base: {preferred_classes: [rice, grain], excluded_classes: [pasta, bread]}
     protein_bulk: {max_ingredients: 1}
   edges:
     - {from: roast_veg,      to: hearty_base, type: top}
@@ -55,7 +55,7 @@ grain_salad:
   preferred_ingredients: [quinoa, bulgur, pearl_barley, cucumber, tomato, chickpeas, parsley, mint, lemon, olive_oil]
   slots: [hearty_base, raw_veg, protein_bulk, dressing_fat, acid_bright, finish_herb, texture_top]
   slot_overrides:
-    hearty_base: {required_classes: [grain, legume], preferred_classes: [grain], amount: {per_serving: 150}}
+    hearty_base: {required_classes: [grain, legume], excluded_classes: [pasta, noodle, bread], preferred_classes: [grain], amount: {per_serving: 150}}
     protein_bulk: {max_ingredients: 1}
     raw_veg: {amount: {per_serving: 100}}
   edges:

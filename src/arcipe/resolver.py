@@ -258,6 +258,8 @@ def matches_slot(
             return False
     if slot.required_classes and not set(slot.required_classes) & set(ing.classes):
         return False
+    if set(slot.excluded_classes) & set(ing.classes):
+        return False
     # A prepared form has a fixed method (roasted carrot is roasted); raw ingredients
     # can be cooked however the slot needs.
     prep = prepared_db.get(ing.id)

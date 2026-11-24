@@ -393,7 +393,9 @@ def match(name: str, table: dict[str, str]) -> str | None:
         if c in table:
             return table[c]
     # longest known phrase contained in the name ("smoked paprika powder")
-    hits = [(len(k), v) for k, v in table.items() if re.search(rf"\b{re.escape(k)}\b", name)]
+    hits = [
+        (len(k), v) for k, v in table.items() if re.search(rf"\b{re.escape(k)}\b", name)
+    ]
     return max(hits)[1] if hits else None
 
 

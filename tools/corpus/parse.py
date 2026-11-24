@@ -87,7 +87,7 @@ def _instructions(raw) -> str:
 
 def from_jsonld(page: str) -> dict | None:
     for block in re.findall(
-        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', page, flags=re.S | re.I
+        r"<script[^>]*application/ld\+json[^>]*>(.*?)</script>", page, flags=re.S | re.I
     ):
         try:
             data = json.loads(block.strip())
@@ -133,9 +133,9 @@ def _ingredient_like(line: str) -> bool:
 
 
 def from_blogger(page: str) -> dict | None:
-    title_m = re.search(r"<meta content='([^']+)' property='og:title'", page) or re.search(
-        r'<h3 class=.post-title[^>]*>(.*?)</h3>', page, flags=re.S
-    )
+    title_m = re.search(
+        r"<meta content='([^']+)' property='og:title'", page
+    ) or re.search(r"<h3 class=.post-title[^>]*>(.*?)</h3>", page, flags=re.S)
     body_start = page.find("post-body entry-content")
     if body_start < 0:
         return None
@@ -187,7 +187,11 @@ def from_blogger(page: str) -> dict | None:
         # older posts split "2 cups /" and "400 g chickpeas" over two lines
         if ingredients and (
             ingredients[-1].endswith(("/", "of"))
-            or re.fullmatch(r"[\d½¼¾⅓⅔ .,/-]*\s*(tbsp|tsp|cups?|g|ml|pinch of)?", ingredients[-1], re.I)
+            or re.fullmatch(
+                r"[\d½¼¾⅓⅔ .,/-]*\s*(tbsp|tsp|cups?|g|ml|pinch of)?",
+                ingredients[-1],
+                re.I,
+            )
         ):
             ingredients[-1] += " " + ln
             continue

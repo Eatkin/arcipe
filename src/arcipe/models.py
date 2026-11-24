@@ -356,6 +356,8 @@ class ComponentSlot(DataModel):
     preferred_classes: list[IngredientClassName] = Field(default_factory=list)
     # Hard filter: ingredient must belong to at least one of these (e.g. [pasta])
     required_classes: list[IngredientClassName] = Field(default_factory=list)
+    # ...and must not belong to any of these (e.g. a grain bowl: no pasta)
+    excluded_classes: list[IngredientClassName] = Field(default_factory=list)
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 1  # prevent slot becoming a dumping ground

@@ -55,6 +55,11 @@ from arcipe.vibes import Feedback
 # spinach that goes off the morning after
 SPILL_DAYS = 3
 
+# Having porridge every day is normal; having the same dinner every day isn't
+REPEAT_FACTOR = {"breakfast": 0.25, "snack": 0.25}
+# ...and an hour making breakfast hurts more than an hour making dinner
+TIME_FACTOR = {"breakfast": 3.0, "lunch": 1.5}
+
 Choice = tuple[str | None, ...]  # recipe id per (day, meal), day-major
 
 
@@ -74,9 +79,10 @@ class Breakdown:
     waste_g: float = 0.0
     spill_g: float = 0.0
     unplanned: int = 0
-    repeats: int = 0
+    repeats: float = 0.0  # weighted: breakfast repeats count for less
     variety: float = 0.0
     minutes: int = 0
+    weighted_hours: float = 0.0  # cooking time with breakfast/lunch weighted up
     liked: float = 0.0
     objective: float = 0.0
 
@@ -84,7 +90,7 @@ class Breakdown:
         return (
             f"objective {self.objective:6.2f} | waste {self.waste_g:5.0f}g"
             f" | spill {self.spill_g:5.0f}g | unplanned {self.unplanned}"
-            f" | repeats {self.repeats} | variety {self.variety:4.2f}"
+            f" | repeats {self.repeats:g} | variety {self.variety:4.2f}"
             f" | {self.minutes} min cooking | liked {self.liked:+.2f}"
         )
 
@@ -156,6 +162,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
             recent = classes_used_recently(planned, day, p.gap, p.ingredient_db)
             b.variety += 1.0 - variety_score(res, recent, p.ingredient_db)
             b.minutes += res.timing.total
+            b.weighted_hours += res.timing.total / 60 * TIME_FACTOR.get(meal, 1.0)
             if p.feedback and recipe_id:
                 b.liked += p.feedback.recipe_score(recipe_id)
             planned.append(
@@ -166,7 +173,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     lots, gone = expire(lots, p.days + 1)
     wasted += gone
 
-    cooked = [s.recipe_id for s in planned if s.recipe_id]
+    seen: set[str] = set()
     b.waste_g = sum(wasted.values())
     b.spill_g = sum(
         lot.grams
@@ -174,7 +181,11 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         if lot.expires_day is not None and lot.expires_day <= p.days + SPILL_DAYS
     )
     b.unplanned = len(unplanned)
-    b.repeats = len(cooked) - len(set(cooked))
+    for slot in planned:
+        if slot.recipe_id in seen:
+            b.repeats += REPEAT_FACTOR.get(slot.meal, 1.0)
+        elif slot.recipe_id:
+            seen.add(slot.recipe_id)
     w = p.weights
     b.objective = (
         w.waste * b.waste_g / 100
@@ -182,7 +193,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         + w.unplanned * b.unplanned
         + w.repeat * b.repeats
         + w.variety * b.variety
-        + w.time * b.minutes / 60
+        + w.time * b.weighted_hours
         - w.liked * b.liked
     )
 
