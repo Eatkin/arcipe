@@ -8,3 +8,25 @@ frozen_spinach:
   price: cheap
   pack_weight: 900
   nutrition: [high_iron, high_calcium]
+
+frozen_peas:
+  name: Peas (frozen)
+  classes: [legume]
+  roles: [sauce_base, bulk, protein, garnish]
+  flavour: [sweet, fresh, grassy]
+  colour: green
+  season: [all]
+  price: cheap
+  pack_weight: 900
+  nutrition: [high_protein, high_fibre]
+  notes: Year-round and excellent. Genuinely polymorphic ingredient.
+
+frozen_sweetcorn:
+  name: Sweetcorn (frozen)
+  classes: [fruit_veg]
+  roles: [bulk, sweetener, texture_top]
+  flavour: [sweet]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 900

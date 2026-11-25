@@ -23,6 +23,20 @@ nettle:
   nutrition: [high_iron]
   notes: Blanch first to neutralise sting. Remarkable spring ingredient.
 
+dried_nettle:
+  name: Nettle (dried)
+  classes: [leafy_green]
+  roles: [sauce_base]
+  flavour: [earthy, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 100
+  stock_ratio: 0.15  # dried leaf per gram as it lands in the dish (drafted)
+  max_per_serving: 40  # dish grams, ~6g dried: strong and hay-like (drafted)
+  nutrition: [high_iron]
+  notes: Crumble into soups, stews and green sauces, or soak 10 minutes first.
+
 kale:
   name: Kale
   classes: [leafy_green, brassica]
@@ -50,17 +64,18 @@ cauliflower:
   notes: Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.
 
 peas:
-  name: Peas
-  storage: freezer
+  name: Peas (fresh, in the pod)
   classes: [legume]
-  roles: [sauce_base, bulk, protein, garnish]
+  roles: [sauce_base, bulk, protein, garnish, raw_crunch]
   flavour: [sweet, fresh, grassy]
   colour: green
-  season: [spring, summer]
-  price: cheap
-  pack_weight: 900
+  season: [summer]
+  price: moderate
+  pack_weight: 500
+  shelf_life_days: 3  # drafted
+  stock_ratio: 2.5  # pods weigh ~2.5x the shelled peas (drafted)
   nutrition: [high_protein, high_fibre]
-  notes: Frozen peas are year-round and excellent. Genuinely polymorphic ingredient.
+  notes: Pod them. Sweetest raw or barely cooked; they turn starchy within days of picking.
 
 swiss_chard:
   name: Swiss Chard
@@ -86,3 +101,16 @@ beansprouts:
   shelf_life_days: 3
   unit_weight: 300
   cuisine_context: [chinese, thai]
+
+tinned_beansprouts:
+  name: Beansprouts (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume]
+  roles: [bulk]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: cheap
+  unit_weight: 160  # drained
+  cuisine_context: [chinese, thai]
+  notes: Soft, no crunch. Rinse well; stir into stir-fries and soups at the end.

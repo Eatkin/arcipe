@@ -88,7 +88,7 @@ potato_salad:
   colour_dominant: yellow
   cuisine_context: [eastern_european, american]
   meal_type: [lunch, dinner, side]
-  preferred_ingredients: [potato, beetroot, pickles, onion, green_onion, chickpeas, tofu, peas, mayo, plant_yogurt, mustard, dill]
+  preferred_ingredients: [potato, beetroot, pickles, onion, green_onion, chickpeas, tofu, frozen_peas, peas, mayo, plant_yogurt, mustard, dill]
   slots: [starchy_bulk, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
   slot_overrides:
     starchy_bulk: {label: Potatoes / Roots, optional: false, amount: {per_serving: 200}}
@@ -154,7 +154,7 @@ noodle_salad:
   colour_dominant: green
   cuisine_context: [thai, chinese, universal]
   meal_type: [lunch, dinner]
-  preferred_ingredients: [rice_noodles, cucumber, carrot, radish, broccoli, mushrooms, tofu, peanut_sauce, peas, lime, coriander_leaf, sesame_seeds, capers]
+  preferred_ingredients: [rice_noodles, cucumber, carrot, radish, broccoli, mushrooms, tofu, peanut_sauce, frozen_peas, peas, lime, coriander_leaf, sesame_seeds, capers]
   slots: [noodle_base, raw_veg, cooked_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb, texture_top]
   slot_overrides:
     cooked_veg: {optional: true, amount: {per_serving: 80}}

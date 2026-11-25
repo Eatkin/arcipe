@@ -926,7 +926,7 @@ if __name__ == "__main__":
     inventory_a = [
         "spaghetti",
         "spinach",
-        "peas",
+        "frozen_peas",
         "cashews",
         "garlic",
         "lemon",

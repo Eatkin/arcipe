@@ -11,7 +11,7 @@ mash_and_gravy:
     or prunes, beans if you want it heartier. Dill on top.
   colour_dominant: brown
   cuisine_context: [eastern_european, british]
-  preferred_ingredients: [potato, pearl_barley, onion, mushrooms, prunes, soy_sauce, kidney_beans, peas, spinach, dill]
+  preferred_ingredients: [potato, pearl_barley, onion, mushrooms, prunes, soy_sauce, kidney_beans, frozen_peas, peas, spinach, dill]
   slots: [mash_base, aromatic_base, katsu_sauce_body, stock_liquid, cooked_veg, protein_bulk, stir_fry_seasoning, finish_herb]
   slot_overrides:
     aromatic_base: {amount: {per_serving: 80}, time: {active: 5, passive: 15}}

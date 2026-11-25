@@ -38,7 +38,7 @@ bell_pepper:
   unit_weight: 160
 
 sweetcorn:
-  name: Sweetcorn
+  name: Sweetcorn (tin)
   opened_days: 3  # once opened (drafted)
   classes: [fruit_veg]
   roles: [bulk, sweetener, texture_top]
@@ -47,7 +47,20 @@ sweetcorn:
   season: [all]
   price: cheap
   unit_weight: 200
-  notes: Tinned (drained) or frozen — both keep. Fresh cobs are a summer treat.
+  notes: Drained weight.
+
+corn_on_the_cob:
+  name: Corn on the Cob
+  classes: [fruit_veg]
+  roles: [bulk, sweetener, texture_top]
+  flavour: [sweet, fresh]
+  colour: yellow
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 4  # drafted
+  unit_weight: 250
+  stock_ratio: 2.0  # a cob is about half kernels by weight (drafted)
+  notes: Grill or boil whole, or slice the kernels off. Sweetest the day it's bought.
 
 squash:
   name: Squash / Pumpkin

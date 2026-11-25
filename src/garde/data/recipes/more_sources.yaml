@@ -78,7 +78,7 @@ keema:
     Rice or chapatis.
   colour_dominant: brown
   cuisine_context: [indian]
-  preferred_ingredients: [mushrooms, soy_chunks, green_lentils, peas, onion, garlic, ginger, fresh_chilli, garam_masala, cumin, turmeric_dried, canned_tomato, coriander_leaf, basmati_rice]
+  preferred_ingredients: [mushrooms, soy_chunks, green_lentils, frozen_peas, peas, onion, garlic, ginger, fresh_chilli, garam_masala, cumin, turmeric_dried, canned_tomato, coriander_leaf, basmati_rice]
   slots: [curry_grain_base, curry_aromatic, spice_bloom, curry_bulk, curry_protein, tomato_sauce_body, heat, finish_herb]
   slot_overrides:
     curry_bulk: {label: Mushrooms (chopped fine) & Peas, preferred_classes: [fungus, leafy_green], amount: {per_serving: 170}}
