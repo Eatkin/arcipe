@@ -60,13 +60,21 @@ for the core package.
 Sources: the user's bookmarks in `../recipe-viewer/recipes.yaml`, and the whole
 backlog of vegansandra.com (Blogger, sitemap at `/sitemap.xml`, 259 posts).
 
-- `FETCH_DELAY=12 uv run python tools/corpus/fetch.py sandra` resumes the fetch;
-  pages already cached are skipped.
-- **As of 2026-11-25, only ~111 of 259 Sandra posts are cached.** The site returns
-  429 after about 100 plain requests, even at 12 seconds apart.
-- The user has said to use their scraping setup for this: undetected Chrome (add it
-  to the tools with `uv add`), plus FlareSolverr if needed. Keep the request rate
-  low anyway.
+- **All 259 Sandra posts are cached (2026-11-25)**; 209 parse as recipes. The
+  other 50 are mostly listicles, videos and announcements, but a few real recipes
+  (pierogi, cauliflower stew with white beans, rhubarb cake) defeat the `parse.py`
+  heuristic. `labels` comes out empty for every Sandra post (the `rel='tag'`
+  regex doesn't match).
+- Plain fetching (`fetch.py sandra`) gets Google's block after ~100 requests:
+  302 to `google.com/sorry`, a reCAPTCHA, not Cloudflare, so FlareSolverr won't
+  help. Use `FETCH_DELAY=20 uv run --extra scrape python tools/corpus/fetch.py
+  sandra --browser` (`undetected-chromedriver`, the `scrape` extra). On a block it
+  tries the post's `?m=1` copy (usually not blocked), then pops a desktop
+  notification and waits `HUMAN_WAIT` seconds (default 300) for the user to solve
+  the captcha in the Chrome window, then skips. Rerun to retry skipped posts.
+- Don't use the PyPI package named `undetected` (the user's pokemon scraper has
+  0.0.12): that release has gone, and the name now holds a 1.0.1 from a different
+  author, which looks like a takeover.
 - Then:
   1. `uv run python tools/corpus/parse.py` writes `corpus/recipes.json`.
   2. `uv run python tools/corpus/analyse.py [--families]` shows which ingredients are

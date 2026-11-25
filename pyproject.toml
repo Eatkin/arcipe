@@ -19,6 +19,10 @@ packages = ["src/garde"]
 
 [project.optional-dependencies]
 dev = ["ruff", "ty", "pytest", "pre-commit"]
+scrape = [
+    "setuptools>=84.2.1",
+    "undetected-chromedriver>=3.5.5",
+]
 
 [build-system]
 requires = ["hatchling"]
