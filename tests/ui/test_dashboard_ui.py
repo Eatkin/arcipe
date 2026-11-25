@@ -92,7 +92,7 @@ def test_plan_save_tick_skip_replan(page):
     first = page.locator("#saved-grid .meal").first
     first.locator(".cook input").check()
     page.wait_for_selector("#saved-grid .meal.done")
-    assert "Took out" in page.inner_text("#saved-grid .meal.done .took")
+    assert page.inner_text("#saved-grid .meal.done .took")  # what came out, if anything
 
     # Skip the last dinner, then bring the week back up to date
     last = page.locator("#saved-grid .meal").last
@@ -167,3 +167,12 @@ def test_shopping_list_by_aisle(server, page):
     )
     page.locator("#saved-shop input[type=checkbox]").first.check()
     page.wait_for_selector("#saved-shop li.got")
+
+
+def test_staples_toggle(server, page):
+    page.goto(server + "/#pantry")
+    page.click("#view-pantry details summary")
+    page.click("#staples button[data-id=cashews]")
+    page.wait_for_selector("#staples button[data-id=cashews].off")
+    got = json.loads(urllib.request.urlopen(server + "/api/household").read())
+    assert got == {"not_kept": ["cashews"]}

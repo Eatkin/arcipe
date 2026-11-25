@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from garde import pantry
+from garde.loader import INGREDIENTS
 from garde.pantry import Dish
 from garde.pantry import Item
 from garde.pantry import Pantry
@@ -198,3 +199,37 @@ def test_binning_logs_real_waste(tmp_path):
     assert wasted_since(date(2026, 11, 26), path) == 0
     with pytest.raises(ValueError, match="isn't in the pantry"):
         bin_things(stock, [Item("tofu", "1")], [], when, path=path)
+
+
+def test_household_staples_not_kept(tmp_path):
+    path = tmp_path / "household.json"
+    assert pantry.load_household(path) == {"not_kept": []}
+    saved = pantry.save_household({"not_kept": ["cashews", "cashews"]}, path)
+    assert saved == {"not_kept": ["cashews"]} == pantry.load_household(path)
+    with pytest.raises(ValueError, match="isn't one of the staples"):
+        pantry.save_household({"not_kept": ["spinach"]}, path)
+    db = pantry.kitchen_db(("cashews",))
+    assert not db["cashews"].unlimited
+    assert db is pantry.kitchen_db(["cashews"])  # same object: resolver caches by it
+    assert pantry.kitchen_db(()) is INGREDIENTS
+
+
+def test_a_staple_not_kept_has_to_be_bought():
+    from garde.dashboard import solve_args
+    from garde.loader import RECIPES
+    from garde.resolver import resolve
+    from garde.vibes import Feedback
+
+    args, _ = solve_args(
+        {"not_kept": ["cashews"], "inventory": {}}, Feedback(recipes=RECIPES)
+    )
+    db = args["ingredient_db"]
+    full = {i: 10000.0 for i in INGREDIENTS if i != "cashews"}
+    uses = [
+        r
+        for r in RECIPES.values()
+        if "cashews" in resolve(r, full | {"cashews": 10000.0}, db).consumed
+    ]
+    assert uses
+    for r in uses:
+        assert "cashews" not in resolve(r, full, db).consumed

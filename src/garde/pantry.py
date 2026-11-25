@@ -20,6 +20,11 @@ planner can serve them as leftovers meals (see to_leftovers).
 take() and give() move grams out of and back into the items, for ticking off a
 cooked meal (garde.plans).
 
+Household: $GARDE_HOME/household.json, {"not_kept": ["cashews", ...]}: the
+unlimited staples this kitchen doesn't keep, so plans shop for them (or skip
+dishes that need them) instead of assuming they're in. kitchen_db() is the
+ingredient db with those turned into ordinary ingredients.
+
 Binning: bin() takes items or dishes out and logs them as real waste in
 $GARDE_HOME/waste.json, [{"on": "2026-11-25", "id": "spinach", "grams": 200}, ...]
 (dishes log `recipe_id` and portions). wasted_since() totals it.
@@ -27,6 +32,7 @@ $GARDE_HOME/waste.json, [{"on": "2026-11-25", "id": "spinach", "grams": 200}, ..
 
 from __future__ import annotations
 
+import functools
 import json
 import math
 from dataclasses import asdict
@@ -444,3 +450,47 @@ def wasted_since(since: date, path: Path | None = None) -> float:
     return sum(
         e["grams"] for e in load_waste(path) if date.fromisoformat(e["on"]) >= since
     )
+
+
+# ---------------------------------------------------------------------------
+# Household: which staples this kitchen keeps
+# ---------------------------------------------------------------------------
+
+
+def household_path() -> Path:
+    return garde_home() / "household.json"
+
+
+def load_household(path: Path | None = None) -> dict[str, Any]:
+    path = path or household_path()
+    raw = json.loads(path.read_text()) if path.exists() else {}
+    return {"not_kept": sorted(i for i in raw.get("not_kept", []) if i in INGREDIENTS)}
+
+
+def save_household(raw: Any, path: Path | None = None) -> dict[str, Any]:
+    if not isinstance(raw, dict) or not isinstance(raw.get("not_kept"), list):
+        raise ValueError("expected {not_kept: [ingredient ids]}")
+    for ing_id in raw["not_kept"]:
+        ing = INGREDIENTS.get(ing_id)
+        if ing is None or not ing.unlimited:
+            raise ValueError(f"{ing_id!r} isn't one of the staples")
+    out = {"not_kept": sorted(set(raw["not_kept"]))}
+    path = path or household_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(out, indent=1))
+    return out
+
+
+def kitchen_db(not_kept: list[str] | tuple[str, ...] = ()) -> dict[str, Ingredient]:
+    """INGREDIENTS with the staples this kitchen doesn't keep made ordinary."""
+    return _kitchen_db(frozenset(not_kept))
+
+
+@functools.lru_cache(maxsize=8)  # the resolver caches by db identity: reuse them
+def _kitchen_db(not_kept: frozenset[str]) -> dict[str, Ingredient]:
+    if not not_kept:
+        return INGREDIENTS
+    return {
+        i: ing.model_copy(update={"unlimited": False}) if i in not_kept else ing
+        for i, ing in INGREDIENTS.items()
+    }

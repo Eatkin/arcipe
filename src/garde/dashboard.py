@@ -17,6 +17,8 @@ Endpoints:
     POST /api/pantry/bin   {items: [...], dishes: [...], date}: thrown out; logged
                            in $GARDE_HOME/waste.json -> the pantry + waste
     GET  /api/waste        {month_g, week_g, recent: [...]}: what's been binned
+    GET  /api/household    {not_kept: [ids]}: staples this kitchen doesn't keep
+    PUT  /api/household    same shape; plans shop for those instead
     POST /api/plan         {days, meals, people, start_date, weeknight_minutes,
                             weekend_minutes, max_minutes, weights, effort, seed,
                             shopping, inventory}  -> the plan
@@ -445,7 +447,13 @@ def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
     days = _int(body, "days", 7, 1, 14)
     inventory, leftovers = _stock(body, start)
     meals_per_day = [m for m in MEALS if m in meals]
+    not_kept = body.get("not_kept")
+    if not_kept is None:
+        not_kept = pantry.load_household()["not_kept"]
+    if not isinstance(not_kept, list) or not set(not_kept) <= set(INGREDIENTS):
+        raise BadRequestError("not_kept must be a list of ingredient ids")
     args = {
+        "ingredient_db": pantry.kitchen_db(tuple(not_kept)),
         "inventory": inventory,
         "leftovers": leftovers,
         "days": days,
@@ -536,6 +544,17 @@ def pantry_put(body: dict, feedback: Feedback) -> dict[str, Any]:
         stock = pantry.Pantry(items, dishes)
         pantry.save(stock)
     return stock.to_json()
+
+
+def household_get(body: dict, feedback: Feedback) -> dict[str, Any]:
+    return pantry.load_household()
+
+
+def household_put(body: dict, feedback: Feedback) -> dict[str, Any]:
+    try:
+        return pantry.save_household(body)
+    except ValueError as e:
+        raise BadRequestError(str(e)) from e
 
 
 def waste_get(body: dict, feedback: Feedback) -> dict[str, Any]:
@@ -779,6 +798,8 @@ ROUTES = {
     "PUT /api/pantry": pantry_put,
     "POST /api/pantry/bin": pantry_bin,
     "GET /api/waste": waste_get,
+    "GET /api/household": household_get,
+    "PUT /api/household": household_put,
     "POST /api/plans": plan_save,
     "GET /api/plans": plans_list,
 }

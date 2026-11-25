@@ -118,8 +118,28 @@ function renderPantry() {
   }
   renderDishes();
   renderGoneOff();
-  $("staples").innerHTML = META.ingredients.filter((i) => i.unlimited)
-    .map((i) => `<span class="chip">${esc(i.name)}</span>`).join("");
+  renderStaples();
+}
+
+// Staples assumed in: click one you don't keep and plans shop for it instead
+let notKept = [];
+
+function renderStaples() {
+  const staples = META.ingredients.filter((i) => i.unlimited);
+  $("staples").innerHTML = staples.map((i) => `
+    <button class="chip staple ${notKept.includes(i.id) ? "off" : ""}" data-id="${esc(i.id)}"
+      title="${notKept.includes(i.id) ? "Not kept: plans shop for it. Click if you do keep it." : "Click if you don't keep it"}">${esc(i.name)}</button>`).join("");
+  $("staples-count").textContent = notKept.length ? `${notKept.length} not kept` : "";
+  $("staples").querySelectorAll("button").forEach((btn) => btn.addEventListener("click", async () => {
+    const id = btn.dataset.id;
+    const next = notKept.includes(id) ? notKept.filter((x) => x !== id) : [...notKept, id];
+    try {
+      notKept = (await api("/api/household", { method: "PUT", body: { not_kept: next } })).not_kept;
+      renderStaples();
+      markStale();
+      $("status").textContent = `${ingName(id)}: ${notKept.includes(id) ? "not kept, plans will shop for it" : "assumed in"}`;
+    } catch (e) { showError(e.message); }
+  }));
 }
 
 const goneOff = (useBy) => useBy && daysBetween(today(), useBy) < 0;
@@ -1061,6 +1081,7 @@ async function boot() {
   state = load();
   await loadPantry();
   await loadWaste();
+  notKept = (await api("/api/household")).not_kept;
   renderKnobs();
   renderPantry();
   route();
