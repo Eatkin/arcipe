@@ -108,3 +108,36 @@ def test_unknown_weight_is_an_error():
     assert weights_from({"waste": 3}).waste == 3
     with pytest.raises(ValueError, match="vibes"):
         weights_from({"vibes": 1})
+
+
+def test_per_day_time_limit_only_binds_its_day():
+    limits = [20, None, 20, None, 20, None, 20]
+    result = _solve(days=7, max_minutes=limits)
+    for slot in result.plan.slots:
+        limit = limits[slot.day - 1]
+        if slot.resolution and slot.leftovers_from is None and limit is not None:
+            assert slot.resolution.timing.total <= limit
+
+
+def test_progress_reports_count_up_to_total():
+    seen = []
+    _solve(
+        iterations=120,
+        restarts=2,
+        progress=lambda done, total, tried, best: seen.append((done, total, tried)),
+    )
+    assert seen, "progress never called"
+    assert [d for d, _, _ in seen] == sorted(d for d, _, _ in seen)
+    assert seen[-1][0] == seen[-1][1] == 240
+    assert all(tried >= 1 for _, _, tried in seen)
+
+
+def test_progress_can_stop_the_search():
+    class StopError(Exception):
+        pass
+
+    def stop(done, total, tried, best):
+        raise StopError
+
+    with pytest.raises(StopError):
+        _solve(iterations=200, progress=stop)

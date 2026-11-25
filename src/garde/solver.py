@@ -37,9 +37,11 @@ from __future__ import annotations
 import math
 import random
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import fields
+from typing import Protocol
 
 from garde.loader import INGREDIENTS
 from garde.loader import RECIPES
@@ -50,6 +52,7 @@ from garde.planner import Leftover
 from garde.planner import Lot
 from garde.planner import MealPlan
 from garde.planner import MealSlot
+from garde.planner import MinutesLimit
 from garde.planner import classes_used_recently
 from garde.planner import consume
 from garde.planner import cook_batches
@@ -57,6 +60,7 @@ from garde.planner import cook_servings
 from garde.planner import eat_leftovers
 from garde.planner import expire
 from garde.planner import expire_dishes
+from garde.planner import limit_for
 from garde.planner import parse_inventory
 from garde.planner import plan_week
 from garde.planner import stash
@@ -129,6 +133,17 @@ class Breakdown:
         )
 
 
+class Progress(Protocol):
+    """Called every PROGRESS_EVERY steps of the search. Raise to stop it."""
+
+    def __call__(
+        self, done: int, total: int, weeks_tried: int, best: Breakdown
+    ) -> None: ...
+
+
+PROGRESS_EVERY = 50
+
+
 @dataclass
 class SolverResult:
     plan: MealPlan
@@ -145,7 +160,7 @@ class _Problem:
     recipes: dict[str, Recipe]
     ingredient_db: dict[str, Ingredient]
     people: int
-    max_minutes: int | None
+    max_minutes: MinutesLimit
     gap: int
     weights: Weights
     feedback: Feedback | None = None
@@ -194,7 +209,8 @@ def _cook(p: _Problem, recipe_id: str, lots: list[Lot], day: int, times: int = 1
         affinity=p.feedback.ingredient_affinity(recipe) if p.feedback else None,
         buyable=buyable_on(day, p),
     )
-    too_long = p.max_minutes is not None and res.timing.total > p.max_minutes
+    limit = limit_for(p.max_minutes, day)
+    too_long = limit is not None and res.timing.total > limit
     return None if not res.success or too_long else res
 
 
@@ -383,6 +399,7 @@ def _anneal(
     p: _Problem,
     iterations: int,
     rng: random.Random,
+    tick: Callable[[Choice], None] | None = None,
 ) -> Choice:
     current = best = start
     current_score = best_score = simulate(start, p)[1].objective
@@ -396,6 +413,8 @@ def _anneal(
             current, current_score = candidate, score
             if score < best_score:
                 best, best_score = candidate, score
+        if tick is not None:
+            tick(best)
     return best
 
 
@@ -405,7 +424,7 @@ def optimise_week(
     days: int = 7,
     meals_per_day: list[str] | None = None,
     people: int = 2,
-    max_minutes: int | None = None,
+    max_minutes: MinutesLimit = None,
     max_same_class_gap: int = 2,
     weights: Weights | None = None,
     iterations: int = 2000,
@@ -414,6 +433,7 @@ def optimise_week(
     rng: random.Random | None = None,
     feedback: Feedback | None = None,
     shopping: bool = False,
+    progress: Progress | None = None,
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
@@ -421,6 +441,8 @@ def optimise_week(
     Never does worse than the greedy planner: the search starts from its plan.
     shopping=True lets the plan buy things (see module docstring); the bill is
     in result.plan.bought and result.plan.shopping_list().
+    max_minutes can be one limit or a list with one per day.
+    progress, if given, hears how the search is going (see Progress).
     """
     rng = rng or random.Random()
     db = ingredient_db or INGREDIENTS
@@ -462,8 +484,19 @@ def optimise_week(
     )
 
     best = greedy
-    for _ in range(max(restarts, 1)):
-        found = _anneal(greedy, options, p, iterations, rng)
+    runs = max(restarts, 1)
+    total = iterations * runs
+    done = 0
+
+    def tick(run_best: Choice) -> None:
+        nonlocal done
+        done += 1
+        if progress is not None and (done % PROGRESS_EVERY == 0 or done == total):
+            overall = min((best, run_best), key=lambda c: simulate(c, p)[1].objective)
+            progress(done, total, len(p.cache), simulate(overall, p)[1])
+
+    for _ in range(runs):
+        found = _anneal(greedy, options, p, iterations, rng, tick)
         if simulate(found, p)[1].objective < simulate(best, p)[1].objective:
             best = found
 

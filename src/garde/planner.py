@@ -8,6 +8,7 @@ Inventory input (see parse_inventory):
     {"carrot": 6}                              — natural units (Ingredient.unit_weight)
     {"red_lentils": "500g"}                    — grams / kg / ml / l
     {"spinach": {"amount": 1, "expires": 2}}   — explicit days until it goes off
+    {"tofu": [1, {"amount": 1, "expires": 3}]} — several lots of one thing
 Fresh things default to their Ingredient.shelf_life_days. Unlimited staples are
 left out of the inventory entirely; listing one makes it tracked.
 
@@ -37,6 +38,7 @@ import random
 import re
 from collections import Counter
 from collections.abc import Mapping
+from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import replace
@@ -55,8 +57,19 @@ from garde.vibes import Feedback
 # Ingredients expiring within this many days get an urgency boost
 URGENCY_HORIZON = 7
 
-# {ingredient_id: 3 | "500g" | {"amount": ..., "expires": days}}
-InventoryInput = Mapping[str, float | str | Mapping[str, float | str]]
+# {ingredient_id: 3 | "500g" | {"amount": ..., "expires": days} | [several of those]}
+InventoryEntry = float | str | Mapping[str, float | str]
+InventoryInput = Mapping[str, InventoryEntry | Sequence[InventoryEntry]]
+
+# A time limit for every day, or one per day (index 0 = day 1); None = no limit
+MinutesLimit = int | None | Sequence[int | None]
+
+
+def limit_for(max_minutes: MinutesLimit, day: int) -> int | None:
+    """The time limit on plan day `day` (1-based)."""
+    if max_minutes is None or isinstance(max_minutes, int):
+        return max_minutes
+    return max_minutes[day - 1] if day - 1 < len(max_minutes) else None
 
 
 # ---------------------------------------------------------------------------
@@ -103,16 +116,20 @@ def parse_inventory(
         ing = db.get(ing_id)
         if ing is None:
             raise KeyError(f"unknown ingredient {ing_id!r}")
-        expires = ing.shelf_life_days
-        if isinstance(value, (int, float, str)):
-            amount = value
-        else:
-            entry = cast(Mapping[str, float | str], value)
-            amount = entry["amount"]
-            if "expires" in entry:
-                expires = int(entry["expires"])
-        lots.append(Lot(ing_id, parse_amount(ing, amount), expires))
+        entries = value if isinstance(value, list | tuple) else [value]
+        lots.extend(_lot(ing, cast(InventoryEntry, entry)) for entry in entries)
     return lots
+
+
+def _lot(ing: Ingredient, value: InventoryEntry) -> Lot:
+    expires = ing.shelf_life_days
+    if isinstance(value, (int, float, str)):
+        amount = value
+    else:
+        amount = value["amount"]
+        if value.get("expires") is not None:
+            expires = int(value["expires"])
+    return Lot(ing.id, parse_amount(ing, amount), expires)
 
 
 def totals(lots: list[Lot]) -> dict[str, float]:
@@ -553,7 +570,7 @@ def plan_week(
     days: int = 7,
     meals_per_day: list[str] | None = None,
     people: int = 2,
-    max_minutes: int | None = None,
+    max_minutes: MinutesLimit = None,
     max_same_class_gap: int = 2,
     ingredient_db: dict[str, Ingredient] | None = None,
     randomise: bool = True,
@@ -580,6 +597,7 @@ def plan_week(
         meals_per_day:        list of meal names, e.g. ["lunch", "dinner"]
         people:               servings per meal
         max_minutes:          skip recipes that take longer than this, start to plate
+                              (one number, or a list with one per day)
         max_same_class_gap:   avoid repeating ingredient class within N days
         ingredient_db:        ingredient db, defaults to INGREDIENTS
         randomise:            jitter scores slightly for variety between runs
@@ -641,7 +659,7 @@ def plan_week(
                 db,
                 jitter,
                 rng,
-                max_minutes,
+                limit_for(max_minutes, day),
                 feedback,
             )
             if best is None:

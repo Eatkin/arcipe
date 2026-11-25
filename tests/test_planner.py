@@ -129,3 +129,11 @@ def test_time_limit_is_respected(seed):
     for slot in plan.slots:
         if slot.resolution:
             assert slot.resolution.timing.total <= 30
+
+
+def test_several_lots_of_one_ingredient():
+    from garde.loader import INGREDIENTS
+
+    lots = parse_inventory({"tofu": [1, {"amount": 1, "expires": 2}]})
+    assert len(lots) == 2
+    assert {lot.expires_day for lot in lots} == {INGREDIENTS["tofu"].shelf_life_days, 2}
