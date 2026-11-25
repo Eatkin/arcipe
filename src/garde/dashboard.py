@@ -214,6 +214,7 @@ def meta() -> dict[str, Any]:
         "meals": list(MEALS),
         "quickest_minutes": _quickest(),
         "least_hands_on": _least_hands_on(),
+        "freezer_days": pantry.FREEZER_DAYS,
         "today": date.today().isoformat(),
     }
 
@@ -287,6 +288,7 @@ def _plan(
                     "skipped": slot.skipped,
                     "leftovers_from": slot.leftovers_from,
                     # Leftovers of several dishes: portions of each, else {}
+                    "defrost": slot.defrost,
                     "leftover_portions": {
                         r: round(n, 2) for r, n in slot.leftover_mix.items()
                     },

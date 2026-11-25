@@ -409,14 +409,12 @@ def _remove_items(
 
 
 def _remove_dish(dishes: list[Dish], gone: Dish) -> list[Dish]:
+    """Take these portions back out, matched on recipe and the day it was cooked
+    (not use-by: it may have gone in the freezer since)."""
     out = []
     left = gone.portions
     for d in dishes:
-        same = (d.recipe_id, d.cooked, d.use_by) == (
-            gone.recipe_id,
-            gone.cooked,
-            gone.use_by,
-        )
+        same = (d.recipe_id, d.cooked) == (gone.recipe_id, gone.cooked)
         if same and left > 1e-9:
             bite = min(left, d.portions)
             left -= bite

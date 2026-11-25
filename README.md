@@ -124,6 +124,12 @@ bad night doesn't ban anything.
   counted from the plan's start date, and anything past its date is ignored.
   **Cooked, in the fridge** lists leftover dishes (portions and a use-by); plans
   serve them as leftovers meals before cooking anything new.
+  ❄ puts a dish or an item in the freezer (use-by moves on 90 days); ☀ takes it
+  out (good for 2 more days). Frozen dishes are planned from tomorrow, with a
+  "defrost the night before" note. 🗑 bins something and counts it as waste;
+  the tab shows what's been binned this month, and nudges about anything past
+  its date. **Assumed always in** staples can be clicked off if you don't keep
+  them.
 - **Saved plans** tab: **Save plan** keeps the shown week in
   `~/.garde/plans/<id>.json`. Tick a meal off as **Cooked** and its ingredients
   come out of the pantry (the grams the plan worked out, soonest use-by first,

@@ -233,3 +233,19 @@ def test_a_staple_not_kept_has_to_be_bought():
     assert uses
     for r in uses:
         assert "cashews" not in resolve(r, full, db).consumed
+
+
+def test_frozen_dishes_wait_a_night_to_defrost():
+    from datetime import timedelta
+
+    today = date.today()
+    dish = Dish("bean_chilli", 2, (today + timedelta(days=90)).isoformat(), frozen=True)
+    (left,) = pantry.to_leftovers([dish], today)
+    assert left.ready_day == 2 and left.frozen
+    from garde.planner import eat_leftovers
+
+    assert eat_leftovers([left], "dinner", 2, day=1)[1] is None
+    assert eat_leftovers([left], "dinner", 2, day=2)[1] is not None
+    raw = Pantry([Item("spinach", "1", frozen=True)], [dish]).to_json()
+    assert raw["items"][0]["frozen"] and pantry.validate(raw["items"])[0].frozen
+    assert "frozen" not in Pantry([Item("spinach", "1")]).to_json()["items"][0]

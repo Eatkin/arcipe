@@ -102,7 +102,7 @@ function renderPantry() {
     panel.className = "panel";
     panel.innerHTML = `
       <div class="area-head"><h2>${title}</h2><span class="count">${plural(rows.filter((r) => r.id).length, "thing")}</span></div>
-      <div class="prow head"><span>Ingredient</span><span>Amount</span><span>Use by</span><span></span><span></span><span></span></div>
+      <div class="prow head"><span>Ingredient</span><span>Amount</span><span>Use by</span><span></span><span></span><span></span><span></span></div>
       <div class="rows"></div>
       <datalist id="dl-${area}">${areaOptions(area)}</datalist>
       <button class="add">+ Add</button>`;
@@ -142,8 +142,14 @@ function renderStaples() {
   }));
 }
 
+// Into the freezer (keeps META.freezer_days) or out of it (2 more days)
+function freeze(thing, on) {
+  thing.frozen = on;
+  thing.use_by = addDays(today(), on ? META.freezer_days : 1);
+}
+
 const goneOff = (useBy) => useBy && daysBetween(today(), useBy) < 0;
-const asItem = (r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null });
+const asItem = (r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null, frozen: Boolean(r.frozen) });
 
 function renderGoneOff() {
   const items = pantry.filter((r) => r.id && String(r.amount).trim() && goneOff(r.use_by));
@@ -194,7 +200,7 @@ function renderDishes() {
     $("dishes").innerHTML = `<div class="hint">Nothing cooked waiting. Tick a meal off on a saved plan and spare portions land here.</div>`;
     return;
   }
-  $("dishes").innerHTML = `<div class="drow prow head"><span>Dish</span><span>Portions</span><span>Use by</span><span></span><span></span><span></span></div>`;
+  $("dishes").innerHTML = `<div class="drow prow head"><span>Dish</span><span>Portions</span><span>Use by</span><span></span><span></span><span></span><span></span></div>`;
   for (const dish of dishes) {
     const el = document.createElement("div");
     el.className = "drow";
@@ -202,7 +208,8 @@ function renderDishes() {
       <span class="dname" title="${dish.cooked ? `cooked ${esc(prettyDay(dish.cooked))}` : ""}">${esc(recipeName(dish.recipe_id))}</span>
       <input type="number" min="0" step="0.5" value="${esc(dish.portions)}" aria-label="Portions">
       <input type="date" value="${esc(dish.use_by)}" aria-label="Use by">
-      ${badge(dish.use_by)}
+      ${dish.frozen ? `<span class="badge frozen">frozen</span>` : badge(dish.use_by)}
+      <button class="x freeze" title="${dish.frozen ? "Take it out to defrost: good for 2 more days" : "Put it in the freezer"}">${dish.frozen ? "☀" : "❄"}</button>
       <button class="x bin" title="Binned it: counts as waste">🗑</button>
       <button class="x eat" title="Eaten: take it off the list">×</button>`;
     const [portions, useBy] = el.querySelectorAll("input");
@@ -215,6 +222,7 @@ function renderDishes() {
       dishes.splice(dishes.indexOf(dish), 1); renderPantry(); pantryChanged();
     });
     el.querySelector("button.bin").addEventListener("click", () => binThings([], [dish]));
+    el.querySelector("button.freeze").addEventListener("click", () => { freeze(dish, !dish.frozen); renderPantry(); pantryChanged(); });
     $("dishes").appendChild(el);
   }
 }
@@ -236,7 +244,8 @@ function pantryRow(row, area) {
     <input type="text" value="${esc(row.amount)}" aria-label="Amount"
       placeholder="${ing && ing.unit_weight ? "count" : "grams"}">
     <input type="date" value="${esc(row.use_by)}" aria-label="Use by">
-    ${badge(row.use_by)}
+    ${row.frozen ? `<span class="badge frozen">frozen</span>` : badge(row.use_by)}
+    <button class="x freeze" title="${row.frozen ? "Take it out to defrost: good for 2 more days" : "Put it in the freezer"}">${row.frozen ? "☀" : "❄"}</button>
     <button class="x bin" title="Binned it: counts as waste">🗑</button>
     <button class="x eat" title="Used up or gone: take it off the list">×</button>`;
   const [name, amount, useBy] = el.querySelectorAll("input");
@@ -254,6 +263,13 @@ function pantryRow(row, area) {
   el.querySelector("button.eat").addEventListener("click", () => {
     pantry.splice(pantry.indexOf(row), 1); renderPantry(); pantryChanged();
   });
+  const freezeBtn = el.querySelector("button.freeze");
+  freezeBtn.disabled = !row.id || (area === "freezer" && !row.frozen) || ((ingById(row.id) || {}).storage === "freezer");
+  freezeBtn.addEventListener("click", () => {
+    freeze(row, !row.frozen);
+    row.area = row.frozen ? "freezer" : areaOf(row.id);
+    renderPantry(); pantryChanged();
+  });
   const binBtn = el.querySelector("button.bin");
   binBtn.disabled = !(row.id && String(row.amount).trim());
   binBtn.addEventListener("click", () => binThings([row], []));
@@ -270,7 +286,7 @@ function savePantry() {
   clearTimeout(pantryTimer);
   pantryTimer = null;
   const items = pantry.filter((r) => r.id && String(r.amount).trim())
-    .map((r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null }));
+    .map((r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null, frozen: Boolean(r.frozen) }));
   pantrySaving = fetch("/api/pantry", {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, dishes: dishes.filter((d) => d.portions > 0) }),
@@ -289,7 +305,7 @@ async function flushPantry() {
 }
 
 function setPantry(data) {
-  pantry = data.items.map((i) => ({ ...i, use_by: i.use_by || "", area: areaOf(i.id) }));
+  pantry = data.items.map((i) => ({ ...i, use_by: i.use_by || "", area: i.frozen ? "freezer" : areaOf(i.id) }));
   dishes = data.dishes || [];
 }
 
@@ -609,7 +625,8 @@ function mealEl(day, m, opts = {}) {
       : m.recipe_name;
     el.innerHTML = `<div class="kind">${m.meal}</div>
       <div class="title"><span class="name">${esc(name)}</span>
-      <span class="chip">${mix.length > 1 ? "leftovers, a bit of each" : `leftovers from ${esc(from)}`}</span></div>`;
+      <span class="chip">${mix.length > 1 ? "leftovers, a bit of each" : `leftovers from ${esc(from)}`}</span></div>
+      ${m.defrost ? `<div class="ahead">❄ From the freezer: defrost it the night before.</div>` : ""}`;
   } else {
     const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
       <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${Math.round(i.grams)}g</span>` : ""}`).join(", ")}</span></li>`).join("");
@@ -896,6 +913,18 @@ function savedMealEl(day, m) {
       const tick = box.querySelector("input");
       tick.addEventListener("change", () => cookMeal(day.day, m, tick));
       if (!m.cooked && !leftovers) el.appendChild(cookedDifferently(day, m));
+      const spare = m.cooked && m.cooked.dish && dishes.find((d) => d.recipe_id === m.cooked.dish.recipe_id
+        && d.cooked === m.cooked.dish.cooked && !d.frozen);
+      if (spare) {
+        const btn = document.createElement("button");
+        btn.className = "freeze-spare";
+        btn.textContent = `❄ Freeze the ${plural(spare.portions, "spare portion")}`;
+        btn.addEventListener("click", async () => {
+          freeze(spare, true); renderPantry(); await savePantry(); renderSaved();
+          $("status").textContent = `${recipeName(spare.recipe_id)}: in the freezer`;
+        });
+        el.querySelector(".took")?.after(btn);
+      }
     },
   };
   return mealEl(day.day, m, opts);

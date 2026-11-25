@@ -161,7 +161,7 @@ td.waste { color: var(--warn); font-weight: 600; }
 .area-head { display: flex; justify-content: space-between; align-items: baseline; }
 .area-head .count { color: var(--muted); font-size: 12px; }
 .prow {
-  display: grid; grid-template-columns: minmax(150px, 1fr) 76px 140px 80px 26px 26px; gap: 6px;
+  display: grid; grid-template-columns: minmax(150px, 1fr) 76px 140px 80px 26px 26px 26px; gap: 6px;
   margin-bottom: 6px; align-items: center;
 }
 .prow.head { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
@@ -194,7 +194,7 @@ button.danger:hover { border-color: var(--warn); color: var(--warn); }
 .meal.done .name { text-decoration: line-through; text-decoration-color: var(--muted); }
 .meal.done { opacity: .75; }
 .took { font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
-.drow { display: grid; grid-template-columns: minmax(150px, 1fr) 76px 140px 80px 26px 26px; gap: 6px;
+.drow { display: grid; grid-template-columns: minmax(150px, 1fr) 76px 140px 80px 26px 26px 26px; gap: 6px;
   margin-bottom: 6px; align-items: center; }
 .drow .dname { font-weight: 550; }
 .shop li.got > span:nth-child(2) { text-decoration: line-through; color: var(--muted); }
@@ -240,3 +240,8 @@ body.busy #saved-main { opacity: .6; pointer-events: none; }
   background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 8px; }
 button.chip.staple { border: 1px solid transparent; cursor: pointer; padding: 2px 10px; color: var(--ink); }
 button.chip.staple.off { text-decoration: line-through; color: var(--muted); background: none; border-color: var(--line); }
+.badge.frozen { background: #e3eef8; color: #2c5d8a; }
+@media (prefers-color-scheme: dark) { .badge.frozen { background: #1d2a36; color: #8fb8dd; } }
+.prow button.freeze { font-size: 13px; }
+.prow button.freeze:disabled { visibility: hidden; }
+button.freeze-spare { font-size: 12px; padding: 2px 8px; margin: 0 0 6px; }

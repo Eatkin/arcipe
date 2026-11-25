@@ -176,3 +176,27 @@ def test_staples_toggle(server, page):
     page.wait_for_selector("#staples button[data-id=cashews].off")
     got = json.loads(urllib.request.urlopen(server + "/api/household").read())
     assert got == {"not_kept": ["cashews"]}
+
+
+def test_freeze_a_dish_and_an_item(server, page):
+    body = {
+        "items": [{"id": "spinach", "amount": "1", "use_by": "2099-01-01"}],
+        "dishes": [{"recipe_id": "bean_chilli", "portions": 2, "use_by": "2099-01-01"}],
+    }
+    req = urllib.request.Request(
+        server + "/api/pantry",
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    urllib.request.urlopen(req).read()
+    page.goto(server + "/#pantry")
+    page.reload()
+    page.locator("#dishes .drow:not(.head) button.freeze").click()
+    page.locator("#areas .prow:not(.head) button.freeze").first.click()
+    page.wait_for_selector("#areas section:nth-child(2) .badge.frozen")  # the freezer
+    page.wait_for_function(
+        "document.getElementById('status').textContent === 'pantry saved'"
+    )
+    got = json.loads(urllib.request.urlopen(server + "/api/pantry").read())
+    assert got["dishes"][0]["frozen"] and got["items"][0]["frozen"]

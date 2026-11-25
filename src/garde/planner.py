@@ -275,6 +275,8 @@ class Leftover:
     expires_day: int  # last day it's good
     meal_types: tuple[str, ...]
     resolution: Resolution  # what was cooked, for showing the meal again
+    ready_day: int = 1  # first day it can be eaten (frozen: after defrosting)
+    frozen: bool = False
 
 
 def cook_servings(recipe: Recipe, people: int, times: int = 1) -> int:
@@ -318,7 +320,7 @@ def expire_dishes(
 
 
 def eat_leftovers(
-    dishes: list[Leftover], meal: str, people: int
+    dishes: list[Leftover], meal: str, people: int, day: int = 1
 ) -> tuple[list[Leftover], Leftover | None, dict[str, float]]:
     """
     Serve leftovers that suit this meal: the soonest-expiring dish that stretches
@@ -327,7 +329,11 @@ def eat_leftovers(
     portions eaten of each recipe); (dishes, None, {}) if there aren't enough.
     """
     suits = sorted(
-        (i for i, d in enumerate(dishes) if meal in d.meal_types),
+        (
+            i
+            for i, d in enumerate(dishes)
+            if meal in d.meal_types and d.ready_day <= day
+        ),
         key=lambda i: dishes[i].expires_day,
     )
     whole = [i for i in suits if dishes[i].portions >= people - 1e-9]
@@ -433,6 +439,7 @@ class MealSlot:
     skipped: bool = False  # nobody eating in (out for dinner): not cooked, not missed
     # Leftovers of several dishes at once: portions of each recipe
     leftover_mix: dict[str, float] = field(default_factory=dict)
+    defrost: bool = False  # leftovers from the freezer: defrost the night before
 
     @property
     def filled(self) -> bool:
@@ -696,7 +703,7 @@ def plan_week(
         dishes, gone = expire_dishes(dishes, day)
         wasted += gone
         for meal in meals:
-            dishes, dish, mix = eat_leftovers(dishes, meal, people)
+            dishes, dish, mix = eat_leftovers(dishes, meal, people, day)
             if dish is not None:
                 planned.append(
                     MealSlot(
@@ -706,6 +713,7 @@ def plan_week(
                         resolution=dish.resolution,
                         leftovers_from=dish.cooked_day,
                         leftover_mix=mix if len(mix) > 1 else {},
+                        defrost=dish.frozen,
                     )
                 )
                 continue

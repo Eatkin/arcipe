@@ -15,7 +15,9 @@ shelf life from the plan's start" (tins, dried things). Two items with the same
 id are two separate lots, say an open block of tofu and a fresh one.
 
 `dishes` are cooked leftovers: portions of a recipe waiting to be eaten. The
-planner can serve them as leftovers meals (see to_leftovers).
+planner can serve them as leftovers meals (see to_leftovers). Items and dishes
+can be `frozen` (the dashboard moves their use-by on by FREEZER_DAYS); a frozen
+dish needs defrosting overnight, so plans serve it from tomorrow.
 
 take() and give() move grams out of and back into the items, for ticking off a
 cooked meal (garde.plans).
@@ -60,6 +62,8 @@ EMPTY_GRAMS = 1.0
 # A portion of a dish whose weight we don't know (typed in by hand), so letting
 # it go off still counts as waste. A guess
 PORTION_GRAMS = 300.0
+# How long things keep in the freezer. A guess
+FREEZER_DAYS = 90
 
 
 def default_path() -> Path:
@@ -71,6 +75,7 @@ class Item:
     id: str
     amount: str
     use_by: str | None = None  # ISO date, last good day
+    frozen: bool = False  # in the freezer: shown there, and keeps (use_by moved on)
 
     def use_by_date(self) -> date | None:
         return date.fromisoformat(self.use_by) if self.use_by else None
@@ -85,6 +90,7 @@ class Dish:
     use_by: str  # ISO date, last good day
     cooked: str | None = None  # ISO date
     grams_per_portion: float = 0.0  # stocked grams per portion, for waste figures
+    frozen: bool = False  # needs defrosting the night before
 
 
 @dataclass
@@ -94,9 +100,16 @@ class Pantry:
 
     def to_json(self) -> dict[str, Any]:
         return {
-            "items": [asdict(i) for i in self.items],
-            "dishes": [asdict(d) for d in self.dishes],
+            "items": [_lean(asdict(i)) for i in self.items],
+            "dishes": [_lean(asdict(d)) for d in self.dishes],
         }
+
+
+def _lean(raw: dict[str, Any]) -> dict[str, Any]:
+    """Leave `frozen` out unless it is."""
+    if not raw.get("frozen"):
+        raw.pop("frozen", None)
+    return raw
 
 
 def _iso(value: Any, what: str) -> str | None:
@@ -125,7 +138,7 @@ def validate(raw: Any, db: dict[str, Ingredient] | None = None) -> list[Item]:
             continue  # a row still being filled in
         parse_amount(db[ing_id], _measured(db[ing_id], amount))
         use_by = _iso(entry.get("use_by"), f"{ing_id}: use_by")
-        items.append(Item(ing_id, amount, use_by))
+        items.append(Item(ing_id, amount, use_by, bool(entry.get("frozen"))))
     return items
 
 
@@ -152,7 +165,16 @@ def validate_dishes(raw: Any, recipes: dict[str, Recipe] | None = None) -> list[
         if use_by is None:
             raise ValueError(f"{recipe_id}: a dish needs a use_by date")
         cooked = _iso(entry.get("cooked"), f"{recipe_id}: cooked")
-        dishes.append(Dish(recipe_id, portions, use_by, cooked, per_portion))
+        dishes.append(
+            Dish(
+                recipe_id,
+                portions,
+                use_by,
+                cooked,
+                per_portion,
+                bool(entry.get("frozen")),
+            )
+        )
     return dishes
 
 
@@ -233,6 +255,8 @@ def to_leftovers(
             continue
         recipe = recipes[dish.recipe_id]
         cooked = date.fromisoformat(dish.cooked) if dish.cooked else start
+        # Frozen: defrost overnight, so not before tomorrow (day 2 if that's today)
+        ready = max(1, _plan_day(date.today(), start) + 1) if dish.frozen else 1
         out.append(
             Leftover(
                 recipe_id=recipe.id,
@@ -241,6 +265,8 @@ def to_leftovers(
                 cooked_day=_plan_day(cooked, start),
                 expires_day=_plan_day(use_by, start),
                 meal_types=tuple(recipe.meal_type),
+                ready_day=ready,
+                frozen=dish.frozen,
                 resolution=Resolution(
                     recipe_id=recipe.id,
                     recipe_name=recipe.name,

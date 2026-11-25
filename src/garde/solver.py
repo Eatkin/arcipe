@@ -287,7 +287,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
                 planned.append(MealSlot(day=day, meal=meal, skipped=True))
                 continue
             if pick == LEFTOVERS:
-                dishes, dish, mix = eat_leftovers(dishes, meal, p.people)
+                dishes, dish, mix = eat_leftovers(dishes, meal, p.people, day)
                 if dish is None:
                     planned.append(MealSlot(day=day, meal=meal))
                     unplanned.append((day, meal))
@@ -305,6 +305,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
                         resolution=dish.resolution,
                         leftovers_from=dish.cooked_day,
                         leftover_mix=mix if len(mix) > 1 else {},
+                        defrost=dish.frozen,
                     )
                 )
                 continue
