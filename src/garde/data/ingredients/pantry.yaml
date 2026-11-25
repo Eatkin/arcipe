@@ -51,7 +51,7 @@ miso:
 nutritional_yeast:
   name: Nutritional Yeast
   classes: [fermented]
-  roles: [umami_boost]
+  roles: [umami_boost, meltable]  # stirs in cheesy
   flavour: [umami, nutty]
   colour: yellow
   season: [all]
@@ -98,7 +98,7 @@ coconut_milk:
   price: moderate
   pack_weight: 400
   unit_weight: 400
-  cuisine_context: [indian, chinese]
+  cuisine_context: [indian, chinese, caribbean]
   nutrition: [high_fat]
   made_from:
     ingredient: coconut_cream
@@ -117,7 +117,7 @@ coconut_cream:
   price: moderate
   pack_weight: 400
   unit_weight: 400
-  cuisine_context: [indian, thai]
+  cuisine_context: [indian, thai, caribbean]
   nutrition: [high_fat]
   notes: Thins down to coconut milk (coconut_milk.made_from).
 
@@ -603,3 +603,16 @@ alcohol_free_beer:
   unit_weight: 330  # a bottle
   cuisine_context: [british, american]
   notes: Batter, stews and chilli. Doesn't keep once opened, so a bottle at a time.
+
+worcestershire_sauce:
+  name: Henderson's Relish / Vegan Worcestershire
+  classes: [condiment]
+  roles: [umami_boost, flavour_enhancer, acid_bright]
+  flavour: [umami, sharp]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 284
+  max_per_serving: 8
+  cuisine_context: [british]
+  notes: Henderson's is vegan; most Worcestershire has anchovy. Stands in for fish sauce too.

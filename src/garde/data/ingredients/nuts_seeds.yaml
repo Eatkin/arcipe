@@ -105,3 +105,16 @@ peanuts:
   price: moderate
   nutrition: [high_protein]
   cuisine_context: [thai, chinese]
+
+chestnuts:
+  name: Cooked Chestnuts
+  classes: [nut]
+  roles: [bulk, texture_top, sweetener]
+  flavour: [sweet, nutty, earthy]
+  colour: brown
+  season: [autumn, winter]
+  price: pricey
+  unit_weight: 180  # a vacuum pack
+  opened_days: 3  # drafted
+  cuisine_context: [british, french]
+  notes: Vacuum-packed, ready to eat; keeps for months unopened.

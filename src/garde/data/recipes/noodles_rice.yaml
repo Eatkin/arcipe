@@ -29,6 +29,7 @@ noodle_stir_fry:
     - https://www.vegansandra.com/2015/01/bean-vermicelli-with-garlic-sauce-and.html
     - https://www.vegansandra.com/2016/04/creamy-cauliflower-rice-noodles-with.html
     - https://www.jamieoliver.com/recipes/vegetable-recipes/veggie-pad-thai/
+    - https://pinchofnom.com/recipes/broccoli-and-mushroom-stir-fry/
 
 noodle_soup:
   name: Noodle Soup
@@ -81,6 +82,7 @@ fried_rice:
   sources:
     - https://www.vegansandra.com/2015/09/garlic-fried-rice-with-crispy-tofu-and.html
     - https://www.veganricha.com/peanut-gochujang-rice/
+    - https://pinchofnom.com/recipes/fried-rice-chinese-fakeaway/
   notes: Rice time assumes it's already cooked (leftovers are better). Add 15 min if not.
 
 saucy_stir_fry:
@@ -114,6 +116,7 @@ saucy_stir_fry:
     - https://www.veganricha.com/tofu-pepper-fry/
     - https://www.vegansandra.com/2013/05/smoky-tofu-skewers.html
     - https://www.veganricha.com/peanut-gochujang-rice/#recipe
+    - https://pinchofnom.com/recipes/vegetarian-sweet-and-sour/
 
 sushi:
   name: Sushi Rolls

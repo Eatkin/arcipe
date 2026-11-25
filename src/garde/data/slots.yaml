@@ -628,3 +628,25 @@ blend_fruit:
   max_ingredients: 2
   amount: {per_serving: 180}
   time: {active: 3, passive: 0}
+
+# ---------------------------------------------------------------------------
+# Added for the Pinch of Nom import: risotto, Thai curry sauce
+# ---------------------------------------------------------------------------
+
+risotto_rice:
+  label: Risotto Rice
+  required_roles: [risotto_base]
+  required_method: [boil]
+  amount: {per_serving: 200}
+  time: {active: 20, passive: 5}
+  notes: Stock in a ladle at a time, stirring. Pearl barley takes ~40 min and less stirring.
+
+curry_herb_paste:
+  label: Fresh Herbs, Blended
+  required_roles: [finish_herb]
+  required_classes: [fresh_herb]
+  required_method: [raw, blend]
+  amount: {per_serving: 10}
+  time: {active: 5, passive: 0}
+  max_ingredients: 2
+  notes: Coriander and/or Thai basil, blitzed into the sauce rather than scattered on top.

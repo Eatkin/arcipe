@@ -2,6 +2,11 @@
 # Chosen from the vegan + vegetarian index (corpus/pinchofnom-urls.json, 1125
 # recipes) for new dish families and gaps, not volume: one archetype per family.
 # `fetch.py pinchofnom` fetches only these.
+#
+# About half of Pinch of Nom is members-only: the page loads, but the recipe block
+# is empty (`pon-void`) and there's no recipeIngredient in the JSON-LD. Of these 51,
+# 30 came back like that (dal, biryani, katsu, korma, the Thai yellow curry...).
+# They're kept here as a record; only the 21 free ones are cited as sources.
 
 # --- archetypes with no source yet ---
 cauliflower-madras

@@ -131,3 +131,17 @@ prunes:
   pack_weight: 250
   max_per_serving: 30
   notes: Sandra's secret in savoury stews and gravies (bean and plum ragout, mushroom and plum gravy) as well as cakes.
+
+pineapple:
+  name: Pineapple
+  opened_days: 3  # once cut (drafted)
+  storage: counter
+  classes: [fruit]
+  roles: [sweetener, acid_bright]
+  flavour: [sweet, sharp]
+  colour: yellow
+  season: [all]
+  price: moderate
+  shelf_life_days: 5
+  unit_weight: 900
+  cuisine_context: [chinese, caribbean]

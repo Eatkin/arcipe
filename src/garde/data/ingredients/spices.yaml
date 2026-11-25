@@ -54,7 +54,7 @@ cumin:
   season: [all]
   price: negligible
   unlimited: true
-  cuisine_context: [indian, mexican, levantine]
+  cuisine_context: [indian, mexican, levantine, thai]
 
 coriander_seed:
   name: Coriander Seed
@@ -65,7 +65,7 @@ coriander_seed:
   season: [all]
   price: negligible
   unlimited: true
-  cuisine_context: [indian, levantine]
+  cuisine_context: [indian, levantine, thai]
 
 chilli_powder:
   name: Chilli Powder
@@ -98,7 +98,7 @@ turmeric_dried:
   season: [all]
   price: negligible
   unlimited: true
-  cuisine_context: [indian]
+  cuisine_context: [indian, thai]
 
 curry_powder:
   name: Curry Powder
@@ -203,7 +203,7 @@ thyme:
   season: [all]
   price: negligible
   unlimited: true
-  cuisine_context: [french, british, eastern_european, mediterranean]
+  cuisine_context: [french, british, eastern_european, mediterranean, caribbean]
 
 bay_leaf:
   name: Bay Leaves
@@ -303,3 +303,37 @@ kala_namak:
   max_per_serving: 2
   cuisine_context: [indian]
   notes: Sulphurous and eggy; the trick in tofu and urad dal scrambles.
+
+sage:
+  name: Dried Sage
+  classes: [dried_spice]
+  roles: [dried_herb]
+  flavour: [earthy, fresh]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [italian, british]
+
+sumac:
+  name: Sumac
+  classes: [dried_spice]
+  roles: [spice_base, acid_bright]
+  flavour: [sharp, fresh]
+  colour: red
+  season: [all]
+  price: negligible
+  pack_weight: 50
+  max_per_serving: 2
+  cuisine_context: [levantine]
+
+five_spice:
+  name: Chinese Five Spice
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [sweet, spicy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [chinese]

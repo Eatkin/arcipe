@@ -167,7 +167,7 @@ bulgur:
 pearl_barley:
   name: Pearl Barley
   classes: [grain]
-  roles: [grain_base, bulk]
+  roles: [grain_base, bulk, risotto_base]  # barley risotto
   flavour: [nutty, earthy]
   colour: beige
   season: [all]
@@ -291,3 +291,30 @@ acorn_flour:
   nutrition: [high_fat]
   notes: Homemade from foraged acorns (soaked, dried, ground). A baking addition, about
     10% of the flour; the rest comes from wheat flour.
+
+arborio_rice:
+  name: Risotto Rice (arborio)
+  classes: [grain, rice]
+  roles: [grain_base, risotto_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.33  # drafted: soaks up ~3x its weight in stock
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+gnocchi:
+  name: Gnocchi (shop-bought)
+  classes: [pasta]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  opened_days: 2  # drafted
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+  notes: Shelf-stable packs; a vacuum pack keeps for months until opened.

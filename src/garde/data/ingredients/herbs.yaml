@@ -61,3 +61,17 @@ mint:
   unit_weight: 30
   max_per_serving: 5
   cuisine_context: [levantine, indian, thai]
+
+lemongrass:
+  name: Lemongrass
+  classes: [fresh_herb]
+  roles: [aromatic]
+  flavour: [fresh, floral]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 14  # drafted
+  unit_weight: 20
+  max_per_serving: 8
+  cuisine_context: [thai]
+  notes: Freezes well whole. Optional in the Thai curry sauce.

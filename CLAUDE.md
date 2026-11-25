@@ -89,6 +89,13 @@ backlog of vegansandra.com (Blogger, sitemap at `/sitemap.xml`, 259 posts).
   are desserts, menus, news and components. Never type a Sandra URL from a title (the
   year in the path is the post date, and earlier guesses were wrong): take it from
   `corpus/index.json`.
+- **Pinch of Nom (2026-11-25)**: `fetch.py pinchofnom` crawls the vegan + vegetarian
+  category listings once into `corpus/pinchofnom-urls.json` (1125 recipes), then
+  fetches only `tools/corpus/pinchofnom_picks.txt`. Plain urllib works, no blocks
+  at 9 s apart. About half the recipes are members-only (empty `pon-void` recipe
+  block): don't try to get around that, and don't cite them as sources. Pick for
+  new dish families and gaps, not volume.
+- `undetected-chromedriver` is pinned to 3.5.5 (the original author's last release).
 - Salt and water aren't ingredients: every kitchen has them (`ASSUMED` in analyse.py).
 - Turning a scraped recipe into an archetype: pick or define its slots, map its
   ingredients to ids, add any missing ingredients (roles, classes, amounts, shelf

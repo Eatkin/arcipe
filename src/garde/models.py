@@ -49,6 +49,7 @@ Role = Literal[
     "dried_herb",  # oregano, thyme, bay — the European cousin of spice_base
     "raw_crunch",  # eaten raw for crunch and freshness: cucumber, radish, lettuce
     "porridge_base",  # cooks into a breakfast porridge: oats, buckwheat
+    "risotto_base",  # starchy grain stirred creamy in stock: arborio, pearl barley
 ]
 
 # Broad flavour contribution
@@ -259,6 +260,7 @@ CuisineContext = Literal[
     "thai",
     "american",
     "mediterranean",
+    "caribbean",
 ]
 
 CuisineFamily = Literal[
@@ -285,6 +287,7 @@ CUISINE_FAMILY: dict[CuisineContext, CuisineFamily] = {
     "thai": "east_asian",
     "american": "american",
     "mediterranean": "european",
+    "caribbean": "american",
 }
 
 MealType = Literal[
