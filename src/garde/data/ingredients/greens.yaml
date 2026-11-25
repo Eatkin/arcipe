@@ -37,6 +37,7 @@ kale:
 
 cauliflower:
   name: Cauliflower
+  opened_days: 4  # once cut (drafted)
   classes: [brassica]
   roles: [bulk, bulk_blendable]
   flavour: [mild, earthy, nutty]

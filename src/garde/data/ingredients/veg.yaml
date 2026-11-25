@@ -1,5 +1,6 @@
 courgette:
   name: Courgette
+  opened_days: 3  # once cut (drafted)
   classes: [fruit_veg]
   roles: [bulk, bulk_blendable, sauce_base]
   flavour: [mild, fresh]
@@ -13,6 +14,7 @@ courgette:
 
 aubergine:
   name: Aubergine
+  opened_days: 2  # once cut (drafted)
   classes: [nightshade, fruit_veg]
   roles: [bulk, umami_boost]
   flavour: [mild, rich, smoky]
@@ -25,6 +27,7 @@ aubergine:
 
 bell_pepper:
   name: Bell Pepper
+  opened_days: 3  # once cut (drafted)
   classes: [nightshade, fruit_veg]
   roles: [bulk, raw_crunch]
   flavour: [sweet, fresh]
@@ -48,6 +51,7 @@ sweetcorn:
 
 squash:
   name: Squash / Pumpkin
+  opened_days: 4  # once cut (drafted)
   storage: counter
   classes: [squash]
   roles: [bulk, bulk_blendable, sauce_base, sweetener]
@@ -61,6 +65,7 @@ squash:
 
 cucumber:
   name: Cucumber
+  opened_days: 3  # once cut (drafted)
   classes: [fruit_veg]
   roles: [raw_crunch, garnish]
   flavour: [fresh, mild]
@@ -72,6 +77,7 @@ cucumber:
 
 avocado:
   name: Avocado
+  opened_days: 1  # once cut (drafted)
   storage: counter
   classes: [fruit_veg]
   roles: [fat_emulsifier, garnish, sauce_base]
@@ -112,6 +118,7 @@ celery:
 
 leek:
   name: Leek
+  opened_days: 4  # once cut (drafted)
   classes: [allium]
   roles: [aromatic, bulk, sauce_base]
   flavour: [sweet, mild]
@@ -135,6 +142,7 @@ green_beans:
 
 broccoli:
   name: Broccoli
+  opened_days: 3  # once cut (drafted)
   classes: [brassica]
   roles: [bulk, bulk_blendable, sauce_base]
   flavour: [earthy, grassy]
@@ -147,6 +155,7 @@ broccoli:
 
 cabbage:
   name: Cabbage
+  opened_days: 7  # once cut (drafted)
   classes: [brassica, leafy_green]
   roles: [bulk, raw_crunch]
   flavour: [mild, sweet, earthy]

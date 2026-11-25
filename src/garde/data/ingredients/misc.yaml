@@ -49,6 +49,7 @@ mushrooms:
 
 tomato:
   name: Tomato
+  opened_days: 2  # once cut (drafted)
   storage: counter
   classes: [nightshade]
   roles: [sauce_base, bulk, acid_bright]

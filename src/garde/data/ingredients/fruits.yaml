@@ -12,6 +12,7 @@ frozen_fruit:
 
 apple:
   name: Apple
+  opened_days: 1  # once cut (drafted)
   storage: counter
   classes: [stone_fruit]
   roles: [sweetener, bulk_blendable]
@@ -26,6 +27,7 @@ apple:
 
 banana:
   name: Banana
+  opened_days: 1  # once cut (drafted)
   storage: counter
   classes: [stone_fruit]
   roles: [sweetener, bulk_blendable, binder]
@@ -55,6 +57,7 @@ lemon:
 
 lime:
   name: Lime
+  opened_days: 3  # once cut (drafted)
   storage: counter
   classes: [citrus]
   roles: [acid_bright, garnish]
@@ -92,6 +95,7 @@ dates:
 
 orange:
   name: Orange
+  opened_days: 2  # once cut (drafted)
   storage: counter
   classes: [citrus, fruit]
   roles: [sweetener, bulk_blendable]

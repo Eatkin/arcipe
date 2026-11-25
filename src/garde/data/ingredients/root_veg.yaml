@@ -40,6 +40,7 @@ parsnip:
 
 sweet_potato:
   name: Sweet Potato
+  opened_days: 3  # once cut (drafted)
   storage: counter
   classes: [root_veg]
   roles: [bulk, bulk_blendable, sweetener]
@@ -65,6 +66,7 @@ turnip:
 
 celeriac:
   name: Celeriac (root celery)
+  opened_days: 5  # once cut (drafted)
   classes: [root_veg]
   roles: [bulk, bulk_blendable]
   flavour: [earthy, fresh]
