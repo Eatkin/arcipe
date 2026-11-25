@@ -1,6 +1,6 @@
 chickpeas:
   name: Chickpeas
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein, sauce_base]
   flavour: [nutty, earthy]
   colour: yellow
@@ -18,7 +18,7 @@ chickpeas:
 
 cannellini_beans:
   name: Cannellini Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein, sauce_base, fat_emulsifier]
   flavour: [earthy, rich]
   colour: white
@@ -36,7 +36,7 @@ cannellini_beans:
 
 butter_beans:
   name: Butter Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein, sauce_base, fat_emulsifier]
   flavour: [earthy, rich]
   colour: white
@@ -53,7 +53,7 @@ butter_beans:
 
 black_beans:
   name: Black Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein]
   flavour: [earthy, rich]
   colour: black
@@ -71,7 +71,7 @@ black_beans:
 
 red_lentils:
   name: Red Lentils
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk_blendable, protein, sauce_base]
   flavour: [earthy, umami]
   colour: orange
@@ -83,7 +83,7 @@ red_lentils:
 
 kidney_beans:
   name: Kidney Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein]
   flavour: [earthy, rich]
   colour: red
@@ -116,7 +116,7 @@ tofu:
 
 green_lentils:
   name: Green / Brown Lentils
-  classes: [legume]
+  classes: [legume, pulse]
   roles: [bulk, protein]
   flavour: [earthy]
   colour: brown
@@ -155,7 +155,7 @@ soy_chunks:
 
 dried_chickpeas:
   name: Dried Chickpeas
-  classes: [legume]
+  classes: [legume, pulse]
   roles: []  # cooked first: see chickpeas.made_from
   flavour: [earthy]
   colour: yellow
@@ -165,7 +165,7 @@ dried_chickpeas:
 
 dried_cannellini_beans:
   name: Dried Cannellini Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: []  # cooked first: see cannellini_beans.made_from
   flavour: [earthy]
   colour: white
@@ -175,7 +175,7 @@ dried_cannellini_beans:
 
 dried_butter_beans:
   name: Dried Butter Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: []  # cooked first: see butter_beans.made_from
   flavour: [earthy]
   colour: white
@@ -185,7 +185,7 @@ dried_butter_beans:
 
 dried_black_beans:
   name: Dried Black Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: []  # cooked first: see black_beans.made_from
   flavour: [earthy]
   colour: black
@@ -195,7 +195,7 @@ dried_black_beans:
 
 dried_kidney_beans:
   name: Dried Kidney Beans
-  classes: [legume]
+  classes: [legume, pulse]
   roles: []  # cooked first: see kidney_beans.made_from
   flavour: [earthy]
   colour: red

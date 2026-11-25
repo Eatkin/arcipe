@@ -90,6 +90,7 @@ IngredientClassName = Literal[
     "brassica",
     "allium",
     "legume",
+    "pulse",  # beans, chickpeas, lentils: legumes you'd call protein, not veg
     "grain",
     "root_veg",
     "squash",
@@ -458,6 +459,9 @@ class ComponentSlot(DataModel):
     required_classes: list[IngredientClassName] = Field(default_factory=list)
     # ...and must not belong to any of these (e.g. a grain bowl: no pasta)
     excluded_classes: list[IngredientClassName] = Field(default_factory=list)
+    # Soft: these score lower and only fill the slot alone, never beside
+    # something better (beans in a "Veg" slot)
+    discouraged_classes: list[IngredientClassName] = Field(default_factory=list)
     required_method: list[Method]  # acceptable prep methods
     optional: bool = False  # if True, slot can be left empty
     max_ingredients: int = 1  # prevent slot becoming a dumping ground

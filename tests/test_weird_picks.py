@@ -219,3 +219,60 @@ def test_celeriac_is_grated_not_sliced_raw(recipe_id, pantry):
 
 def test_saag_aloo_uses_potato():
     assert picks("saag", "starchy_bulk", inventory=FULL) == {"potato"}
+
+
+# --- veg slots, sauce bodies, pizza (2026-11-25) --------------------------
+
+# Dried beans, fruit and sprouts: the pantry that turned these up
+BEANS_AND_FRUIT = {
+    "dried_kidney_beans": 1000.0,
+    "dried_chickpeas": 1000.0,
+    "dried_black_beans": 1000.0,
+    "banana": 600.0,
+    "apple": 600.0,
+    "brussels_sprouts": 800.0,
+    "beansprouts": 300.0,
+    "carrot": 640.0,
+    "spinach": 200.0,
+    "red_lentils": 500.0,
+    "potato": 1000.0,
+    "cabbage": 800.0,
+}
+PULSES = {i for i, ing in INGREDIENTS.items() if "pulse" in ing.classes}
+VEG_SLOTS = {"cooked_veg", "roast_veg", "soup_veg", "grated_veg", "curry_bulk"}
+
+
+@pytest.mark.parametrize(
+    "recipe_id",
+    sorted(
+        r for r, recipe in RECIPES.items() if {s.id for s in recipe.slots} & VEG_SLOTS
+    ),
+)
+@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])
+def test_beans_are_not_the_veg_when_there_is_veg(recipe_id, stock):
+    for slot in {s.id for s in RECIPES[recipe_id].slots} & VEG_SLOTS:
+        assert not picks(recipe_id, slot, inventory=stock) & PULSES, slot
+
+
+@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])
+def test_fruit_is_not_a_savoury_sauce_body(stock):
+    got = picks("carrot_curry_gravy", "root_sauce_body", inventory=stock)
+    assert not got & {"banana", "apple", "orange", "rhubarb", "frozen_fruit"}
+
+
+@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])
+def test_pizza_toppings_are_not_roots_cabbage_or_lentils(stock):
+    got = picks("pizza", "cooked_veg", inventory=stock)
+    assert not got & ({"carrot", "cabbage", "brussels_sprouts"} | PULSES)
+
+
+@pytest.mark.parametrize("recipe_id", ["veg_soup", "veg_stew", "goulash"])
+@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])
+def test_cabbage_is_not_starchy(recipe_id, stock):
+    assert "cabbage" not in picks(recipe_id, "starchy_bulk", inventory=stock)
+
+
+def test_pulses_still_fill_a_veg_slot_when_nothing_else_will():
+    stock = {"kidney_beans": 2000.0, "red_lentils": 500.0, "canned_tomato": 800.0}
+    res = resolve(RECIPES["bean_chilli"], stock, rng=random.Random(0))
+    assert res.success

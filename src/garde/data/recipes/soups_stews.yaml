@@ -35,7 +35,7 @@ veg_soup:
   colour_dominant: yellow
   cuisine_context: [eastern_european, british]
   preferred_ingredients: [onion, garlic, carrot, potato, cabbage, celery, bay_leaf, dill, parsley, dumplings]
-  slots: [aromatic_base, soup_veg, starchy_bulk, protein_bulk, stock_liquid, dried_herbs, finish_herb]
+  slots: [aromatic_base, starchy_bulk, soup_veg, protein_bulk, stock_liquid, dried_herbs, finish_herb]  # potatoes to the starch first
   slot_overrides:
     protein_bulk: {max_ingredients: 1, optional: true}
     starchy_bulk: {optional: false}
@@ -150,7 +150,7 @@ goulash:
   colour_dominant: red
   cuisine_context: [eastern_european]
   preferred_ingredients: [onion, garlic, paprika, smoked_paprika, bell_pepper, potato, soy_chunks, kidney_beans, canned_tomato, bay_leaf]
-  slots: [aromatic_base, spice_bloom, cooked_veg, starchy_bulk, protein_bulk, tomato_sauce_body, dried_herbs, finish_herb]
+  slots: [aromatic_base, spice_bloom, starchy_bulk, cooked_veg, protein_bulk, tomato_sauce_body, dried_herbs, finish_herb]  # potatoes to the starch first
   slot_overrides:
     spice_bloom: {max_ingredients: 2}
     starchy_bulk: {optional: false}

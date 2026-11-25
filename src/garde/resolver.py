@@ -405,6 +405,14 @@ def _cuisine_fit(ingredient: Ingredient, recipe: Recipe) -> float:
 VIBES_SCALE = 1.0
 
 
+# More than a preferred class (+0.5) or the most urgent use-by (+0.8) can make up
+DISCOURAGED_PENALTY = 1.0
+
+
+def discouraged(ingredient: Ingredient, slot: ComponentSlot) -> bool:
+    return bool(set(slot.discouraged_classes) & set(ingredient.classes))
+
+
 def score(
     ingredient: Ingredient,
     slot: ComponentSlot,
@@ -419,6 +427,7 @@ def score(
         role_coverage     — fraction of slot's required_roles covered
                             (always 1.0 after candidate filtering, but useful if we relax later)
         preferred_class   — bonus if ingredient is in slot.preferred_classes
+        discouraged_class — penalty if it's in slot.discouraged_classes
         preferred_role    — bonus if ingredient also covers a slot.preferred_roles role
         season            — bonus if ingredient is in season or available all year
         price             — cheaper ingredients score higher (lean on cheap staples)
@@ -439,6 +448,9 @@ def score(
 
     if any(c in slot.preferred_classes for c in ingredient.classes):
         s += 0.5
+
+    if discouraged(ingredient, slot):
+        s -= DISCOURAGED_PENALTY
 
     if any(r in slot.preferred_roles for r in ingredient.roles):
         s += 0.4
@@ -601,12 +613,8 @@ class _Assigner:
         for ing in ordered:
             if len(taken) >= slot.max_ingredients or (need is not None and got >= need):
                 break
-            if ing.id in taken:
+            if ing.id in taken or self._skip(slot, ing, bool(taken), reserved):
                 continue
-            if ing.id not in reserved and self.keys(ing.id) & self.claimed:
-                continue
-            if slot.optional and ing.id not in reserved and self.needs_buying(ing.id):
-                continue  # nobody goes shopping for a garnish
             grams = 0.0
             if need is not None:
                 grams = self._contribution(
@@ -627,6 +635,21 @@ class _Assigner:
             taken = {}
         self.chosen[slot.id] = taken
         return ok
+
+    def _skip(
+        self, slot: ComponentSlot, ing: Ingredient, any_taken: bool, reserved: set[str]
+    ) -> bool:
+        """Leave this one out of the slot? Required ingredients never are."""
+        if ing.id in reserved:
+            return False
+        if self.keys(ing.id) & self.claimed:
+            return True  # already in the dish (the reuse rule)
+        if (any_taken or slot.optional) and discouraged(ing, slot):
+            # Beans can be the veg if there's nothing else, but not as well,
+            # and an optional slot is better left empty
+            return True
+        # Nobody goes shopping for a garnish
+        return slot.optional and self.needs_buying(ing.id)
 
     def _contribution(
         self,

@@ -46,7 +46,7 @@ veg_stew:
   colour_dominant: yellow
   cuisine_context: [eastern_european, british]
   preferred_ingredients: [onion, carrot, potato, turnip, swiss_chard, cabbage, chickpeas, red_lentils, soy_chunks, prunes, bay_leaf, thyme, plant_cream]
-  slots: [aromatic_base, soup_veg, starchy_bulk, protein_bulk, stock_liquid, dried_herbs, creamy_liquid, finish_herb]
+  slots: [aromatic_base, starchy_bulk, soup_veg, protein_bulk, stock_liquid, dried_herbs, creamy_liquid, finish_herb]  # potatoes to the starch first
   slot_overrides:
     starchy_bulk: {optional: false}
     protein_bulk: {optional: true, max_ingredients: 1}

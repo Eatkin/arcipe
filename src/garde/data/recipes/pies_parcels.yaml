@@ -52,7 +52,7 @@ pizza:
     batter_flour: {label: Pizza Dough, required_method: [raw, bake], amount: {per_serving: 125}, time: {active: 15, passive: 15}}
     baking_fat: {required_classes: [fat], amount: {per_serving: 10}}
     tomato_sauce_body: {label: Tomato Sauce, amount: {per_serving: 80}, time: {active: 2, passive: 0}}
-    cooked_veg: {label: Toppings, required_method: [raw, fry, roast], preferred_classes: [fungus, fruit_veg, nightshade], amount: {per_serving: 100}}
+    cooked_veg: {label: Toppings, optional: true, required_method: [raw, fry, roast], preferred_classes: [fungus, fruit_veg, nightshade], discouraged_classes: [root_veg, brassica, pulse], amount: {per_serving: 100}}  # no carrot, cabbage or lentil pizza
     stew_meltable_finisher: {label: Cheese}
   edges:
     - {from: baking_leavener,        to: batter_flour, type: combine}

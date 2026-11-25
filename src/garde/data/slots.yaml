@@ -4,7 +4,7 @@ grain_base:
   preferred_classes: [grain]
   required_method: [boil, bake, steam, fry]
   amount: {per_serving: 180}
-  time: {active: 5, passive: 12}
+  time: {active: 2, passive: 12}
   max_ingredients: 1
 
 green_sauce:
@@ -13,7 +13,7 @@ green_sauce:
   preferred_classes: [leafy_green, legume]
   required_method: [blend]
   amount: {per_serving: 100}
-  time: {active: 5, passive: 0}
+  time: {active: 4, passive: 0}
   max_ingredients: 2
   required_colour: green
   colour_tolerance: 0.15
@@ -36,7 +36,7 @@ fat_emulsifier:
   preferred_classes: [nut, fat]
   required_method: [raw, blend, soak]
   amount: {per_serving: 25}
-  time: {active: 2, passive: 0}
+  time: {active: 1, passive: 0}
   max_ingredients: 1
 
 aromatic_base:
@@ -45,7 +45,7 @@ aromatic_base:
   preferred_classes: [allium]
   required_method: [fry]
   amount: {per_serving: 60}
-  time: {active: 8, passive: 0}
+  time: {active: 5, passive: 3}
   max_ingredients: 2
 
 protein_bulk:
@@ -56,7 +56,7 @@ protein_bulk:
   preferred_classes: [legume]
   required_method: [boil, roast, raw]
   amount: {per_serving: 120}
-  time: {active: 3, passive: 10}
+  time: {active: 2, passive: 5}
   max_ingredients: 2
 
 acid_bright:
@@ -85,7 +85,7 @@ texture_top:
   preferred_classes: [seed, nut, fermented]
   required_method: [toast, fry, raw]
   amount: {per_serving: 15}
-  time: {active: 3, passive: 0}
+  time: {active: 2, passive: 0}
   optional: true
   max_ingredients: 1
 
@@ -169,6 +169,7 @@ curry_bulk:
   label: Curry Bulk Vegetables
   required_roles: [bulk]
   preferred_classes: [leafy_green, squash, fruit_veg]
+  discouraged_classes: [pulse]
   required_method: [fry, roast, raw]
   amount: {per_serving: 150}
   time: {active: 5, passive: 15}
@@ -178,6 +179,7 @@ starchy_bulk:
   label: Starchy Bulk
   required_roles: [bulk]
   preferred_classes: [root_veg]
+  discouraged_classes: [brassica, leafy_green, pulse]  # cabbage isn't starchy
   required_method: [boil, roast]
   amount: {per_serving: 150}
   time: {active: 5, passive: 20}
@@ -200,6 +202,7 @@ root_sauce_body:
   label: Root Veg Sauce Body
   required_roles: [bulk_blendable]
   preferred_classes: [root_veg]
+  excluded_classes: [fruit, stone_fruit, citrus]  # a savoury sauce, not a smoothie
   required_method: [roast, blend]
   amount: {per_serving: 150}
   time: {active: 5, passive: 0}
@@ -373,7 +376,7 @@ pasta_base:
   required_classes: [pasta]
   required_method: [boil]
   amount: {per_serving: 180}
-  time: {active: 3, passive: 10}
+  time: {active: 2, passive: 10}
 
 noodle_base:
   label: Noodles
@@ -412,6 +415,7 @@ cooked_veg:
   label: Veg
   required_roles: [bulk]
   preferred_classes: [brassica, fruit_veg, leafy_green, squash, fungus]
+  discouraged_classes: [pulse]
   required_method: [fry, roast, boil, steam, wilt]
   spread: true
   max_ingredients: 2
@@ -422,6 +426,7 @@ roast_veg:
   label: Roasted Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, brassica, squash, fruit_veg]
+  discouraged_classes: [pulse]
   required_method: [roast]
   spread: true
   max_ingredients: 2
@@ -435,12 +440,13 @@ raw_veg:
   spread: true
   max_ingredients: 2
   amount: {per_serving: 60}
-  time: {active: 4, passive: 0}
+  time: {active: 3, passive: 0}
 
 grated_veg:
   label: Grated Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, fruit_veg, brassica]
+  discouraged_classes: [pulse]
   required_method: [raw]
   spread: true
   max_ingredients: 2
@@ -451,6 +457,7 @@ soup_veg:
   label: Soup Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, brassica, leafy_green]
+  discouraged_classes: [pulse]
   required_method: [boil]
   spread: true
   max_ingredients: 2
@@ -461,6 +468,8 @@ blend_veg:
   label: Blended Veg Body
   required_roles: [bulk_blendable]
   preferred_classes: [squash, root_veg, brassica]
+  discouraged_classes: [pulse]
+  excluded_classes: [fruit, stone_fruit, citrus]
   required_method: [boil, roast, blend]
   spread: true
   max_ingredients: 2
@@ -550,7 +559,7 @@ creamy_drizzle:
   preferred_classes: [nut, seed]
   required_method: [raw, blend]
   amount: {per_serving: 30}
-  time: {active: 4, passive: 0}
+  time: {active: 3, passive: 0}
 
 dressing_fat:
   label: Dressing Oil
