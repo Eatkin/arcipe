@@ -62,9 +62,11 @@ def test_required_prepared_ingredient_counts_as_available():
 
 
 def test_unplaceable_required_ingredient_is_reported():
-    recipe = RECIPES["rajma"].model_copy(update={"required_ingredients": ["lemon"]})
-    r = resolve(recipe, ["kidney_beans"])
-    assert r.unplaceable_required == ["lemon"]
+    recipe = RECIPES["rajma"].model_copy(
+        update={"required_ingredients": ["maple_syrup"]}
+    )
+    r = resolve(recipe, ["kidney_beans", "maple_syrup"])
+    assert r.unplaceable_required == ["maple_syrup"]
     assert not r.success
 
 

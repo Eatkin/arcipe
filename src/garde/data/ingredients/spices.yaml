@@ -176,7 +176,7 @@ onion_powder:
 black_pepper:
   name: Black Pepper
   classes: [dried_spice]
-  roles: [spice_base, heat]
+  roles: [spice_base, heat, texture_spice]  # whole peppercorns fried in the oil
   flavour: [spicy]
   colour: black
   season: [all]
@@ -268,3 +268,25 @@ nutmeg:
   season: [all]
   price: negligible
   unlimited: true
+
+cloves:
+  name: Cloves
+  classes: [dried_spice]
+  roles: [texture_spice, baking_spice]
+  flavour: [spicy, sweet]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+fennel_seed:
+  name: Fennel Seed
+  classes: [dried_spice]
+  roles: [texture_spice, spice_base]
+  flavour: [sweet, fresh]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, italian]

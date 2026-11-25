@@ -2,21 +2,27 @@ rajma:
   name: Rajma
   keeps_days: 3  # leftovers keep this long in the fridge
   description: >
-    Simple, light kidney bean curry. Tomato forward, no cream.
-    Spiced but not fiery. One of those dishes that's better the next day.
+    Simple kidney bean curry: whole spices fried in the oil, then onion and
+    ginger, ground spices, tomatoes, the beans and a cup of water, simmered and
+    finished with lemon. Few ingredients, so the beans are the star.
   colour_dominant: red
   cuisine_context: [indian]
-  preferred_ingredients: [tomato, cumin, coriander_seed, turmeric_dried, kidney_beans]
+  preferred_ingredients: [kidney_beans, tomato, ginger, onion, black_pepper, cloves, fennel_seed, cumin, coriander_seed, turmeric_dried, lemon, basmati_rice]
   required_ingredients: []
-  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, curry_protein, finish_herb]
+  slots: [curry_grain_base, whole_spice_bloom, curry_aromatic, spice_bloom, tomato_sauce_body, curry_protein, acid_bright, finish_herb]
   edges:
+    - {from: whole_spice_bloom, to: curry_aromatic,    type: combine}
     - {from: curry_aromatic,    to: spice_bloom,       type: combine}
     - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
     - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
     - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: acid_bright,       to: curry_grain_base,  type: finish}
     - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: >
+    Salt only at the end, or the bean skins peel. Rinse the beans first. Simmer
+    10-15 min with the lid ajar; longer and slower is richer.
   sources:
-    - https://www.veganricha.com/beans-do-pyaza/
+    - https://ekantcookcurry.wordpress.com/rajma-kidney-bean-curry/
 
 butter_chickpeas:
   name: Butter Chickpeas
