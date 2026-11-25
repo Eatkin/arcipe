@@ -62,3 +62,37 @@ smoothie:
     - https://www.vegansandra.com/2017/02/creamy-citrus-smoothie.html
     - https://www.vegansandra.com/2015/11/my-favorite-health-boosters-during.html
     - https://www.vegansandra.com/2014/02/refreshing-green-kiwi-smoothie.html
+
+urad_scramble:
+  name: Urad Dal Scramble
+  description: >
+    Soaked urad dal blended smooth with something savoury (soy, nutritional yeast,
+    miso) and a pinch of turmeric, then stirred in a hot pan until it sets into soft
+    curds, with fried onion and veg. Kala namak goes in at the end for the eggy
+    smell. On toast.
+  colour_dominant: yellow
+  cuisine_context: [universal, indian]
+  meal_type: [breakfast]
+  serves: 2
+  required_ingredients: [urad_batter, kala_namak]
+  preferred_ingredients: [urad_dal, kala_namak, turmeric_dried, nutritional_yeast, soy_sauce, onion, mushrooms, spinach, tomato, chives, bread]
+  slots: [blend_veg, spice_bloom, stir_fry_seasoning, aromatic_base, cooked_veg, griddle, umami_boost, finish_herb, bread_base]
+  slot_overrides:
+    blend_veg: {label: Blended Urad Dal, required_roles: [binder, protein], required_classes: [pulse], required_method: [blend], amount: {per_serving: 120}, time: {active: 2, passive: 0}}
+    spice_bloom: {label: Turmeric / Spice, required_method: [raw, fry], max_ingredients: 2}
+    stir_fry_seasoning: {label: Umami, required_classes: [condiment, fermented], excluded_classes: [seasoning], amount: {per_serving: 8}}
+    aromatic_base: {optional: true, amount: {per_serving: 30}}
+    cooked_veg: {amount: {per_serving: 80}}
+    griddle: {label: Scramble in the pan, time: {active: 8, passive: 0}}
+    umami_boost: {label: Kala Namak to finish, required_classes: [seasoning], optional: false, amount: trace}
+    bread_base: {label: Toast}
+  edges:
+    - {from: spice_bloom,        to: blend_veg,  type: blend}
+    - {from: stir_fry_seasoning, to: blend_veg,  type: blend}
+    - {from: aromatic_base,      to: cooked_veg, type: combine}
+    - {from: cooked_veg,         to: griddle,    type: combine}
+    - {from: blend_veg,          to: griddle,    type: combine}
+    - {from: umami_boost,        to: griddle,    type: finish}
+    - {from: finish_herb,        to: griddle,    type: finish}
+    - {from: griddle,            to: bread_base, type: top}
+  notes: Soak the dal the night before. Drafted numbers - 120g batter (~50g dried) a portion.

@@ -153,3 +153,14 @@ roasted_chickpeas:
   time: {active: 2, passive: 25}
   unlocked_roles: [texture_top, protein]
   colour: brown
+
+urad_batter:
+  base_ingredients: [urad_dal]
+  base_ratio: {urad_dal: 1.0}  # soaked dal swells ~2.5x, so 100g batter is ~40g dried
+  method: blend
+  time: {active: 5, passive: 240}
+  make_ahead: true
+  unlocked_roles: [binder, protein]
+  cuisine_context: [indian]
+  colour: white
+  notes: Soak the dal 4 hours or overnight, drain, blend smooth with a splash of water.

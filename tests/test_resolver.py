@@ -212,3 +212,16 @@ def test_urgency_prefers_what_expires_soonest():
 def test_every_recipe_is_makeable_with_everything_in_stock(recipe_id):
     r = resolve(RECIPES[recipe_id], EVERYTHING, servings=2, rng=random.Random(0))
     assert r.success, r.summary()
+
+
+def test_urad_scramble_soaks_ahead_and_finishes_with_kala_namak():
+    stock = dict.fromkeys(
+        ["urad_dal", "onion", "spinach", "bread", "mushrooms", "soy_sauce"], 2000
+    )
+    res = resolve(RECIPES["urad_scramble"], stock)
+    picked = {a.slot_id: a.assigned for a in res.assignments}
+    assert picked["blend_veg"] == ["urad_batter"]
+    assert picked["umami_boost"] == ["kala_namak"]
+    assert "mushrooms" not in picked["stir_fry_seasoning"]
+    assert res.timing.make_ahead == ["urad_batter"]
+    assert res.consumed["urad_dal"] == pytest.approx(96)  # 2 x 120g batter at 0.4
