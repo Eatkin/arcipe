@@ -281,13 +281,13 @@ tapioca_flour:
 acorn_flour:
   name: Acorn Flour
   classes: [grain]
-  roles: [binder, thickener]
+  roles: [gluten, binder]  # the flour slot in bakes; the cap keeps it a minority
   flavour: [nutty, earthy, bitter]
   colour: brown
   season: [all]
   price: negligible  # foraged
   pack_weight: 500
-  max_per_serving: 40
+  max_per_serving: 20  # ~10% of the flour in a bake
   nutrition: [high_fat]
-  notes: Homemade from foraged acorns (soaked, dried, ground). No gluten, so mix it
-    with wheat flour for bread, pancakes and flatbreads.
+  notes: Homemade from foraged acorns (soaked, dried, ground). A baking addition, about
+    10% of the flour; the rest comes from wheat flour.
