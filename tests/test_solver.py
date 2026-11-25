@@ -182,3 +182,55 @@ def test_quickest_minutes_per_meal():
 
     q = quickest_minutes()
     assert 0 < q["breakfast"] <= q["dinner"] <= 60
+
+
+# ---------------------------------------------------------------------------
+# Pins and alternatives
+# ---------------------------------------------------------------------------
+
+
+def test_a_pinned_meal_stays_put():
+    free = _solve(0, days=4)
+    first = free.plan.slots[0].recipe_id
+    other = next(
+        rid
+        for rid in ("creamy_tuscan_beans", "creamy_tomato_lentil", "saag")
+        if rid != first
+    )
+    result = _solve(0, days=4, pins={(1, "dinner"): other})
+    assert result.plan.slots[0].recipe_id == other
+    assert result.pick(1, "dinner") == other
+
+
+def test_a_skipped_meal_is_not_missed():
+    from garde.solver import SKIP
+
+    result = _solve(0, days=3, pins={(2, "dinner"): SKIP})
+    slot = result.plan.slots[1]
+    assert slot.skipped and slot.recipe_id is None
+    assert (2, "dinner") not in result.plan.unplanned
+    assert result.breakdown.unplanned == 0
+
+
+def test_pins_outside_the_plan_are_refused():
+    with pytest.raises(ValueError, match="isn't in the plan"):
+        _solve(0, days=2, pins={(5, "dinner"): "saag"})
+    with pytest.raises(ValueError, match="unknown recipe"):
+        _solve(0, days=2, pins={(1, "dinner"): "no_such_dish"})
+
+
+def test_a_pin_that_cant_be_made_says_so():
+    result = _solve(0, days=2, inventory={}, pins={(1, "dinner"): "katsu_curry"})
+    assert (1, "dinner") in result.plan.unplanned
+    assert "Set to" in result.reasons[(1, "dinner")]
+
+
+def test_alternatives_are_makeable_and_ranked():
+    from garde.solver import alternatives
+
+    result = _solve(0, days=4)
+    alts = alternatives(result.choice, 2, "dinner", inventory=FRIDGE, days=4, limit=5)
+    assert alts
+    assert all(a.pick != result.pick(2, "dinner") for a in alts)
+    deltas = [a.delta for a in alts]
+    assert deltas == sorted(deltas)

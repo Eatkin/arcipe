@@ -374,6 +374,7 @@ class MealSlot:
     recipe_id: str | None = None
     resolution: Resolution | None = None
     leftovers_from: int | None = None  # day it was cooked, if this is leftovers
+    skipped: bool = False  # nobody eating in (out for dinner): not cooked, not missed
 
     @property
     def filled(self) -> bool:
@@ -395,6 +396,8 @@ def _slot_lines(slot: MealSlot, c: _Colours) -> list[str]:
     """One meal in the terminal summary."""
     tag = f"  [{slot.meal.upper()}]"
     r = slot.resolution
+    if slot.skipped:
+        return [f"{tag} (skipped)"]
     if not slot.filled or r is None:
         return [f"{tag} {c.red}✗ unplanned{c.reset}"]
     name = f"{tag} {c.bold}{c.green}{r.recipe_name}{c.reset}"

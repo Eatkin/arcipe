@@ -11,7 +11,8 @@ Read it before changing the data or the planner.
 ## Commands
 
 ```sh
-uv run --extra dev pytest -q                     # ~1250 tests, ~16s
+uv run --extra dev pytest -q                     # ~1950 tests, ~35s
+uv run --extra dev --extra ui pytest tests/ui    # browser smoke test (skips without Playwright)
 uv run --extra dev ruff check src tests tools    # lint (isort single-line imports, complexity ≤ 10)
 uv run --extra dev ruff format src tests tools
 uv run --extra dev ty check src                  # types

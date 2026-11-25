@@ -28,6 +28,15 @@ puts its packs in the pantry with the usual shelf life from that day, and the
 row keeps what went in under `bought`. Things bought that weren't on the list
 go in `extras` (add_extra, remove_extra). Unticking takes them back out, as far
 as they're still there.
+
+Changing the plan: a meal can be `locked` (kept when re-planning), set by hand
+to another dish, or `skipped` (everyone's out). Re-planning (replan_setup, then
+the solver, then merge_replan) plans the rest of the week from today's pantry:
+meals already ticked off and days gone by stay as they were, locked and skipped
+meals are pinned, and the shopping list's unbought rows are replaced by what the
+new plan needs (a top-up shop today).
+
+Each meal can also carry the `rating` it got (+1 / -1), so it shows on reload.
 """
 
 from __future__ import annotations
@@ -55,6 +64,9 @@ from garde.models import Recipe
 from garde.pantry import Dish
 from garde.pantry import Item
 from garde.pantry import Pantry
+from garde.solver import DOUBLE
+from garde.solver import LEFTOVERS
+from garde.solver import SKIP
 from garde.utils import garde_home
 
 
@@ -200,6 +212,18 @@ def save(
     return record
 
 
+def write(record: dict[str, Any], root: Path | None = None) -> None:
+    _write(record, root)
+
+
+def rename(record: dict[str, Any], name: Any) -> dict[str, Any]:
+    name = str(name or "").strip()[:80]
+    if not name:
+        raise PlanError("a plan needs a name")
+    record["name"] = name
+    return record
+
+
 def load(plan_id: str, root: Path | None = None) -> dict[str, Any]:
     path = _path(plan_id, root)
     if not path.exists():
@@ -227,6 +251,9 @@ def summary(record: dict[str, Any]) -> dict[str, Any]:
         "days": len(record["plan"]["days"]),
         "meals": len(meals),
         "cooked": sum(1 for m in meals if m.get("cooked")),
+        "skipped": sum(
+            1 for d in record["plan"]["days"] for m in d["meals"] if m.get("skipped")
+        ),
         "to_buy": len(shopping),
         "bought": sum(1 for row in shopping if row.get("bought")),
     }
@@ -258,6 +285,7 @@ class Cooked:
     added: list[Item] = field(default_factory=list)  # into the items (a pot of beans)
     dish: Dish | None = None  # spare portions put away
     eaten: list[Dish] = field(default_factory=list)  # leftovers eaten
+    instead: dict[str, Any] | None = None  # what was really cooked, if not the plan
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> Cooked:
@@ -267,6 +295,7 @@ class Cooked:
             added=[Item(**i) for i in raw.get("added", [])],
             dish=Dish(**raw["dish"]) if raw.get("dish") else None,
             eaten=[Dish(**d) for d in raw.get("eaten", [])],
+            instead=raw.get("instead"),
         )
 
 
@@ -400,6 +429,43 @@ def _undo(stock: Pantry, done: Cooked, db: dict[str, Ingredient]) -> Pantry:
     return Pantry(items, dishes)
 
 
+def _grams(raw: Any, what: str, db: dict[str, Ingredient]) -> dict[str, float]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise PlanError(f"{what} must be an object")
+    out = {}
+    for ing_id, g in raw.items():
+        if ing_id not in db or not isinstance(g, int | float) or not 0 <= g < 1e6:
+            raise PlanError(f"{what}: bad entry {ing_id!r}")
+        if g > 0:
+            out[ing_id] = float(g)
+    return out
+
+
+def check_instead(
+    raw: Any, db: dict[str, Ingredient], recipes: dict[str, Recipe]
+) -> dict[str, Any]:
+    """
+    What was really cooked, from untrusted JSON: {consumed: {id: grams}} for
+    other amounts, plus recipe_id, made and servings for another dish.
+    """
+    if not isinstance(raw, dict):
+        raise PlanError("instead must be an object")
+    out: dict[str, Any] = {"consumed": _grams(raw.get("consumed"), "consumed", db)}
+    if raw.get("recipe_id") is not None:
+        if raw["recipe_id"] not in recipes:
+            raise PlanError(f"unknown recipe {raw['recipe_id']!r}")
+        out["recipe_id"] = raw["recipe_id"]
+        out["made"] = _grams(raw.get("made"), "made", db)
+    if raw.get("servings") is not None:
+        servings = raw["servings"]
+        if not isinstance(servings, int | float) or not 0 < servings <= 50:
+            raise PlanError("servings must be a number of portions")
+        out["servings"] = servings
+    return out
+
+
 def cook(
     record: dict[str, Any],
     day: int,
@@ -409,22 +475,35 @@ def cook(
     when: date | None = None,
     db: dict[str, Ingredient] | None = None,
     recipes: dict[str, Recipe] | None = None,
+    instead: Any = None,
 ) -> tuple[dict[str, Any], Pantry]:
     """
     Tick a meal off as cooked (or eaten, for leftovers), or untick it. Returns the
     updated record and pantry; the caller saves both.
+
+    `instead` is for cooking it differently: other amounts ({consumed}), or
+    another dish ({recipe_id, consumed, made, servings}); see check_instead.
     """
     db = db or INGREDIENTS
     recipes = recipes or RECIPES
     m = find_meal(record, day, meal)
-    if not m.get("recipe_id"):
+    if not m.get("recipe_id") and not m.get("cooked") and not (cooked and instead):
         raise PlanError("nothing was planned for that meal")
     if cooked == bool(m.get("cooked")):
         return record, stock  # already that way
     if cooked:
+        actual = m
+        if instead is not None:
+            instead = check_instead(instead, db, recipes)
+            actual = {**m, "leftovers_from": None, **instead}
+            if "recipe_id" in instead:
+                actual.setdefault("servings", record["people"])
+        if not actual.get("recipe_id"):
+            raise PlanError("which dish was it?")
         stock, done = _cook_meal(
-            m, int(record["people"]), stock, when or date.today(), db, recipes
+            actual, int(record["people"]), stock, when or date.today(), db, recipes
         )
+        done.instead = instead
         m["cooked"] = asdict(done)
     else:
         stock = _undo(stock, Cooked.from_json(m["cooked"]), db)
@@ -453,11 +532,14 @@ def cook_and_save(
     when: date | None = None,
     root: Path | None = None,
     pantry_path: Path | None = None,
+    instead: Any = None,
 ) -> tuple[dict[str, Any], Pantry]:
     """cook() on the saved plan and pantry, writing both back."""
     return update(
         plan_id,
-        lambda record, stock: cook(record, day, meal, stock, cooked, when),
+        lambda record, stock: cook(
+            record, day, meal, stock, cooked, when, instead=instead
+        ),
         root,
         pantry_path,
     )
@@ -484,11 +566,16 @@ def _amount(ing: Ingredient, grams: float) -> str:
     return f"{round(grams)}g"
 
 
-def _row(record: dict[str, Any], ing_id: str) -> dict[str, Any]:
-    for row in record["plan"].get("shopping") or []:
-        if row["id"] == ing_id:
+def _row(record: dict[str, Any], ing_id: str, bought: bool) -> dict[str, Any]:
+    """The row to tick (one not yet bought) or untick (one bought). After a
+    re-plan the same thing can be on the list twice: bought, and a top-up."""
+    rows = [r for r in record["plan"].get("shopping") or [] if r["id"] == ing_id]
+    if not rows:
+        raise PlanError(f"{ing_id} isn't on the shopping list")
+    for row in rows:
+        if bool(row.get("bought")) != bought:
             return row
-    raise PlanError(f"{ing_id} isn't on the shopping list")
+    return rows[0]
 
 
 def shop(
@@ -501,7 +588,7 @@ def shop(
 ) -> tuple[dict[str, Any], Pantry]:
     """Tick a shopping-list row off as bought (into the pantry), or untick it."""
     db = db or INGREDIENTS
-    row = _row(record, ing_id)
+    row = _row(record, ing_id, bought)
     if bought == bool(row.get("bought")):
         return record, stock
     if bought:
@@ -561,3 +648,175 @@ def remove_extra(
     return record, Pantry(
         _remove_items(stock.items, [item], db or INGREDIENTS), stock.dishes
     )
+
+
+# ---------------------------------------------------------------------------
+# Ratings and locks
+# ---------------------------------------------------------------------------
+
+
+def rate(record: dict[str, Any], day: int, meal: str, rating: int) -> dict[str, Any]:
+    if rating not in (-1, 1):
+        raise PlanError("rating must be 1 or -1")
+    m = find_meal(record, day, meal)
+    if not m.get("recipe_id"):
+        raise PlanError("nothing was planned for that meal")
+    m["rating"] = rating
+    return record
+
+
+def lock(record: dict[str, Any], day: int, meal: str, locked: bool) -> dict[str, Any]:
+    """Keep this meal as it is when the rest of the week is re-planned."""
+    m = find_meal(record, day, meal)
+    if locked and not m.get("recipe_id"):
+        raise PlanError("nothing to lock there")
+    m["locked"] = bool(locked)
+    return record
+
+
+# ---------------------------------------------------------------------------
+# Re-planning the rest of the week
+# ---------------------------------------------------------------------------
+
+
+def pick_of(
+    m: dict[str, Any], people: int, recipes: dict[str, Recipe] | None = None
+) -> str | None:
+    """The solver's pick behind a saved meal (older saves don't record it)."""
+    if m.get("skipped"):
+        return SKIP
+    if not m.get("recipe_id"):
+        return None
+    if m.get("pick"):
+        return m["pick"]
+    if m.get("leftovers_from") is not None:
+        return LEFTOVERS
+    recipe = (recipes or RECIPES)[m["recipe_id"]]
+    double = not recipe.batch and float(m.get("servings") or 0) >= 2 * people
+    return recipe.id + DOUBLE if double else recipe.id
+
+
+@dataclass
+class Replan:
+    """What to hand the solver to re-plan a saved plan from `start` on."""
+
+    from_day: int  # the plan's day number that `start` is
+    start: date
+    days: int
+    meals: list[str]
+    pins: dict[tuple[int, str], str | None]  # keyed by the new plan's days
+    choice: list[str | None]  # the saved week from `start`, as solver picks
+
+    def new_day(self, day: int) -> int:
+        """The re-plan's day number for one of the saved plan's days."""
+        return day - self.from_day + 1
+
+
+def _from_day(record: dict[str, Any], when: date) -> int:
+    start = date.fromisoformat(record["start_date"])
+    from_day = max(1, (when - start).days + 1)
+    if from_day > len(record["plan"]["days"]):
+        raise PlanError("this plan is over: plan a new week instead")
+    return from_day
+
+
+def set_meal(
+    record: dict[str, Any], day: int, meal: str, pick: str | None
+) -> dict[str, Any]:
+    """Fix a meal by hand ahead of a re-plan: a dish, leftovers, or SKIP."""
+    m = find_meal(record, day, meal)
+    if m.get("cooked"):
+        raise PlanError("that meal's ticked off already: untick it first")
+    if (
+        pick not in (SKIP, LEFTOVERS)
+        and (pick or "").removesuffix(DOUBLE) not in RECIPES
+    ):
+        raise PlanError(f"unknown recipe {pick!r}")
+    m["skipped"] = pick == SKIP
+    m["pick"] = pick
+    m["locked"] = pick != SKIP
+    return record
+
+
+def unskip(record: dict[str, Any], day: int, meal: str) -> dict[str, Any]:
+    m = find_meal(record, day, meal)
+    m["skipped"] = False
+    m["pick"] = None
+    m["locked"] = False
+    return record
+
+
+def replan_setup(record: dict[str, Any], when: date) -> Replan:
+    """
+    Re-plan from `when` (or the plan's start, if that's later) to the end:
+    ticked-off meals are done (their food is out of the pantry already), so
+    they're pinned as SKIP; locked and skipped meals keep their pick.
+    """
+    from_day = _from_day(record, when)
+    days = record["plan"]["days"][from_day - 1 :]
+    people = int(record["people"])
+    meals = [m["meal"] for m in days[0]["meals"]]
+    rp = Replan(
+        from_day=from_day,
+        start=date.fromisoformat(days[0]["date"]),
+        days=len(days),
+        meals=meals,
+        pins={},
+        choice=[],
+    )
+    for day in days:
+        n = rp.new_day(day["day"])
+        for m in day["meals"]:
+            pick = pick_of(m, people)
+            if m.get("cooked"):
+                pick = SKIP
+                rp.pins[(n, m["meal"])] = SKIP
+            elif m.get("skipped") or m.get("locked"):
+                rp.pins[(n, m["meal"])] = pick
+            rp.choice.append(pick)
+    return rp
+
+
+def _merged_meal(
+    old: dict[str, Any], new: dict[str, Any], rp: Replan
+) -> dict[str, Any]:
+    if old.get("cooked"):
+        return old
+    if new.get("leftovers_from") is not None:
+        new["leftovers_from"] += rp.from_day - 1
+    new["cooked"] = None
+    new["locked"] = bool(old.get("locked")) and not new.get("skipped")
+    if old.get("rating") and old.get("recipe_id") == new.get("recipe_id"):
+        new["rating"] = old["rating"]
+    return new
+
+
+def merge_replan(
+    record: dict[str, Any], result: dict[str, Any], rp: Replan, when: date
+) -> dict[str, Any]:
+    """
+    Put a re-plan (dashboard.result_json for rp) into the saved plan: its days
+    from rp.start on, and its shopping in place of the rows not yet bought.
+    """
+    new_days = result["plan"]["days"]
+    for new_day in new_days:
+        day = record["plan"]["days"][rp.from_day + new_day["day"] - 2]
+        old = {m["meal"]: m for m in day["meals"]}
+        day["meals"] = [
+            _merged_meal(old[m["meal"]], m, rp) if m["meal"] in old else m
+            for m in new_day["meals"]
+        ]
+    plan = record["plan"]
+    kept = [row for row in plan.get("shopping") or [] if row.get("bought")]
+    fresh = [
+        {**row, "bought": None, "listed": when.isoformat()}
+        for row in result["plan"].get("shopping") or []
+    ]
+    plan["shopping"] = kept + fresh
+    for key in ("stock", "leftovers_wasted", "leftovers_left"):
+        plan[key] = result["plan"].get(key, [])
+    record["breakdown"] = result.get("breakdown") or {}
+    record.setdefault("replans", []).append(
+        {"on": when.isoformat(), "from_day": rp.from_day}
+    )
+    return record

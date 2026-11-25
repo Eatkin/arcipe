@@ -96,6 +96,7 @@ def test_save_list_load_delete(root):
         "days": 2,
         "meals": 2,
         "cooked": 0,
+        "skipped": 0,
         "to_buy": 0,
         "bought": 0,
     }
@@ -346,3 +347,78 @@ def test_bad_shopping_list_is_refused(root):
     result["plan"]["shopping"][0]["packs"] = "two"
     with pytest.raises(PlanError, match="packs"):
         plans.save(result, root=root)
+
+
+def test_replan_keeps_bought_rows_and_adds_a_top_up(root):
+    record = plans.save(_shopping(), {"people": 2}, root=root)
+    record, stock = plans.shop(record, "tofu", Pantry(), when=COOK_DAY)
+    rp = plans.replan_setup(record, date(2026, 12, 2))
+    assert rp.from_day == 2 and rp.days == 1
+    new = {
+        "plan": {
+            "days": [{"day": 1, "date": "2026-12-02", "meals": [_meal()]}],
+            "shopping": [{"id": "tofu", "name": "Tofu", "packs": 1, "grams": 280}],
+        },
+        "breakdown": {},
+    }
+    record = plans.merge_replan(record, new, rp, date(2026, 12, 2))
+    rows = record["plan"]["shopping"]
+    assert [(r["id"], bool(r["bought"])) for r in rows] == [
+        ("tofu", True),
+        ("tofu", False),
+    ]
+    record, stock = plans.shop(record, "tofu", stock, when=date(2026, 12, 2))
+    assert all(r["bought"] for r in record["plan"]["shopping"])
+    assert len([i for i in stock.items if i.id == "tofu"]) == 2
+    record, stock = plans.shop(record, "tofu", stock, bought=False)
+    assert sum(1 for r in record["plan"]["shopping"] if r["bought"]) == 1
+
+
+def test_replan_setup_pins_ticked_off_meals(root):
+    record = plans.save(_result(), {"people": 2}, root=root)
+    record, _ = plans.cook(record, 1, "dinner", Pantry(), when=COOK_DAY)
+    rp = plans.replan_setup(record, COOK_DAY)
+    assert rp.pins[(1, "dinner")] == "~skip"
+    assert rp.choice == ["~skip", None, "~leftovers"]
+    assert plans.pick_of({"recipe_id": "lentil_soup", "servings": 4}, 2) == (
+        "lentil_soup*2"
+    )
+
+
+def test_cooked_with_other_amounts(root):
+    record = _saved(root)
+    stock = Pantry([Item("red_lentils", "500g"), Item("carrot", "5")])
+    instead = {"consumed": {"red_lentils": 300, "carrot": 0}}
+    record, stock = plans.cook(
+        record, 1, "dinner", stock, when=COOK_DAY, instead=instead
+    )
+    grams = {i.id: pantry.grams(i) for i in stock.items}
+    assert grams["red_lentils"] == pytest.approx(200)
+    assert grams["carrot"] == pytest.approx(5 * INGREDIENTS["carrot"].unit_weight)
+    assert record["plan"]["days"][0]["meals"][0]["cooked"]["instead"]["consumed"] == {
+        "red_lentils": 300.0
+    }
+    record, back = plans.cook(record, 1, "dinner", stock, cooked=False)
+    assert {i.id: i.amount for i in back.items} == {
+        "red_lentils": "500g",
+        "carrot": "5",
+    }
+
+
+def test_made_something_else(root):
+    record = _saved(root)
+    stock = Pantry([Item("potato", "6")])
+    instead = {"recipe_id": "rajma", "consumed": {"potato": 200}, "servings": 4}
+    record, stock = plans.cook(
+        record, 1, "dinner", stock, when=COOK_DAY, instead=instead
+    )
+    (dish,) = stock.dishes
+    assert dish.recipe_id == "rajma" and dish.portions == 2
+    # The empty lunch can be ticked off as something else too
+    record, stock = plans.cook(
+        record, 1, "lunch", stock, when=COOK_DAY, instead={"recipe_id": "rajma"}
+    )
+    record, stock = plans.cook(record, 1, "lunch", stock, cooked=False)
+    assert record["plan"]["days"][0]["meals"][1]["cooked"] is None
+    with pytest.raises(PlanError, match="unknown recipe"):
+        plans.cook(record, 2, "dinner", stock, instead={"recipe_id": "nope"})

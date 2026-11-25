@@ -47,7 +47,7 @@ function defaults() {
   return {
     people: 2, days: 7, meals: ["dinner"], start_date: today(),
     weeknight: 45, weekend: NO_LIMIT, weights: { ...META.weights }, effort: 3, seed: 0,
-    shopping: false,
+    shopping: false, pins: {},
   };
 }
 
@@ -59,6 +59,7 @@ function load() {
     if (raw) {
       const s = { ...defaults(), ...raw, weights: { ...META.weights, ...raw.weights } };
       if (s.start_date < today()) s.start_date = today();
+      for (const k of Object.keys(s.pins)) if (k.split("|")[0] < today()) delete s.pins[k];
       return s;
     }
   } catch (e) { /* fall through */ }
@@ -327,7 +328,21 @@ function requestBody() {
     people: state.people, days: state.days, meals: state.meals, start_date: state.start_date,
     weeknight_minutes: limit(state.weeknight), weekend_minutes: limit(state.weekend),
     weights: state.weights, effort: state.effort, seed: state.seed, shopping: state.shopping,
+    pins: planPins(),
   };
+}
+
+// Meals fixed by hand on the Plan tab, keyed "date|meal" -> pick
+const pinKey = (date, meal) => `${date}|${meal}`;
+
+function planPins() {
+  const out = [];
+  for (const [key, pick] of Object.entries(state.pins || {})) {
+    const [date, meal] = key.split("|");
+    const day = daysBetween(state.start_date, date) + 1;
+    if (day >= 1 && day <= state.days && state.meals.includes(meal)) out.push({ day, meal, pick });
+  }
+  return out;
 }
 
 function setRunning(on) {
@@ -407,14 +422,15 @@ function showError(msg) {
 }
 
 // ------------------------------------------------------------------ results
-function metric(label, now, before, unit, lowerIsBetter = true, digits = 0) {
+// Against the greedy plan (one night at a time). `words` = [more, less]: "224g less"
+function metric(label, now, before, unit, lowerIsBetter = true, digits = 0, words = ["more", "less"]) {
   const fmt = (v) => `${Number(v).toFixed(digits)}${unit}`;
   const diff = now - before;
-  let cls = "same", text = "same either way";
+  let cls = "same", text = "no different";
   if (Math.abs(diff) > 1e-6) {
     const better = lowerIsBetter ? diff < 0 : diff > 0;
     cls = better ? "good" : "bad";
-    text = `${diff > 0 ? "+" : "−"}${fmt(Math.abs(diff))} vs day by day`;
+    text = `${fmt(Math.abs(diff))} ${diff > 0 ? words[0] : words[1]}`;
   }
   return `<div class="metric"><div class="label">${label}</div>
     <div class="value">${fmt(now)}</div><div class="delta ${cls}">${text}</div></div>`;
@@ -432,7 +448,7 @@ function render(data) {
   $("metrics").innerHTML =
     metric("Food wasted", b.waste_g + b.spill_g, g.waste_g + g.spill_g, "g") +
     metric("Meals planned", meals, meals + b.unplanned - g.unplanned, "", false) +
-    metric("Cooking time", b.minutes / 60, g.minutes / 60, "h", true, 1) +
+    metric("Cooking time", b.minutes / 60, g.minutes / 60, "h", true, 1, ["longer", "shorter"]) +
     metric("Sameness", b.variety, g.variety, "", true, 1) +
     (state.shopping ? metric("Spend", b.price_points, g.price_points, " pts") : "");
   renderShopping(data.plan.shopping);
@@ -443,11 +459,37 @@ function render(data) {
     const card = document.createElement("section");
     card.className = "panel day";
     card.innerHTML = `<h3><span>${prettyDay(day.date)}</span>${isWeekend(day.date) ? `<span class="chip">weekend</span>` : ""}</h3>`;
-    for (const m of day.meals) card.appendChild(mealEl(day.day, m));
+    for (const m of day.meals) card.appendChild(mealEl(day.day, m, planTabOpts(day)));
     grid.appendChild(card);
   }
   renderStock(data.plan.stock, data.plan);
 }
+
+// Lock / swap / skip on the Plan tab: pins in the settings, then plan again
+function planTabOpts(day) {
+  return {
+    key: `${day.day}-`,
+    locked: (m) => state.pins[pinKey(day.date, m.meal)] !== undefined && !m.skipped,
+    onLock: (m, on) => {
+      if (on) state.pins[pinKey(day.date, m.meal)] = m.pick;
+      else delete state.pins[pinKey(day.date, m.meal)];
+      save();
+      render(lastResult);
+    },
+    onSkip: (m, on) => {
+      if (on) state.pins[pinKey(day.date, m.meal)] = "~skip";
+      else delete state.pins[pinKey(day.date, m.meal)];
+      save(); plan();
+    },
+    options: (m) => api("/api/plan/options", {
+      method: "POST",
+      body: { ...lastBody, choice: choiceOf(lastResult), day: day.day, meal: m.meal },
+    }),
+    onPick: (m, pick) => { state.pins[pinKey(day.date, m.meal)] = pick; save(); plan(); },
+  };
+}
+
+const choiceOf = (data) => data.plan.days.flatMap((d) => d.meals.map((m) => (m.skipped ? "~skip" : m.pick ?? null)));
 
 function countMeals(data) {
   return data.plan.days.reduce((n, d) => n + d.meals.filter((m) => m.recipe_id).length, 0);
@@ -467,51 +509,110 @@ function howTo(m) {
   </details>`;
 }
 
-function mealEl(day, m, keyPrefix = "") {
+// One meal. opts (all optional): key (for ratings), rating, onRate, locked(m),
+// onLock(m, on), onSkip(m, on), options(m) -> {options}, onPick(m, pick),
+// fixed (ticked off or gone: no changing it), extra(el) to add more
+function mealEl(day, m, opts = {}) {
   const el = document.createElement("div");
   el.className = "meal";
-  if (!m.recipe_id) {
+  if (m.skipped) {
+    el.innerHTML = `<div class="kind">${m.meal}</div><div class="skipped">Skipped: nobody's eating in.</div>`;
+  } else if (!m.recipe_id) {
     el.innerHTML = `<div class="kind">${m.meal}</div><div class="unplanned">Nothing to cook.</div>
       <div class="why">${esc(m.why || "Add something to the pantry or turn on shopping.")}</div>`;
-    return el;
-  }
-  if (m.leftovers_from != null) {
+  } else if (m.leftovers_from != null) {
     const from = m.leftovers_from_date ? prettyDay(m.leftovers_from_date) : `day ${m.leftovers_from}`;
     el.innerHTML = `<div class="kind">${m.meal}</div>
       <div class="title"><span class="name">${esc(m.recipe_name)}</span>
       <span class="chip">leftovers from ${esc(from)}</span></div>`;
-    return el;
+  } else {
+    const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
+      <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${Math.round(i.grams)}g</span>` : ""}`).join(", ")}</span></li>`).join("");
+    el.innerHTML = `
+      <div class="kind">${m.meal}</div>
+      <div class="title"><span class="name">${esc(m.recipe_name)}</span>
+        <span class="chip">${m.minutes} min · ${m.active_minutes} hands-on</span></div>
+      ${m.make_ahead.length ? `<div class="ahead">⏰ Make ahead: ${m.make_ahead.map(esc).join(", ")}</div>` : ""}
+      <ul class="slots">${slots}</ul>
+      ${howTo(m)}
+      <div class="rate">
+        <span class="ask">How was it?</span>
+        <button data-r="1" title="Cooked it, liked it">👍</button>
+        <button data-r="-1" title="Cooked it, not again" class="down">👎</button>
+      </div>`;
+    const key = `${opts.key || ""}${day}-${m.meal}`;
+    const given = opts.rating !== undefined ? opts.rating : ratings[key];
+    el.querySelectorAll(".rate button").forEach((btn) => {
+      if (given === Number(btn.dataset.r)) btn.classList.add("on");
+      btn.addEventListener("click", () => rate(key, m, Number(btn.dataset.r), el, opts.onRate));
+    });
+    if (given !== undefined && given !== null) el.querySelector(".rate").classList.add("rated");
   }
-  const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
-    <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${Math.round(i.grams)}g</span>` : ""}`).join(", ")}</span></li>`).join("");
-  el.innerHTML = `
-    <div class="kind">${m.meal}</div>
-    <div class="title"><span class="name">${esc(m.recipe_name)}</span>
-      <span class="chip">${m.minutes} min · ${m.active_minutes} hands-on</span></div>
-    ${m.make_ahead.length ? `<div class="ahead">⏰ Make ahead: ${m.make_ahead.map(esc).join(", ")}</div>` : ""}
-    <ul class="slots">${slots}</ul>
-    ${howTo(m)}
-    <div class="rate">
-      <button data-r="1" title="Cooked it, liked it">👍</button>
-      <button data-r="-1" title="Cooked it, not again" class="down">👎</button>
-    </div>`;
-  const key = `${keyPrefix}${day}-${m.meal}`;
-  el.querySelectorAll(".rate button").forEach((btn) => {
-    if (ratings[key] === Number(btn.dataset.r)) btn.classList.add("on");
-    btn.addEventListener("click", () => rate(key, m, Number(btn.dataset.r), el));
-  });
+  if (opts.extra) opts.extra(el);
+  if (!opts.fixed && (opts.onLock || opts.onSkip || opts.options)) el.appendChild(mealTools(m, opts));
   return el;
 }
 
-async function rate(key, m, rating, el) {
-  if (ratings[key] !== undefined) return;  // one vote per meal per plan
+function mealTools(m, opts) {
+  const box = document.createElement("div");
+  box.className = "tools";
+  const locked = opts.locked ? opts.locked(m) : false;
+  if (m.skipped) {
+    box.innerHTML = `<button data-do="unskip">Bring it back</button>`;
+  } else {
+    box.innerHTML = `
+      ${m.recipe_id && opts.onLock ? `<button data-do="lock" class="${locked ? "on" : ""}" title="Keep this when re-planning">${locked ? "🔒 Locked" : "Lock"}</button>` : ""}
+      ${opts.options ? `<button data-do="swap" title="What else could go here">${m.recipe_id ? "Swap…" : "Pick something…"}</button>` : ""}
+      ${opts.onSkip ? `<button data-do="skip" title="Everyone's out: don't plan this meal">Skip</button>` : ""}`;
+  }
+  const list = document.createElement("div");
+  list.className = "options";
+  box.appendChild(list);
+  box.addEventListener("click", async (e) => {
+    const what = e.target.closest("button")?.dataset.do;
+    if (!what) return;
+    if (what === "lock") opts.onLock(m, !locked);
+    if (what === "skip") opts.onSkip(m, true);
+    if (what === "unskip") opts.onSkip(m, false);
+    if (what === "swap") await showOptions(m, opts, list);
+  });
+  return box;
+}
+
+async function showOptions(m, opts, list) {
+  if (list.childElementCount) { list.innerHTML = ""; return; }
+  list.innerHTML = `<div class="hint">Looking…</div>`;
+  try {
+    const { options } = await opts.options(m);
+    if (!options.length) { list.innerHTML = `<div class="hint">Nothing else can be made here.</div>`; return; }
+    list.innerHTML = `<div class="hint">Best first, with the rest of the week as it is:</div>` + options.map((o, i) => `
+      <button data-i="${i}" class="option">
+        <span>${esc(o.name)}${o.double ? ` <span class="chip">cook double</span>` : ""}</span>
+        <span class="grams">${o.minutes} min${wasteWords(o.waste_change_g)}</span>
+      </button>`).join("");
+    list.querySelectorAll("button.option").forEach((btn) => btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      opts.onPick(m, options[Number(btn.dataset.i)].pick);
+    }));
+  } catch (e) { list.innerHTML = ""; showError(e.message); }
+}
+
+const wasteWords = (g) => (g > 0 ? ` · ${g}g more wasted` : g < 0 ? ` · ${-g}g less wasted` : "");
+
+async function rate(key, m, rating, el, onRate) {
+  if (el.querySelector(".rate").classList.contains("rated")) return;  // one vote per meal per plan
   const res = await fetch("/api/rate", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ recipe_id: m.recipe_id, ingredients: m.ingredients, rating }),
+    body: JSON.stringify({ recipe_id: m.recipe_id, ingredients: m.ingredients, rating, ...(onRate ? onRate() : {}) }),
   });
   const data = await res.json();
   if (!res.ok) { showError(data.error); return; }
   ratings[key] = rating;
+  if (onRate && savedPlan) {
+    const meal = savedPlan.plan.days.flatMap((d) => d.meals).find((x) => x === m);
+    if (meal) meal.rating = rating;
+  }
+  el.querySelector(".rate").classList.add("rated");
   el.querySelector(`.rate button[data-r="${rating}"]`).classList.add("on");
   $("status").textContent = `saved: ${m.recipe_name} now ${data.recipe_score >= 0 ? "+" : ""}${data.recipe_score.toFixed(2)}`;
 }
@@ -593,6 +694,10 @@ function renderSaved() {
   if (!savedPlan) return;
   const s = savedPlan.settings || {};
   $("saved-name").textContent = savedPlan.name;
+  const last = (savedPlan.replans || []).slice(-1)[0];
+  const over = savedPlan.plan.days[savedPlan.plan.days.length - 1].date < today();
+  $("replan-box").style.display = over ? "none" : "";
+  $("replan-note").textContent = last ? `Last re-planned ${prettyDay(last.on)}.` : "";
   $("saved-meta").textContent = [
     plural(savedPlan.people, "person").replace("persons", "people"),
     plural(savedPlan.plan.days.length, "day"),
@@ -606,12 +711,15 @@ function renderSaved() {
     card.className = "panel day";
     card.innerHTML = `<h3><span>${prettyDay(day.date)}</span>${day.date === today() ? `<span class="chip">today</span>` : ""}</h3>`;
     for (const m of day.meals) card.appendChild(savedMealEl(day, m));
+    if (day.date < today()) card.classList.add("past");
     grid.appendChild(card);
   }
 }
 
 function tookText(done) {
   const parts = [];
+  if (done.instead && done.instead.recipe_id) parts.push(`Made ${recipeName(done.instead.recipe_id)} instead`);
+  else if (done.instead) parts.push("Cooked with other amounts");
   if (done.taken.length) {
     const names = [...new Set(done.taken.map((i) => (ingById(i.id) || { name: i.id }).name))];
     parts.push(`Took out ${names.join(", ")}`);
@@ -624,18 +732,119 @@ function tookText(done) {
 }
 
 function savedMealEl(day, m) {
-  const el = mealEl(day.day, m, `${savedPlan.id}-`);
-  if (!m.recipe_id) return el;
-  el.classList.toggle("done", Boolean(m.cooked));
-  const leftovers = m.leftovers_from != null;
-  const box = document.createElement("div");
-  box.innerHTML = `<label class="cook"><input type="checkbox" ${m.cooked ? "checked" : ""}>
-      ${leftovers ? "Eaten" : "Cooked"}${m.cooked ? ` <span class="chip">${esc(prettyDay(m.cooked.on))}</span>` : ""}</label>
-    ${m.cooked ? `<div class="took">${esc(tookText(m.cooked))}</div>` : ""}`;
-  el.insertBefore(box, el.querySelector(".kind").nextSibling);
-  const tick = box.querySelector("input");
-  tick.addEventListener("change", () => cookMeal(day.day, m, tick));
-  return el;
+  const gone = day.date < today();
+  const opts = {
+    key: `${savedPlan.id}-`,
+    rating: m.rating,
+    onRate: () => ({ plan_id: savedPlan.id, day: day.day, meal: m.meal }),
+    fixed: Boolean(m.cooked) || gone,
+    locked: (x) => Boolean(x.locked),
+    onLock: (x, on) => changeMeal("meal", { day: day.day, meal: x.meal, locked: on }, on ? "locked" : "unlocked"),
+    onSkip: (x, on) => (on
+      ? replan({ set: { day: day.day, meal: x.meal, pick: "~skip" }, search: false }, `${x.meal} skipped`)
+      : replan({ unskip: { day: day.day, meal: x.meal } }, `${x.meal} back on, rest of the week re-planned`)),
+    options: (x) => api(`/api/plans/${savedPlan.id}/options`, { method: "POST", body: { day: day.day, meal: x.meal, date: today() } }),
+    onPick: (x, pick) => replan({ set: { day: day.day, meal: x.meal, pick }, search: false }, "swapped"),
+    extra: (el) => {
+      if (!m.recipe_id) {
+        if (!m.skipped && !gone && !m.cooked) el.appendChild(cookedDifferently(day, m));
+        if (m.cooked) {
+          el.insertAdjacentHTML("beforeend", `<div class="took">${esc(tookText(m.cooked))}</div>`);
+          const undo = document.createElement("label");
+          undo.className = "cook";
+          undo.innerHTML = `<input type="checkbox" checked> Cooked <span class="chip">${esc(prettyDay(m.cooked.on))}</span>`;
+          const tick = undo.querySelector("input");
+          tick.addEventListener("change", () => cookMeal(day.day, { ...m, recipe_name: "that meal" }, tick));
+          el.insertBefore(undo, el.querySelector(".kind").nextSibling);
+        }
+        return;
+      }
+      el.classList.toggle("done", Boolean(m.cooked));
+      if (m.cooked && m.rating == null && m.leftovers_from == null) el.querySelector(".rate")?.classList.add("asking");
+      const leftovers = m.leftovers_from != null;
+      const box = document.createElement("div");
+      box.innerHTML = `<label class="cook"><input type="checkbox" ${m.cooked ? "checked" : ""}>
+          ${leftovers ? "Eaten" : "Cooked"}${m.cooked ? ` <span class="chip">${esc(prettyDay(m.cooked.on))}</span>` : ""}</label>
+        ${m.cooked ? `<div class="took">${esc(tookText(m.cooked))}</div>` : ""}`;
+      el.insertBefore(box, el.querySelector(".kind").nextSibling);
+      const tick = box.querySelector("input");
+      tick.addEventListener("change", () => cookMeal(day.day, m, tick));
+      if (!m.cooked && !leftovers) el.appendChild(cookedDifferently(day, m));
+    },
+  };
+  return mealEl(day.day, m, opts);
+}
+
+// "Cooked it differently?": edit the grams, or say it was another dish, then tick
+function cookedDifferently(day, m) {
+  const box = document.createElement("details");
+  box.className = "differently";
+  box.innerHTML = `<summary>${m.recipe_id ? "Cooked it differently?" : "Made something anyway?"}</summary>
+    <label class="field">Made instead
+      <select class="dish"><option value="">${m.recipe_id ? esc(m.recipe_name) + " (as planned)" : "pick a dish"}</option>
+      ${META.recipes.filter((r) => r.meal_type.includes(m.meal) && r.id !== m.recipe_id)
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("")}</select></label>
+    <div class="hint">What came out of the pantry, in grams:</div>
+    <div class="grams-list"></div>
+    <div class="prow add-extra"><input type="text" list="all-ingredients" placeholder="something else used" class="more-name">
+      <input type="text" placeholder="grams" class="more-g"><span></span><button class="more-add">Add</button></div>
+    <button class="primary tick-instead">Tick off with these</button>`;
+  // Staples you don't keep track of aren't worth listing
+  const tracked = (grams) => Object.fromEntries(Object.entries(grams || {})
+    .filter(([id]) => !(ingById(id) || {}).unlimited || pantry.some((r) => r.id === id)));
+  let instead = { consumed: tracked(m.consumed) };
+  const list = box.querySelector(".grams-list");
+  const draw = () => {
+    list.innerHTML = Object.entries(instead.consumed).map(([id, g]) => `
+      <div class="grow"><span>${esc(ingName(id))}</span><input type="number" min="0" step="10" data-id="${esc(id)}" value="${Math.round(g)}"></div>`).join("")
+      || `<div class="hint">Nothing from the pantry.</div>`;
+    list.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
+      instead.consumed[inp.dataset.id] = Math.max(0, Number(inp.value) || 0);
+    }));
+  };
+  draw();
+  box.querySelector(".dish").addEventListener("change", async (e) => {
+    const id = e.target.value;
+    if (!id) { instead = { consumed: tracked(m.consumed) }; draw(); return; }
+    try {
+      const meal = await api(`/api/plans/${savedPlan.id}/preview`, { method: "POST", body: { recipe_id: id, date: today() } });
+      instead = { recipe_id: id, consumed: tracked(meal.consumed), made: meal.made, servings: meal.servings };
+      draw();
+    } catch (err) { showError(err.message); }
+  });
+  box.querySelector(".more-add").addEventListener("click", () => {
+    const found = ingByName(box.querySelector(".more-name").value);
+    if (!found) { showError("Pick an ingredient from the list."); return; }
+    instead.consumed[found.id] = Number(box.querySelector(".more-g").value) || 0;
+    box.querySelector(".more-name").value = ""; box.querySelector(".more-g").value = "";
+    draw();
+  });
+  box.querySelector(".tick-instead").addEventListener("click", async () => {
+    if (!m.recipe_id && !instead.recipe_id) { showError("Pick the dish you made."); return; }
+    try {
+      await changePlan("cook", { day: day.day, meal: m.meal, cooked: true, instead },
+        `${instead.recipe_id ? recipeName(instead.recipe_id) : m.recipe_name}: done, pantry updated`);
+    } catch (err) { showError(err.message); }
+  });
+  return box;
+}
+
+async function changeMeal(what, body, done) {
+  try {
+    const data = await api(`/api/plans/${savedPlan.id}/${what}`, { method: "POST", body });
+    savedPlan = data.plan;
+    renderSaved();
+    $("status").textContent = done;
+  } catch (e) { showError(e.message); }
+}
+
+async function replan(body, done) {
+  $("status").textContent = "re-planning…";
+  document.body.classList.add("busy");
+  try {
+    await changePlan("replan", body, done);
+  } catch (e) { showError(e.message); $("status").textContent = ""; } finally { document.body.classList.remove("busy"); }
 }
 
 // POST a change to the saved plan; it comes back with the pantry it changed
@@ -710,6 +919,28 @@ async function addExtra() {
   } catch (e) { showError(e.message); }
 }
 
+async function renamePlan() {
+  const title = $("saved-name");
+  if (title.querySelector("input")) return;
+  title.innerHTML = `<input type="text" maxlength="80" value="${esc(savedPlan.name)}" aria-label="Plan name">`;
+  const input = title.querySelector("input");
+  input.focus(); input.select();
+  const finish = async (keep) => {
+    if (!title.contains(input)) return;
+    const name = input.value.trim();
+    if (keep && name && name !== savedPlan.name) {
+      await changeMeal("rename", { name }, "renamed");
+      savedPlans = (await api("/api/plans")).plans;
+      renderPlanList();
+    } else title.textContent = savedPlan.name;
+  };
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") finish(true);
+    if (e.key === "Escape") finish(false);
+  });
+  input.addEventListener("blur", () => finish(true));
+}
+
 async function deletePlan() {
   if (!savedPlan) return;
   const btn = $("saved-delete");
@@ -752,6 +983,9 @@ async function boot() {
   $("all-ingredients").innerHTML = META.ingredients.filter((i) => !i.unlimited)
     .map((i) => `<option value="${esc(i.name)}">`).join("");
   $("saved-delete").addEventListener("click", () => deletePlan().catch((e) => showError(e.message)));
+  $("replan-btn").addEventListener("click", () => replan(
+    { search: true, shopping: $("replan-shop").checked }, "rest of the week re-planned from the pantry"));
+  $("saved-rename").addEventListener("click", renamePlan);
   $("status").textContent = "";
 }
 boot().catch((e) => showError(`Couldn't reach the planner: ${e.message}`));

@@ -81,7 +81,7 @@
     <div class="stale" id="stale">Settings changed since this plan. Press <b>Plan the week</b> to update it.</div>
     <div id="results">
       <section class="panel">
-        <h2>This plan vs. picking each day as it comes</h2>
+        <h2 title="The planner looks at the whole week. Underneath each figure: how it compares with picking the best meal each night without looking ahead.">This plan, against planning one night at a time</h2>
         <div class="metrics" id="metrics"></div>
       </section>
       <section class="panel" id="shop-panel" style="display:none">
@@ -114,7 +114,17 @@
           <div class="saved-title" id="saved-name"></div>
           <div class="hint" id="saved-meta"></div>
         </div>
+        <button id="saved-rename">Rename</button>
         <button id="saved-delete" class="danger">Delete</button>
+      </section>
+      <section class="panel replan" id="replan-box">
+        <div>
+          <b>Week not going to plan?</b>
+          <div class="hint">Re-plan the days from today with what's in the pantry now. Meals you've
+            ticked off, locked 🔒 or skipped stay as they are. <span id="replan-note"></span></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="replan-shop"> Top-up shop today</label>
+        <button class="primary" id="replan-btn">Re-plan the rest</button>
       </section>
       <section class="panel">
         <div class="area-head"><h2>Shopping</h2><span class="count" id="shop-count"></span></div>

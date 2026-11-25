@@ -332,3 +332,145 @@ def test_empty_meals_say_why():
     assert meal["recipe_id"] is None
     assert meal["why"]
     assert meta()["quickest_minutes"]["dinner"] > 5
+
+
+def _saved_week(server, days=4):
+    items = [
+        {"id": "red_lentils", "amount": "1000g", "use_by": None},
+        {"id": "potato", "amount": "10", "use_by": None},
+        {"id": "carrot", "amount": "10", "use_by": "2026-12-08"},
+        {"id": "cannellini_beans", "amount": "4", "use_by": None},
+        {"id": "spinach", "amount": "2", "use_by": "2026-12-03"},
+    ]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    settings = {"days": days, "effort": 1, "start_date": "2026-12-01", "people": 2}
+    result = _json(_req(server + "/api/plan", settings))
+    return _json(_req(server + "/api/plans", {"result": result, "settings": settings}))
+
+
+def _meals(record):
+    return {
+        (d["day"], m["meal"]): m for d in record["plan"]["days"] for m in d["meals"]
+    }
+
+
+def test_results_say_which_pick_each_meal_is():
+    out = plan_request(
+        {"inventory": {"potato": 6, "red_lentils": "500g"}, "days": 2, "effort": 1},
+        Feedback(recipes=RECIPES),
+    )
+    for day in out["plan"]["days"]:
+        for m in day["meals"]:
+            if m["recipe_id"]:
+                assert m["pick"].split("*")[0] in (m["recipe_id"], "~leftovers")
+
+
+def test_pins_in_the_request():
+    body = {
+        "inventory": {"potato": 6, "red_lentils": "500g"},
+        "days": 2,
+        "effort": 1,
+        "pins": [{"day": 2, "meal": "dinner", "pick": "~skip"}],
+    }
+    out = plan_request(body, Feedback(recipes=RECIPES))
+    meal = out["plan"]["days"][1]["meals"][0]
+    assert meal["skipped"] and meal["recipe_id"] is None
+    with pytest.raises(BadRequestError):
+        plan_request(
+            {**body, "pins": [{"day": 1, "meal": "dinner", "pick": "nope"}]},
+            Feedback(recipes=RECIPES),
+        )
+
+
+def test_replan_keeps_ticked_and_locked_meals(server):
+    saved = _saved_week(server)
+    url = f"{server}/api/plans/{saved['id']}"
+    before = _meals(saved)
+    _json(_req(url + "/cook", {"day": 1, "meal": "dinner", "date": "2026-12-01"}))
+    locked = before[(4, "dinner")]
+    assert locked["recipe_id"]
+    _json(_req(url + "/meal", {"day": 4, "meal": "dinner", "locked": True}))
+    got = _json(_req(url + "/replan", {"date": "2026-12-02", "effort": 1}))
+    after = _meals(got["plan"])
+    assert after[(1, "dinner")]["cooked"]
+    assert after[(1, "dinner")]["recipe_id"] == before[(1, "dinner")]["recipe_id"]
+    assert after[(4, "dinner")]["recipe_id"] == locked["recipe_id"]
+    assert after[(4, "dinner")]["locked"]
+    assert got["plan"]["replans"] == [{"on": "2026-12-02", "from_day": 2}]
+    assert [d["date"] for d in got["plan"]["plan"]["days"]] == [
+        d["date"] for d in saved["plan"]["days"]
+    ]
+
+
+def test_skip_a_meal_then_bring_it_back(server):
+    saved = _saved_week(server, days=3)
+    url = f"{server}/api/plans/{saved['id']}/replan"
+    body = {"date": "2026-12-01", "set": {"day": 2, "meal": "dinner", "pick": "~skip"}}
+    got = _json(_req(url, {**body, "search": False}))
+    m = _meals(got["plan"])[(2, "dinner")]
+    assert m["skipped"] and not m["recipe_id"]
+    got = _json(
+        _req(url, {"date": "2026-12-01", "unskip": {"day": 2, "meal": "dinner"}})
+    )
+    assert not _meals(got["plan"])[(2, "dinner")]["skipped"]
+
+
+def test_swap_a_meal_for_an_option(server):
+    saved = _saved_week(server, days=3)
+    url = f"{server}/api/plans/{saved['id']}"
+    options = _json(
+        _req(url + "/options", {"day": 2, "meal": "dinner", "date": "2026-12-01"})
+    )["options"]
+    assert options
+    pick = options[0]["pick"]
+    body = {"date": "2026-12-01", "search": False}
+    got = _json(
+        _req(
+            url + "/replan", {**body, "set": {"day": 2, "meal": "dinner", "pick": pick}}
+        )
+    )
+    m = _meals(got["plan"])[(2, "dinner")]
+    assert m["pick"] == pick and m["locked"]
+    # The days before and after keep their dishes when not searching
+    for key in ((1, "dinner"), (3, "dinner")):
+        assert _meals(got["plan"])[key]["recipe_id"] == _meals(saved)[key]["recipe_id"]
+
+
+def test_replan_after_the_end_is_refused(server):
+    saved = _saved_week(server, days=2)
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(
+            _req(f"{server}/api/plans/{saved['id']}/replan", {"date": "2026-12-09"})
+        )
+    assert e.value.code == 400
+
+
+def test_rating_and_rename_stay_on_the_saved_plan(server):
+    saved = _saved_week(server, days=2)
+    m = _meals(saved)[(1, "dinner")]
+    _json(
+        _req(
+            server + "/api/rate",
+            {
+                "recipe_id": m["recipe_id"],
+                "rating": 1,
+                "plan_id": saved["id"],
+                "day": 1,
+                "meal": "dinner",
+            },
+        )
+    )
+    got = _json(_req(f"{server}/api/plans/{saved['id']}/rename", {"name": "Advent"}))
+    assert got["plan"]["name"] == "Advent"
+    assert _meals(got["plan"])[(1, "dinner")]["rating"] == 1
+
+
+def test_options_for_an_unsaved_plan():
+    body = {"inventory": {"potato": 6, "red_lentils": "500g"}, "days": 2, "effort": 1}
+    fb = Feedback(recipes=RECIPES)
+    out = plan_request(body, fb)
+    choice = [m["pick"] for d in out["plan"]["days"] for m in d["meals"]]
+    from garde.dashboard import options_request
+
+    got = options_request({**body, "choice": choice, "day": 1, "meal": "dinner"}, fb)
+    assert all({"pick", "name", "minutes", "delta"} <= set(o) for o in got["options"])

@@ -15,6 +15,8 @@ uv run python -m garde.solver        # optimised week for a demo fridge
 uv run python -m garde.planner       # greedy day-by-day planner, for comparison
 uv run python -m garde.loader        # load the data and check references
 uv run --extra dev pytest             # tests
+uv run --extra dev --extra ui pytest tests/ui   # browser smoke test (Playwright;
+                                      # `uv run --extra ui playwright install chromium` once)
 ```
 
 ## How it fits together
@@ -125,9 +127,21 @@ bad night doesn't ban anything.
   all back. The plan's **Shopping** list ticks off too: each pack goes into the
   pantry with its usual shelf life from that day, and "Bought something else?"
   adds anything that wasn't on the list.
+  - **Cooked it differently?** under a meal lets you change the grams before
+    ticking it off, or say you made another dish (its amounts are worked out
+    from the pantry, then editable).
+  - **Lock** keeps a meal when re-planning, **Swap…** lists what else could go
+    there (best first, with the rest of the week as it is), **Skip** is for
+    nights out.
+  - **Re-plan the rest** plans from today to the end of the plan with what's in
+    the pantry now. Ticked, locked and skipped meals stay; unbought shopping is
+    replaced by what the new plan needs ("Top-up shop today" lets it buy).
+  - 👍/👎 on a saved meal is kept on the plan, and a cooked meal asks for one.
+    Plans can be renamed.
 - **Plan** tab: settings on the left, with the solver weights as plain sliders
   ("Use up food: don't mind binning a bit ↔ use every last scrap"). Weeknights and
-  weekends have separate time limits. Nothing runs until you press **Plan the
+  weekends have separate time limits. Lock, Swap… and Skip work here too: they
+  pin the meal and plan again around it. Nothing runs until you press **Plan the
   week**. The search streams its progress (Server-Sent Events on
   `/api/plan/stream`), and **Stop** cancels it.
 - Each meal has **How to make it**: the description, a rough outline built from

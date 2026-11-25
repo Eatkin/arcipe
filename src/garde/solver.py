@@ -30,6 +30,10 @@ reheating, no repeat penalty, and a small `leftovers` weight instead.
 
 Search: start from the greedy plan, then simulated annealing over "change one
 meal" and "swap two meals" moves. Evaluations are cached by plan.
+
+Pins: any meal can be fixed by the caller ("chilli on Friday", or SKIP when
+everyone's out) and the search plans around it. alternatives() ranks what else
+could go in one meal with the rest of the week left as it is.
 """
 
 from __future__ import annotations
@@ -85,10 +89,14 @@ TIME_FACTOR = {"breakfast": 3.0, "lunch": 1.5}
 # Warming up / plating leftovers
 LEFTOVER_MINUTES = 5
 
-# Choice entries: a recipe id, "<recipe id>*2" (cook double), LEFTOVERS, or None
+# Choice entries: a recipe id, "<recipe id>*2" (cook double), LEFTOVERS, SKIP
+# (nobody in), or None (nothing to cook)
 LEFTOVERS = "~leftovers"
+SKIP = "~skip"
 DOUBLE = "*2"
 Choice = tuple[str | None, ...]  # one entry per (day, meal), day-major
+# Meals fixed by hand, keyed (day, meal): a Choice entry
+Pins = dict[tuple[int, str], str | None]
 
 
 def parse_pick(pick: str) -> tuple[str, int]:
@@ -154,6 +162,17 @@ class SolverResult:
     evaluations: int
     # Why each empty meal is empty, keyed (day, meal); see why_unplanned
     reasons: dict[tuple[int, str], str] = field(default_factory=dict)
+    choice: Choice = ()  # the pick behind each meal, day-major
+
+    def pick(self, day: int, meal: str) -> str | None:
+        return self.choice[
+            (day - 1) * len(self.plan.meals_per_day)
+            + _meal_index(self.plan.meals_per_day, meal)
+        ]
+
+
+def _meal_index(meals: Sequence[str], meal: str) -> int:
+    return list(meals).index(meal)
 
 
 @dataclass
@@ -173,6 +192,10 @@ class _Problem:
     buyable_cache: dict[int, frozenset[str]] = field(default_factory=dict)
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
     start_cache: dict[str, Resolution] | None = None
+    pins: Pins = field(default_factory=dict)
+
+    def position(self, day: int, meal: str) -> int:
+        return (day - 1) * len(self.meals) + _meal_index(self.meals, meal)
 
 
 def _weighted_repeats(planned: list[MealSlot]) -> float:
@@ -257,6 +280,9 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         wasted += gone
         for meal in p.meals:
             pick = next(picks)
+            if pick == SKIP:
+                planned.append(MealSlot(day=day, meal=meal, skipped=True))
+                continue
             if pick == LEFTOVERS:
                 dishes, dish = eat_leftovers(dishes, meal, p.people)
                 if dish is None:
@@ -373,6 +399,14 @@ def _makeable(p: _Problem) -> dict[str, Resolution]:
 def why_unplanned(p: _Problem, day: int, meal: str) -> str:
     """A plain-English reason a meal ended up with nothing to cook."""
     shop_hint = "" if p.shopping else " Turn on shopping to buy what's missing."
+    pinned = p.pins.get((day, meal))
+    if pinned == LEFTOVERS:
+        return "Set to leftovers, but there are none that stretch to everyone by then."
+    if pinned is not None:
+        name = p.recipes[parse_pick(pinned)[0]].name
+        return (
+            f"Set to {name}, but it can't be made from what's left by then.{shop_hint}"
+        )
     if not any(meal in r.meal_type for r in p.recipes.values()):
         return f"There are no {meal} recipes yet."
     times = [
@@ -437,7 +471,11 @@ def _options(p: _Problem) -> list[list[str | None]]:
             else []
         )
         per_meal[meal] = [*here, *doubles, *leftovers, None]
-    return [per_meal[meal] for _ in range(p.days) for meal in p.meals]
+    return [
+        [p.pins[(day, meal)]] if (day, meal) in p.pins else per_meal[meal]
+        for day in range(1, p.days + 1)
+        for meal in p.meals
+    ]
 
 
 def _neighbour(
@@ -479,6 +517,72 @@ def _anneal(
     return best
 
 
+def _problem(
+    recipes: dict[str, Recipe] | None,
+    inventory: InventoryInput | None,
+    days: int,
+    meals_per_day: list[str] | None,
+    people: int,
+    max_minutes: MinutesLimit,
+    max_same_class_gap: int,
+    weights: Weights | None,
+    ingredient_db: dict[str, Ingredient] | None,
+    feedback: Feedback | None,
+    shopping: bool,
+    leftovers: Sequence[Leftover],
+    pins: Pins | None,
+) -> _Problem:
+    db = ingredient_db or INGREDIENTS
+    recipes = recipes or RECIPES
+    meals = meals_per_day or ["dinner"]
+    for (day, meal), pick in (pins or {}).items():
+        if not 1 <= day <= days or meal not in meals:
+            raise ValueError(f"pinned meal {meal} on day {day} isn't in the plan")
+        if pick not in (None, LEFTOVERS, SKIP) and parse_pick(pick)[0] not in recipes:
+            raise ValueError(f"unknown recipe {pick!r}")
+    return _Problem(
+        lots=parse_inventory(inventory or {}, db),
+        days=days,
+        meals=meals,
+        recipes=recipes,
+        ingredient_db=db,
+        people=people,
+        max_minutes=max_minutes,
+        gap=max_same_class_gap,
+        weights=weights or Weights(),
+        feedback=feedback,
+        shopping=shopping,
+        leftovers=tuple(leftovers),
+        pins=dict(pins or {}),
+    )
+
+
+def _greedy(p: _Problem, inventory: InventoryInput | None, seed: float) -> Choice:
+    """The greedy planner's week as a Choice, with the pins put in."""
+    plan = plan_week(
+        p.recipes,
+        inventory,
+        days=p.days,
+        meals_per_day=p.meals,
+        people=p.people,
+        max_minutes=p.max_minutes,
+        max_same_class_gap=p.gap,
+        ingredient_db=p.ingredient_db,
+        randomise=False,
+        rng=random.Random(seed),
+        feedback=p.feedback,
+        leftovers=p.leftovers,
+    )
+    picks = [
+        LEFTOVERS if s.leftovers_from is not None else s.recipe_id for s in plan.slots
+    ]
+    for (day, meal), pick in p.pins.items():
+        picks[p.position(day, meal)] = pick
+    return tuple(
+        c if c in opts else None for c, opts in zip(picks, _options(p), strict=True)
+    )
+
+
 def optimise_week(
     recipes: dict[str, Recipe] | None = None,
     inventory: InventoryInput | None = None,
@@ -496,6 +600,8 @@ def optimise_week(
     shopping: bool = False,
     progress: Progress | None = None,
     leftovers: Sequence[Leftover] = (),
+    pins: Pins | None = None,
+    start: Sequence[str | None] | None = None,
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
@@ -506,49 +612,31 @@ def optimise_week(
     max_minutes can be one limit or a list with one per day.
     progress, if given, hears how the search is going (see Progress).
     leftovers are cooked dishes already in the fridge (garde.pantry.to_leftovers).
+    pins fix meals by hand: {(day, meal): "chilli" | "chilli*2" | LEFTOVERS | SKIP}.
+    start, if given, is a week to search from instead of the greedy one (a saved
+    plan being re-planned); with iterations=0 it's just simulated as it is.
     """
     rng = rng or random.Random()
-    db = ingredient_db or INGREDIENTS
-    meals = meals_per_day or ["dinner"]
-    p = _Problem(
-        lots=parse_inventory(inventory or {}, db),
-        days=days,
-        meals=meals,
-        recipes=recipes or RECIPES,
-        ingredient_db=db,
-        people=people,
-        max_minutes=max_minutes,
-        gap=max_same_class_gap,
-        weights=weights or Weights(),
-        feedback=feedback,
-        shopping=shopping,
-        leftovers=tuple(leftovers),
+    p = _problem(
+        recipes,
+        inventory,
+        days,
+        meals_per_day,
+        people,
+        max_minutes,
+        max_same_class_gap,
+        weights,
+        ingredient_db,
+        feedback,
+        shopping,
+        leftovers,
+        pins,
     )
     options = _options(p)
+    greedy = _greedy(p, inventory, rng.random())
+    first = greedy if start is None else _from_start(p, start)
 
-    greedy_plan = plan_week(
-        p.recipes,
-        inventory,
-        days=days,
-        meals_per_day=meals,
-        people=people,
-        max_minutes=max_minutes,
-        max_same_class_gap=max_same_class_gap,
-        ingredient_db=db,
-        randomise=False,
-        rng=random.Random(rng.random()),
-        feedback=feedback,
-        leftovers=leftovers,
-    )
-    greedy: Choice = tuple(
-        LEFTOVERS if s.leftovers_from is not None else s.recipe_id
-        for s in greedy_plan.slots
-    )
-    greedy = tuple(
-        c if c in opts else None for c, opts in zip(greedy, options, strict=True)
-    )
-
-    best = greedy
+    best = first
     runs = max(restarts, 1)
     total = iterations * runs
     done = 0
@@ -561,7 +649,7 @@ def optimise_week(
             progress(done, total, len(p.cache), simulate(overall, p)[1])
 
     for _ in range(runs):
-        found = _anneal(greedy, options, p, iterations, rng, tick)
+        found = _anneal(first, options, p, iterations, rng, tick)
         if simulate(found, p)[1].objective < simulate(best, p)[1].objective:
             best = found
 
@@ -572,7 +660,100 @@ def optimise_week(
         greedy=simulate(greedy, p)[1],
         evaluations=len(p.cache),
         reasons={(d, m): why_unplanned(p, d, m) for d, m in plan.unplanned},
+        choice=best,
     )
+
+
+def _from_start(p: _Problem, start: Sequence[str | None]) -> Choice:
+    """A caller's week, checked, with the pins put in."""
+    picks = list(start)
+    if len(picks) != p.days * len(p.meals):
+        raise ValueError("start doesn't match the plan's days and meals")
+    for pick in picks:
+        if pick not in (None, LEFTOVERS, SKIP) and parse_pick(pick)[0] not in p.recipes:
+            raise ValueError(f"unknown recipe {pick!r}")
+    for (day, meal), pick in p.pins.items():
+        picks[p.position(day, meal)] = pick
+    return tuple(picks)
+
+
+@dataclass(frozen=True)
+class Alternative:
+    pick: str | None
+    breakdown: Breakdown
+    delta: float  # objective change against the current pick; negative is better
+    waste_change_g: float  # food wasted (and spilt) against the current pick
+    minutes: int  # this meal's time, start to plate
+
+
+def alternatives(
+    choice: Sequence[str | None],
+    day: int,
+    meal: str,
+    limit: int = 8,
+    recipes: dict[str, Recipe] | None = None,
+    inventory: InventoryInput | None = None,
+    days: int = 7,
+    meals_per_day: list[str] | None = None,
+    people: int = 2,
+    max_minutes: MinutesLimit = None,
+    max_same_class_gap: int = 2,
+    weights: Weights | None = None,
+    ingredient_db: dict[str, Ingredient] | None = None,
+    feedback: Feedback | None = None,
+    shopping: bool = False,
+    leftovers: Sequence[Leftover] = (),
+    pins: Pins | None = None,
+    **_: object,
+) -> list[Alternative]:
+    """
+    What else could go in (day, meal), best first, with the rest of the week as
+    `choice` has it. Only picks that can actually be made there are listed.
+    Takes optimise_week's arguments (search effort ones are ignored).
+    """
+    pins = {k: v for k, v in (pins or {}).items() if k != (day, meal)}
+    p = _problem(
+        recipes,
+        inventory,
+        days,
+        meals_per_day,
+        people,
+        max_minutes,
+        max_same_class_gap,
+        weights,
+        ingredient_db,
+        feedback,
+        shopping,
+        leftovers,
+        pins,
+    )
+    base = tuple(choice)
+    if len(base) != p.days * len(p.meals):
+        raise ValueError("choice doesn't match the plan's days and meals")
+    i = p.position(day, meal)
+    now = simulate(base, p)[1]
+    out = []
+    for pick in _options(p)[i]:
+        if pick is None or pick == base[i]:
+            continue
+        candidate = (*base[:i], pick, *base[i + 1 :])
+        plan, b = simulate(candidate, p)
+        if (day, meal) in plan.unplanned:
+            continue
+        slot = plan.slots[i]
+        out.append(
+            Alternative(
+                pick,
+                b,
+                b.objective - now.objective,
+                b.waste_g + b.spill_g - now.waste_g - now.spill_g,
+                LEFTOVER_MINUTES
+                if pick == LEFTOVERS or slot.resolution is None
+                else slot.resolution.timing.total,
+            )
+        )
+    out.sort(key=lambda a: a.delta)
+    return out[:limit]
 
 
 def weights_from(overrides: dict[str, float]) -> Weights:

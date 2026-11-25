@@ -35,6 +35,22 @@ Endpoints:
                            {extra: {id, amount, use_by}, date}: something else
                            bought; {extra_index}: take that back out
                            -> {plan, pantry}
+    POST /api/plans/<id>/replan  {date, search, shopping, set: {day, meal, pick},
+                           unskip: {day, meal}}: re-plan from `date` (today) to
+                           the end from the pantry; ticked, locked and skipped
+                           meals stay. search=false keeps the other meals as
+                           they are and only works out the new amounts
+                           -> {plan, pantry}
+    POST /api/plans/<id>/meal    {day, meal, locked, rating} -> {plan}
+    POST /api/plans/<id>/options {day, meal, date}: what else could go there,
+                           best first -> {options: [...]}
+    POST /api/plans/<id>/rename  {name} -> {plan}
+    POST /api/plans/<id>/preview {recipe_id, date}: that dish from today's pantry
+                           (for "made something else") -> a meal
+    The cook body can also carry `instead`: {consumed: {id: grams}} for other
+    amounts, plus recipe_id, made and servings for another dish.
+    POST /api/plan/options {...the plan body, choice, day, meal}: the same, for
+                           an unsaved plan
 """
 
 from __future__ import annotations
@@ -48,6 +64,7 @@ import re
 import threading
 import time
 from collections.abc import Callable
+from collections.abc import Sequence
 from dataclasses import asdict
 from dataclasses import fields
 from datetime import date
@@ -67,11 +84,19 @@ from garde.method import display_name
 from garde.method import steps
 from garde.models import MealType
 from garde.planner import MealPlan
+from garde.planner import cook_servings
+from garde.planner import parse_inventory
+from garde.planner import totals
 from garde.resolver import Resolution
+from garde.resolver import resolve
+from garde.solver import LEFTOVERS
+from garde.solver import SKIP
 from garde.solver import Breakdown
 from garde.solver import SolverResult
 from garde.solver import Weights
+from garde.solver import alternatives
 from garde.solver import optimise_week
+from garde.solver import parse_pick
 from garde.solver import quickest_minutes
 from garde.solver import weights_from
 from garde.vibes import Feedback
@@ -233,6 +258,7 @@ def _plan(
     plan: MealPlan,
     first_day: date,
     reasons: dict[tuple[int, str], str] | None = None,
+    picks: dict[tuple[int, str], str | None] | None = None,
 ) -> dict[str, Any]:
     days = []
     for day in range(1, plan.days + 1):
@@ -243,6 +269,8 @@ def _plan(
             meals.append(
                 {
                     "meal": slot.meal,
+                    "pick": (picks or {}).get((day, slot.meal)),
+                    "skipped": slot.skipped,
                     "leftovers_from": slot.leftovers_from,
                     "leftovers_from_date": None
                     if slot.leftovers_from is None
@@ -303,8 +331,13 @@ def _plan(
 
 
 def result_json(result: SolverResult, start: date | None = None) -> dict[str, Any]:
+    picks = {
+        (s.day, s.meal): result.pick(s.day, s.meal)
+        for s in result.plan.slots
+        if result.choice
+    }
     return {
-        "plan": _plan(result.plan, start or date.today(), result.reasons),
+        "plan": _plan(result.plan, start or date.today(), result.reasons, picks),
         "breakdown": asdict(result.breakdown),
         "greedy": asdict(result.greedy),
         "evaluations": result.evaluations,
@@ -373,6 +406,27 @@ def _stock(body: dict, start: date) -> tuple[dict, list]:
     return inventory, []
 
 
+def _pins(body: dict, days: int, meals: Sequence[str]) -> dict[tuple[int, str], Any]:
+    """Meals fixed by hand: [{day, meal, pick}], pick a recipe id, "id*2",
+    "~leftovers" or "~skip"."""
+    raw = body.get("pins") or []
+    if not isinstance(raw, list):
+        raise BadRequestError("pins must be a list")
+    pins = {}
+    for pin in raw:
+        if not isinstance(pin, dict):
+            raise BadRequestError("each pin must be an object")
+        day = _int(pin, "day", 0, 1, days)
+        meal = pin.get("meal")
+        pick = pin.get("pick")
+        if meal not in meals:
+            raise BadRequestError(f"pinned meal must be one of {meals}")
+        if pick not in (LEFTOVERS, SKIP) and parse_pick(str(pick))[0] not in RECIPES:
+            raise BadRequestError(f"unknown recipe {pick!r}")
+        pins[(day, meal)] = pick
+    return pins
+
+
 def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
     """optimise_week's arguments from a request body, and the plan's start date."""
     meals = body.get("meals") or ["dinner"]
@@ -386,11 +440,12 @@ def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
     start = _date(body, "start_date")
     days = _int(body, "days", 7, 1, 14)
     inventory, leftovers = _stock(body, start)
+    meals_per_day = [m for m in MEALS if m in meals]
     args = {
         "inventory": inventory,
         "leftovers": leftovers,
         "days": days,
-        "meals_per_day": [m for m in MEALS if m in meals],
+        "meals_per_day": meals_per_day,
         "people": _int(body, "people", 2, 1, 12),
         "max_minutes": _time_limits(body, start, days),
         "weights": weights_from(raw_weights),
@@ -399,6 +454,7 @@ def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
         "rng": random.Random(_int(body, "seed", 0, 0, 2**31)),
         "feedback": feedback,
         "shopping": bool(body.get("shopping")),
+        "pins": _pins(body, days, meals_per_day),
     }
     return args, start
 
@@ -432,9 +488,17 @@ def progress_json(done: int, total: int, weeks_tried: int, best: Breakdown) -> d
 
 
 def rate_request(body: dict, feedback: Feedback) -> dict[str, Any]:
+    """A rating, kept in the feedback file; with plan_id, day and meal it's also
+    kept on that saved meal."""
     recipe_id = body.get("recipe_id")
     if recipe_id not in RECIPES:
         raise BadRequestError("unknown recipe")
+    if body.get("plan_id"):
+        rating = _int(body, "rating", 0, -1, 1)
+        day, meal = _day_meal(body)
+        with _KITCHEN_LOCK:
+            record = plans.rate(plans.load(str(body["plan_id"])), day, meal, rating)
+            plans.write(record)
     with _FEEDBACK_LOCK:
         try:
             feedback.add(
@@ -478,29 +542,41 @@ def plan_save(body: dict, feedback: Feedback) -> dict[str, Any]:
     return plans.save(body.get("result"), body.get("settings"), body.get("name"))
 
 
-def plan_get(plan_id: str, body: dict) -> dict[str, Any]:
+def plan_get(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
     return plans.load(plan_id)
 
 
-def plan_delete(plan_id: str, body: dict) -> dict[str, Any]:
+def plan_delete(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
     plans.delete(plan_id)
     return {"deleted": plan_id}
 
 
-def plan_cook(plan_id: str, body: dict) -> dict[str, Any]:
+def _day_meal(body: Any) -> tuple[int, str]:
+    if not isinstance(body, dict):
+        raise BadRequestError("expected {day, meal}")
     day = _int(body, "day", 0, 1, 14)
     meal = body.get("meal")
     if meal not in MEALS:
         raise BadRequestError(f"meal must be one of {MEALS}")
+    return day, meal
+
+
+def plan_cook(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    day, meal = _day_meal(body)
     when = _date(body, "date")
     with _KITCHEN_LOCK:
         record, stock = plans.cook_and_save(
-            plan_id, day, meal, cooked=bool(body.get("cooked", True)), when=when
+            plan_id,
+            day,
+            meal,
+            cooked=bool(body.get("cooked", True)),
+            when=when,
+            instead=body.get("instead"),
         )
     return {"plan": record, "pantry": stock.to_json()}
 
 
-def plan_shop(plan_id: str, body: dict) -> dict[str, Any]:
+def plan_shop(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
     """Tick a shopping row (id, bought), add an extra (extra: {id, amount,
     use_by}), or take one out (extra_index)."""
     when = _date(body, "date")
@@ -534,8 +610,144 @@ def plan_shop(plan_id: str, body: dict) -> dict[str, Any]:
     return {"plan": record, "pantry": stock.to_json()}
 
 
+def plan_meal(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    """Lock a meal (keep it when re-planning) or record its rating."""
+    day, meal = _day_meal(body)
+    with _KITCHEN_LOCK:
+        record = plans.load(plan_id)
+        if "locked" in body:
+            record = plans.lock(record, day, meal, bool(body["locked"]))
+        if "rating" in body:
+            record = plans.rate(record, day, meal, _int(body, "rating", 0, -1, 1))
+        plans.write(record)
+    return {"plan": record}
+
+
+def plan_preview(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    """How another dish would come out of today's pantry, for "made something
+    else": {recipe_id, date} -> {consumed, made, servings, slots}."""
+    recipe = RECIPES.get(str(body.get("recipe_id")))
+    if recipe is None:
+        raise BadRequestError("unknown recipe")
+    record = plans.load(plan_id)
+    when = _date(body, "date")
+    stock = pantry.load()
+    have = totals(parse_inventory(pantry.to_inventory(stock.items, when)))
+    res = resolve(
+        recipe,
+        have,
+        INGREDIENTS,
+        servings=cook_servings(recipe, record["people"]),
+        rng=random.Random(0),
+        buyable=[i for i, ing in INGREDIENTS.items() if not ing.unlimited],
+    )
+    if not res.success:
+        raise BadRequestError(f"can't work out {recipe.name} from the pantry")
+    return _meal(res)
+
+
+def plan_rename(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    with _KITCHEN_LOCK:
+        record = plans.rename(plans.load(plan_id), body.get("name"))
+        plans.write(record)
+    return {"plan": record}
+
+
+def _replan_args(
+    record: dict, rp: plans.Replan, body: dict, feedback: Feedback
+) -> tuple[dict[str, Any], date]:
+    """optimise_week's arguments to re-plan a saved plan from the pantry."""
+    settings = {
+        k: v for k, v in (record.get("settings") or {}).items() if k != "inventory"
+    }
+    settings.update(
+        start_date=rp.start.isoformat(),
+        days=rp.days,
+        meals=rp.meals,
+        people=record["people"],
+        pins=[{"day": d, "meal": m, "pick": p} for (d, m), p in rp.pins.items()],
+    )
+    for key in ("shopping", "effort"):
+        if key in body:
+            settings[key] = body[key]
+    args, start = solve_args(settings, feedback)
+    args["meals_per_day"] = rp.meals
+    return args, start
+
+
+def plan_replan(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    when = _date(body, "date")
+    with _KITCHEN_LOCK:
+        record = plans.load(plan_id)
+        if isinstance(body.get("set"), dict):
+            day, meal = _day_meal(body["set"])
+            record = plans.set_meal(record, day, meal, body["set"].get("pick"))
+        if isinstance(body.get("unskip"), dict):
+            record = plans.unskip(record, *_day_meal(body["unskip"]))
+        rp = plans.replan_setup(record, when)
+        args, start = _replan_args(record, rp, body, feedback)
+        args["start"] = rp.choice
+        if body.get("search") is False:
+            args["iterations"], args["restarts"] = 0, 1
+        try:
+            result = optimise_week(**args)
+        except (KeyError, ValueError) as e:
+            raise BadRequestError(str(e).strip("'\"")) from e
+        record = plans.merge_replan(record, result_json(result, start), rp, when)
+        plans.write(record)
+    return {"plan": record, "pantry": pantry.load().to_json()}
+
+
+def _options_json(alts: list, people: int) -> list[dict[str, Any]]:
+    out = []
+    for a in alts:
+        if a.pick == SKIP:
+            continue
+        recipe_id, times = (None, 1) if a.pick == LEFTOVERS else parse_pick(a.pick)
+        out.append(
+            {
+                "pick": a.pick,
+                "name": "Leftovers" if recipe_id is None else RECIPES[recipe_id].name,
+                "double": times > 1,
+                "minutes": a.minutes,
+                "delta": round(a.delta, 2),
+                "waste_change_g": round(a.waste_change_g),
+            }
+        )
+    return out
+
+
+def plan_options(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
+    """What else could go in one meal of a saved plan, best first."""
+    day, meal = _day_meal(body)
+    record = plans.load(plan_id)
+    rp = plans.replan_setup(record, _date(body, "date"))
+    if day < rp.from_day:
+        raise BadRequestError("that day's gone")
+    if plans.find_meal(record, day, meal).get("cooked"):
+        raise BadRequestError("that meal's ticked off already")
+    args, _ = _replan_args(record, rp, body, feedback)
+    alts = alternatives(rp.choice, rp.new_day(day), meal, **args)
+    return {"options": _options_json(alts, record["people"])}
+
+
+def options_request(body: dict, feedback: Feedback) -> dict[str, Any]:
+    """What else could go in one meal of the shown (unsaved) plan."""
+    day, meal = _day_meal(body)
+    args, _ = solve_args(body, feedback)
+    choice = body.get("choice")
+    if not isinstance(choice, list):
+        raise BadRequestError("choice must be a list")
+    try:
+        alts = alternatives(choice, day, meal, **args)
+    except ValueError as e:
+        raise BadRequestError(str(e)) from e
+    return {"options": _options_json(alts, args["people"])}
+
+
 ROUTES = {
     "POST /api/plan": plan_request,
+    "POST /api/plan/options": options_request,
     "POST /api/rate": rate_request,
     "PUT /api/pantry": pantry_put,
     "POST /api/plans": plan_save,
@@ -547,8 +759,13 @@ PLAN_ROUTES = {
     ("DELETE", ""): plan_delete,
     ("POST", "/cook"): plan_cook,
     ("POST", "/shop"): plan_shop,
+    ("POST", "/replan"): plan_replan,
+    ("POST", "/meal"): plan_meal,
+    ("POST", "/options"): plan_options,
+    ("POST", "/rename"): plan_rename,
+    ("POST", "/preview"): plan_preview,
 }
-_PLAN_PATH = re.compile(r"^/api/plans/([^/]+)(/cook|/shop)?$")
+_PLAN_PATH = re.compile(r"^/api/plans/([^/]+)(/[a-z]+)?$")
 
 
 def _body(raw: bytes) -> dict:
@@ -568,7 +785,7 @@ def handle(method: str, url: str, raw: bytes, feedback: Feedback) -> tuple[int, 
         plan_route = found and PLAN_ROUTES.get((method, found.group(2) or ""))
         if not found or not plan_route:
             return HTTPStatus.NOT_FOUND, {"error": "not found"}
-        return HTTPStatus.OK, plan_route(found.group(1), _body(raw))
+        return HTTPStatus.OK, plan_route(found.group(1), _body(raw), feedback)
     except plans.PlanError as e:
         status = (
             HTTPStatus.NOT_FOUND if str(e) == "no such plan" else HTTPStatus.BAD_REQUEST
