@@ -99,7 +99,8 @@ def test_cooking_beans_makes_a_whole_pot():
 
 def test_a_pot_is_limited_by_the_dried_beans_left():
     res = Resolution("x", "x", [], set(), [], made=Counter({"chickpeas": 240}))
-    lots, _ = cook_batches([Lot("dried_chickpeas", 42.0)], res, 1, INGREDIENTS)
+    ratio = INGREDIENTS["chickpeas"].made_from.ratio
+    lots, _ = cook_batches([Lot("dried_chickpeas", 100 * ratio)], res, 1, INGREDIENTS)
     cooked = sum(lot.grams for lot in lots if lot.ingredient_id == "chickpeas")
     assert cooked == pytest.approx(100)
     assert not [lot for lot in lots if lot.ingredient_id == "dried_chickpeas"]

@@ -35,8 +35,8 @@ for the core package.
 | `planner.py` | lots with expiry, greedy planner, batch pots (`cook_batches`), leftover dishes |
 | `solver.py` | simulated annealing over the week; scores by simulating with the real resolver |
 | `timing.py`, `vibes.py`, `method.py` | DAG timing, learned taste from 👍/👎, cooking outline from the slot graph |
-| `pantry.py`, `plans.py` | saved pantry with cooked dishes (`$GARDE_HOME/pantry.json`); saved plans and ticking off cooked meals (`$GARDE_HOME/plans/`) |
-| `dashboard.py` + `static/dashboard.{html,css,js}` | stdlib web UI with SSE search progress |
+| `pantry.py`, `plans.py` | saved pantry with cooked and frozen dishes (`$GARDE_HOME/pantry.json`), binned waste (`waste.json`), staples not kept (`household.json`); saved plans, ticking off, re-planning the rest of the week (`$GARDE_HOME/plans/`) |
+| `dashboard.py` + `static/dashboard.{html,css,js}` | stdlib web UI with SSE search progress. `tests/ui/` drives it with Playwright (`ui` extra, skipped without it) |
 | `tools/corpus/` | scraping real recipes: `fetch.py` → `parse.py` → `analyse.py` |
 | `corpus/` | scraped pages and `recipes.json`: **gitignored**, local only |
 | `.scratch.md` | the user's running notes: ideas, follow-ups, done list. Keep it current |
@@ -55,6 +55,9 @@ for the core package.
   bans; the user's roasted-carrot coconut curry turned out nice.
 - Drafted numbers (slot grams, times, shelf lives, `keeps_days`) are guesses
   waiting for the user's sanity check. Say when you've made new ones up.
+- `discouraged_classes` on a slot is the soft way to keep things out (beans in
+  "Veg"); `excluded_classes` is the hard way. `opened_days` sets how long a tin
+  or a cut vegetable keeps once broken into.
 - Beans are not `unlimited`: tins, dried beans (`dried_*`, cooked via `made_from`)
   or shopping must provide them.
 

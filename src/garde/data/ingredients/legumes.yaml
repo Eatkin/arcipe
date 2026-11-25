@@ -10,8 +10,8 @@ chickpeas:
   unit_weight: 240  # a drained tin
   made_from:
     ingredient: dried_chickpeas
-    ratio: 0.42
-    batch: 600  # a pot: ~250g dried
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
     keeps_days: 4
     time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
@@ -29,8 +29,8 @@ cannellini_beans:
   unit_weight: 240  # a drained tin
   made_from:
     ingredient: dried_cannellini_beans
-    ratio: 0.4
-    batch: 600  # a pot: ~250g dried
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
     keeps_days: 4
     time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
@@ -48,8 +48,8 @@ butter_beans:
   unit_weight: 240  # a drained tin
   made_from:
     ingredient: dried_butter_beans
-    ratio: 0.45
-    batch: 600  # a pot: ~250g dried
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
     keeps_days: 4
     time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
@@ -66,8 +66,8 @@ black_beans:
   unit_weight: 240  # a drained tin
   made_from:
     ingredient: dried_black_beans
-    ratio: 0.4
-    batch: 600  # a pot: ~250g dried
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
     keeps_days: 4
     time: {active: 10, passive: 90}  # soaked overnight, then simmered
   cuisine_context: [mexican]
@@ -97,8 +97,8 @@ kidney_beans:
   unit_weight: 240  # a drained tin
   made_from:
     ingredient: dried_kidney_beans
-    ratio: 0.4
-    batch: 600  # a pot: ~250g dried
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
     keeps_days: 4
     time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
@@ -221,5 +221,23 @@ seitan:
   price: pricey
   pack_weight: 250
   shelf_life_days: 7
+  made_from:
+    ingredient: vital_wheat_gluten
+    ratio: 0.26  # 250g makes ~8 servings (of 120g)
+    batch: 960  # a whole 250g of gluten at a time
+    keeps_days: 5  # drafted; freezes well
+    time: {active: 20, passive: 60}  # knead, then simmer (drafted)
   nutrition: [high_protein]
   notes: "Wheat gluten. Bought, or Sandra's homemade steaks. Not gluten free. Recipe: https://www.vegansandra.com/2015/11/perfect-homemade-seitan-steaks.html"
+
+vital_wheat_gluten:
+  name: Vital Wheat Gluten
+  classes: []
+  roles: []  # made into seitan first: see seitan.made_from
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  nutrition: [high_protein]
+  notes: Kneaded with stock and spices into seitan (250g -> ~8 servings).
