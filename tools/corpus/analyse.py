@@ -1,11 +1,11 @@
 """
-What does the corpus need that arcipe doesn't have?
+What does the corpus need that garde doesn't have?
 
     uv run python tools/corpus/analyse.py            # unmapped ingredients by frequency
     uv run python tools/corpus/analyse.py --families # recipes grouped into dish families
 
 Ingredient lines are normalised ("2 small or one large carrot (grated)" -> "carrot")
-and mapped to arcipe ingredient ids through the ingredient names plus ALIASES.
+and mapped to garde ingredient ids through the ingredient names plus ALIASES.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from collections import Counter
 from collections import defaultdict
 from pathlib import Path
 
-from arcipe.loader import INGREDIENTS
+from garde.loader import INGREDIENTS
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,7 +41,7 @@ PREP = (
     r"pressed|firm|extra[- ]firm|light|full[- ]fat"
 )
 
-# corpus phrase -> arcipe id. Names of existing ingredients match automatically.
+# corpus phrase -> garde id. Names of existing ingredients match automatically.
 ALIASES: dict[str, str] = {
     "garlic clove": "garlic",
     "clove garlic": "garlic",
@@ -424,13 +424,13 @@ def main() -> None:
             (unknown_ids if not u.startswith("?") else unknown)[u] += 1
     n = len(recipes)
     print(f"{n} recipes\n")
-    print("Aliased but not in arcipe yet (recipes using it):")
+    print("Aliased but not in garde yet (recipes using it):")
     for k, c in unknown_ids.most_common():
         print(f"  {c:>4}  {k:<22} e.g. {examples[k][:60]}")
     print("\nUnrecognised (top 80):")
     for k, c in unknown.most_common(80):
         print(f"  {c:>4}  {k[1:]:<30} e.g. {examples[k][:60]}")
-    print("\nAlready in arcipe (top 30):")
+    print("\nAlready in garde (top 30):")
     print("  " + ", ".join(f"{k} {c}" for k, c in known.most_common(30)))
 
 

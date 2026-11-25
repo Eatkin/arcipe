@@ -2,10 +2,10 @@ import random
 
 import pytest
 
-from arcipe.loader import RECIPES
-from arcipe.solver import Weights
-from arcipe.solver import optimise_week
-from arcipe.solver import weights_from
+from garde.loader import RECIPES
+from garde.solver import Weights
+from garde.solver import optimise_week
+from garde.solver import weights_from
 
 
 FRIDGE = {

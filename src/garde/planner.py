@@ -1,5 +1,5 @@
 """
-arcipe.planner
+garde.planner
 ==============
 Week-level meal planner. Resolves recipes across multiple days, drawing down a
 shared stock of ingredient lots and enforcing variety constraints.
@@ -42,14 +42,14 @@ from dataclasses import field
 from dataclasses import replace
 from typing import cast
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.models import Ingredient
-from arcipe.models import Recipe
-from arcipe.resolver import RecipeScore
-from arcipe.resolver import Resolution
-from arcipe.resolver import rank_recipes
-from arcipe.vibes import Feedback
+from garde.loader import INGREDIENTS
+from garde.loader import RECIPES
+from garde.models import Ingredient
+from garde.models import Recipe
+from garde.resolver import RecipeScore
+from garde.resolver import Resolution
+from garde.resolver import rank_recipes
+from garde.vibes import Feedback
 
 
 # Ingredients expiring within this many days get an urgency boost
@@ -584,7 +584,7 @@ def plan_week(
         ingredient_db:        ingredient db, defaults to INGREDIENTS
         randomise:            jitter scores slightly for variety between runs
         rng:                  random source, pass a seeded Random for repeatable plans
-        feedback:             your ratings (arcipe.vibes) to steer recipes and ingredients
+        feedback:             your ratings (garde.vibes) to steer recipes and ingredients
     """
     recipe_db = recipes or RECIPES
     db = ingredient_db or INGREDIENTS

@@ -2,13 +2,13 @@ import random
 
 import pytest
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.loader import SLOTS
-from arcipe.models import Recipe
-from arcipe.resolver import resolve
-from arcipe.resolver import reuse_keys
+from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
+from garde.loader import RECIPES
+from garde.loader import SLOTS
+from garde.models import Recipe
+from garde.resolver import resolve
+from garde.resolver import reuse_keys
 
 
 EVERYTHING = sorted(INGREDIENTS)

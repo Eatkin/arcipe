@@ -1,5 +1,5 @@
 """
-arcipe.solver
+garde.solver
 =============
 Whole-week optimiser. The greedy planner picks the best meal for today without
 looking ahead, so it can't see that the mushrooms go off on day 4. This searches
@@ -41,30 +41,30 @@ from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import fields
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.models import Ingredient
-from arcipe.models import Recipe
-from arcipe.planner import InventoryInput
-from arcipe.planner import Leftover
-from arcipe.planner import Lot
-from arcipe.planner import MealPlan
-from arcipe.planner import MealSlot
-from arcipe.planner import classes_used_recently
-from arcipe.planner import consume
-from arcipe.planner import cook_batches
-from arcipe.planner import cook_servings
-from arcipe.planner import eat_leftovers
-from arcipe.planner import expire
-from arcipe.planner import expire_dishes
-from arcipe.planner import parse_inventory
-from arcipe.planner import plan_week
-from arcipe.planner import stash
-from arcipe.planner import totals
-from arcipe.planner import urgency
-from arcipe.planner import variety_score
-from arcipe.resolver import resolve
-from arcipe.vibes import Feedback
+from garde.loader import INGREDIENTS
+from garde.loader import RECIPES
+from garde.models import Ingredient
+from garde.models import Recipe
+from garde.planner import InventoryInput
+from garde.planner import Leftover
+from garde.planner import Lot
+from garde.planner import MealPlan
+from garde.planner import MealSlot
+from garde.planner import classes_used_recently
+from garde.planner import consume
+from garde.planner import cook_batches
+from garde.planner import cook_servings
+from garde.planner import eat_leftovers
+from garde.planner import expire
+from garde.planner import expire_dishes
+from garde.planner import parse_inventory
+from garde.planner import plan_week
+from garde.planner import stash
+from garde.planner import totals
+from garde.planner import urgency
+from garde.planner import variety_score
+from garde.resolver import resolve
+from garde.vibes import Feedback
 
 
 # Food still in stock that expires within this many days after the plan counts

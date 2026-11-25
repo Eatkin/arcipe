@@ -1,5 +1,5 @@
 """
-arcipe.vibes
+garde.vibes
 ============
 Learned taste. Rules like "roasted carrot doesn't go in curry" are wrong as often
 as they're right, so instead of hard rules: rate meals you actually cooked
@@ -14,7 +14,7 @@ as they're right, so instead of hard rules: rate meals you actually cooked
 Both are shrunk towards 0 (neutral) with a pseudo-count, so one bad night
 doesn't blacklist anything: one 👎 gives -1/3, three give -3/5.
 
-Stored as YAML at $ARCIPE_HOME/feedback.yaml (default ~/.arcipe).
+Stored as YAML at $GARDE_HOME/feedback.yaml (default ~/.garde).
 """
 
 from __future__ import annotations
@@ -28,8 +28,8 @@ from pathlib import Path
 
 import yaml
 
-from arcipe.models import CUISINE_FAMILY
-from arcipe.models import Recipe
+from garde.models import CUISINE_FAMILY
+from garde.models import Recipe
 
 
 # Pseudo-count of neutral ratings every score starts with
@@ -39,8 +39,8 @@ FAMILY_WEIGHT = 0.5
 
 
 def default_path() -> Path:
-    home = os.environ.get("ARCIPE_HOME")
-    base = Path(home) if home else Path.home() / ".arcipe"
+    home = os.environ.get("GARDE_HOME")
+    base = Path(home) if home else Path.home() / ".garde"
     return base / "feedback.yaml"
 
 

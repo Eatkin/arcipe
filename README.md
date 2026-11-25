@@ -1,4 +1,7 @@
-# arcipe
+# Garde Manger
+
+The *garde manger* is the kitchen brigade's keeper of the larder: the station that
+knows what's in stock and makes sure it gets used. The package is `garde`.
 
 Archetype recipes: recipes as abstract graphs of *slots* ("a green sauce base",
 "a curry protein") rather than fixed ingredient lists, so a week of meals can be
@@ -7,10 +10,10 @@ planned around whatever is actually in the cupboard — wasting as little as pos
 ## Run it
 
 ```sh
-uv run python -m arcipe.dashboard     # web dashboard on http://127.0.0.1:8765
-uv run python -m arcipe.solver        # optimised week for a demo fridge
-uv run python -m arcipe.planner       # greedy day-by-day planner, for comparison
-uv run python -m arcipe.loader        # load the data and check references
+uv run python -m garde.dashboard     # web dashboard on http://127.0.0.1:8765
+uv run python -m garde.solver        # optimised week for a demo fridge
+uv run python -m garde.planner       # greedy day-by-day planner, for comparison
+uv run python -m garde.loader        # load the data and check references
 uv run --extra dev pytest             # tests
 ```
 
@@ -94,7 +97,7 @@ for meals after they'd have gone off, and optional slots never trigger a purchas
 
 ### Taste
 
-Ratings live in `~/.arcipe/feedback.yaml` (or `$ARCIPE_HOME`). They nudge
+Ratings live in `~/.garde/feedback.yaml` (or `$GARDE_HOME`). They nudge
 ingredient choice within a recipe (and, at half weight, within the same cuisine
 family) and recipe choice in the solver. Scores are shrunk towards neutral, so one
 bad night doesn't ban anything.

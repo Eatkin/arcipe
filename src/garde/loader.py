@@ -1,11 +1,11 @@
 """
-arcipe.loader
+garde.loader
 =============
 Loads the ontology from YAML files into validated Pydantic models.
 Replaces the monolithic ontology.py.
 
 Usage:
-    from arcipe.loader import INGREDIENTS, SLOTS, RECIPES, PREPARED_INGREDIENTS
+    from garde.loader import INGREDIENTS, SLOTS, RECIPES, PREPARED_INGREDIENTS
 """
 
 from __future__ import annotations
@@ -14,11 +14,11 @@ from pathlib import Path
 
 import yaml
 
-from arcipe.models import ComponentSlot
-from arcipe.models import Ingredient
-from arcipe.models import PreparedIngredient
-from arcipe.models import Recipe
-from arcipe.models import RecipeEdge
+from garde.models import ComponentSlot
+from garde.models import Ingredient
+from garde.models import PreparedIngredient
+from garde.models import Recipe
+from garde.models import RecipeEdge
 
 
 DATA_DIR = Path(__file__).parent / "data"

@@ -1,12 +1,12 @@
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.loader import SLOTS
-from arcipe.models import Recipe
-from arcipe.models import RecipeEdge
-from arcipe.models import Time
-from arcipe.resolver import resolve
-from arcipe.timing import has_cycle
-from arcipe.timing import recipe_timing
+from garde.loader import PREPARED_INGREDIENTS
+from garde.loader import RECIPES
+from garde.loader import SLOTS
+from garde.models import Recipe
+from garde.models import RecipeEdge
+from garde.models import Time
+from garde.resolver import resolve
+from garde.timing import has_cycle
+from garde.timing import recipe_timing
 
 
 def _slot(slot_id: str, active: int, passive: int):

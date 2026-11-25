@@ -1,5 +1,5 @@
 """
-arcipe.timing
+garde.timing
 =============
 How long a resolved recipe takes, using the recipe DAG.
 
@@ -18,9 +18,9 @@ from dataclasses import dataclass
 from dataclasses import field
 from functools import cache
 
-from arcipe.models import EdgeType
-from arcipe.models import PreparedIngredient
-from arcipe.models import Recipe
+from garde.models import EdgeType
+from garde.models import PreparedIngredient
+from garde.models import Recipe
 
 
 # Edges where both sides cook independently and are only put together at the end

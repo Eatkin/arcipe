@@ -3,11 +3,11 @@ from datetime import date
 from typing import cast
 from typing import get_args
 
-from arcipe.models import Season
+from garde.models import Season
 
 
 def get_season(date: date) -> Season:
-    season_override = os.environ.get("ARCIPE_SEASON")
+    season_override = os.environ.get("GARDE_SEASON")
     if season_override and season_override in get_args(Season):
         return cast(Season, season_override)
     m = date.month

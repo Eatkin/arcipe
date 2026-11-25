@@ -3,12 +3,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.loader import SLOTS
-from arcipe.loader import check_references
-from arcipe.loader import load_recipes
+from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
+from garde.loader import RECIPES
+from garde.loader import SLOTS
+from garde.loader import check_references
+from garde.loader import load_recipes
 
 
 def test_data_has_no_dangling_references():
@@ -63,6 +63,6 @@ def test_base_ratios_only_name_real_bases():
 
 
 def test_recipe_graphs_are_acyclic():
-    from arcipe.timing import has_cycle
+    from garde.timing import has_cycle
 
     assert [r for r in RECIPES.values() if has_cycle(r)] == []

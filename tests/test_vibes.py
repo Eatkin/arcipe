@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from arcipe.loader import RECIPES
-from arcipe.resolver import resolve
-from arcipe.solver import optimise_week
-from arcipe.vibes import Feedback
+from garde.loader import RECIPES
+from garde.resolver import resolve
+from garde.solver import optimise_week
+from garde.vibes import Feedback
 
 
 def fb(*ratings) -> Feedback:

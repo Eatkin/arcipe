@@ -3,15 +3,15 @@ from collections import Counter
 
 import pytest
 
-from arcipe.loader import RECIPES
-from arcipe.planner import Lot
-from arcipe.planner import consume
-from arcipe.planner import deplete
-from arcipe.planner import expire
-from arcipe.planner import parse_inventory
-from arcipe.planner import plan_week
-from arcipe.planner import urgency
-from arcipe.resolver import resolve
+from garde.loader import RECIPES
+from garde.planner import Lot
+from garde.planner import consume
+from garde.planner import deplete
+from garde.planner import expire
+from garde.planner import parse_inventory
+from garde.planner import plan_week
+from garde.planner import urgency
+from garde.resolver import resolve
 
 
 def test_parse_inventory_units_grams_and_expiry():

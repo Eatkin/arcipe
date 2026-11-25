@@ -6,18 +6,18 @@ from http.server import ThreadingHTTPServer
 
 import pytest
 
-from arcipe.dashboard import BadRequestError
-from arcipe.dashboard import make_handler
-from arcipe.dashboard import meta
-from arcipe.dashboard import plan_request
-from arcipe.dashboard import rate_request
-from arcipe.loader import RECIPES
-from arcipe.vibes import Feedback
+from garde.dashboard import BadRequestError
+from garde.dashboard import make_handler
+from garde.dashboard import meta
+from garde.dashboard import plan_request
+from garde.dashboard import rate_request
+from garde.loader import RECIPES
+from garde.vibes import Feedback
 
 
 @pytest.fixture(autouse=True)
 def tmp_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("ARCIPE_HOME", str(tmp_path))
+    monkeypatch.setenv("GARDE_HOME", str(tmp_path))
 
 
 def test_meta_lists_everything():
@@ -77,7 +77,7 @@ def test_server_serves_page_and_api():
     base = f"http://127.0.0.1:{server.server_address[1]}"
     try:
         page = urllib.request.urlopen(base + "/").read().decode()
-        assert "<title>arcipe" in page
+        assert "<title>Garde Manger" in page
         req = urllib.request.Request(
             base + "/api/plan",
             data=json.dumps({"days": 1, "effort": 1}).encode(),

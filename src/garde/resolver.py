@@ -39,20 +39,20 @@ from dataclasses import field
 from datetime import date
 from itertools import groupby
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.models import COLOUR_MAX
-from arcipe.models import CUISINE_FAMILY
-from arcipe.models import ComponentSlot
-from arcipe.models import Ingredient
-from arcipe.models import PreparedIngredient
-from arcipe.models import Recipe
-from arcipe.models import Season
-from arcipe.models import colour_distance
-from arcipe.timing import Timing
-from arcipe.timing import recipe_timing
-from arcipe.utils import get_season
-from arcipe.vibes import Feedback
+from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
+from garde.models import COLOUR_MAX
+from garde.models import CUISINE_FAMILY
+from garde.models import ComponentSlot
+from garde.models import Ingredient
+from garde.models import PreparedIngredient
+from garde.models import Recipe
+from garde.models import Season
+from garde.models import colour_distance
+from garde.timing import Timing
+from garde.timing import recipe_timing
+from garde.utils import get_season
+from garde.vibes import Feedback
 
 
 # ---------------------------------------------------------------------------
@@ -428,7 +428,7 @@ def score(
         preferred         — recipe.preferred_ingredients bonus
         cuisine_context   — bonus for exact cuisine match, small bonus for same family,
                             heavy penalty for a different family
-        bias              — additive nudge per id: learned taste (arcipe.vibes) and
+        bias              — additive nudge per id: learned taste (garde.vibes) and
                             the penalty for having to buy it
     """
     s = 0.0
@@ -728,7 +728,7 @@ def resolve(
     ingredients that are about to expire. buyable ingredients count as available
     in any amount but score worse than what's in stock (you'd have to buy them).
     affinity (-1..1 per ingredient id, from
-    arcipe.vibes) nudges towards what you've liked in this kind of dish.
+    garde.vibes) nudges towards what you've liked in this kind of dish.
     """
     db = ingredient_db or INGREDIENTS
     preps = PREPARED_INGREDIENTS if prepared_db is None else prepared_db
@@ -886,7 +886,7 @@ def _slot_is_optional(slot_id: str, recipe: Recipe) -> bool:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    from arcipe.loader import RECIPES
+    from garde.loader import RECIPES
 
     # We always got spices
     BASE_INVENTORY = [

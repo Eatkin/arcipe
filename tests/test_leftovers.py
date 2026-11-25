@@ -5,27 +5,27 @@ from collections import Counter
 
 import pytest
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.planner import Lot
-from arcipe.planner import cook_batches
-from arcipe.planner import eat_leftovers
-from arcipe.planner import expire_dishes
-from arcipe.planner import leftover_key
-from arcipe.planner import parse_inventory
-from arcipe.planner import plan_week
-from arcipe.planner import stash
-from arcipe.resolver import Resolution
-from arcipe.resolver import available_pool
-from arcipe.resolver import makeable_grams
-from arcipe.resolver import normalise_stock
-from arcipe.resolver import resolve
-from arcipe.solver import LEFTOVERS
-from arcipe.solver import Weights
-from arcipe.solver import _Problem
-from arcipe.solver import optimise_week
-from arcipe.solver import simulate
+from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
+from garde.loader import RECIPES
+from garde.planner import Lot
+from garde.planner import cook_batches
+from garde.planner import eat_leftovers
+from garde.planner import expire_dishes
+from garde.planner import leftover_key
+from garde.planner import parse_inventory
+from garde.planner import plan_week
+from garde.planner import stash
+from garde.resolver import Resolution
+from garde.resolver import available_pool
+from garde.resolver import makeable_grams
+from garde.resolver import normalise_stock
+from garde.resolver import resolve
+from garde.solver import LEFTOVERS
+from garde.solver import Weights
+from garde.solver import _Problem
+from garde.solver import optimise_week
+from garde.solver import simulate
 
 
 # ---------------------------------------------------------------- made from

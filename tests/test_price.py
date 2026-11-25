@@ -3,12 +3,12 @@ import random
 
 import pytest
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.models import Price
-from arcipe.models import parse_price
-from arcipe.resolver import resolve
-from arcipe.solver import optimise_week
+from garde.loader import INGREDIENTS
+from garde.loader import RECIPES
+from garde.models import Price
+from garde.models import parse_price
+from garde.resolver import resolve
+from garde.solver import optimise_week
 
 
 @pytest.mark.parametrize(
@@ -121,7 +121,7 @@ def test_perishables_arent_bought_for_after_they_go_off():
 
 
 def test_pricier_shopping_means_spending_less():
-    from arcipe.solver import Weights
+    from garde.solver import Weights
 
     normal = _week(2)
     stingy = _week(2, weights=Weights(price=5.0))

@@ -1,11 +1,11 @@
 """
-arcipe.dashboard
+garde.dashboard
 ================
 Local web dashboard: edit what's in the fridge, turn the solver's knobs, see the
 week, rate what you cooked. Standard library only.
 
-    uv run python -m arcipe.dashboard          # http://127.0.0.1:8765
-    uv run python -m arcipe.dashboard --port 9000
+    uv run python -m garde.dashboard          # http://127.0.0.1:8765
+    uv run python -m garde.dashboard --port 9000
 
 Endpoints:
     GET  /            the page
@@ -30,17 +30,17 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from arcipe.loader import INGREDIENTS
-from arcipe.loader import PREPARED_INGREDIENTS
-from arcipe.loader import RECIPES
-from arcipe.models import MealType
-from arcipe.planner import MealPlan
-from arcipe.resolver import Resolution
-from arcipe.solver import SolverResult
-from arcipe.solver import Weights
-from arcipe.solver import optimise_week
-from arcipe.solver import weights_from
-from arcipe.vibes import Feedback
+from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
+from garde.loader import RECIPES
+from garde.models import MealType
+from garde.planner import MealPlan
+from garde.resolver import Resolution
+from garde.solver import SolverResult
+from garde.solver import Weights
+from garde.solver import optimise_week
+from garde.solver import weights_from
+from garde.vibes import Feedback
 
 
 PAGE = Path(__file__).parent / "static" / "dashboard.html"
@@ -310,12 +310,12 @@ def make_handler(feedback: Feedback) -> type[BaseHTTPRequestHandler]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="arcipe meal planning dashboard")
+    parser = argparse.ArgumentParser(description="garde meal planning dashboard")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     feedback = Feedback.load(recipes=RECIPES)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(feedback))
-    print(f"arcipe dashboard on http://127.0.0.1:{args.port}  (ctrl-c to stop)")
+    print(f"garde dashboard on http://127.0.0.1:{args.port}  (ctrl-c to stop)")
     with contextlib.suppress(KeyboardInterrupt):
         server.serve_forever()
 

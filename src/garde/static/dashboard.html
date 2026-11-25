@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>arcipe — this week</title>
+<title>Garde Manger — this week</title>
 <style>
   :root {
     --bg: #f7f6f2; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a64;
@@ -140,7 +140,7 @@
 </head>
 <body>
 <header>
-  <h1>arcipe</h1>
+  <h1>Garde Manger</h1>
   <span class="status" id="status">loading…</span>
 </header>
 
@@ -207,7 +207,7 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
-const STORE = "arcipe.state.v1";
+const STORE = "garde.state.v1";
 let META = null;
 let state = null;
 let ratings = {};          // "day-meal" -> +1/-1 for this session
@@ -233,7 +233,7 @@ function save() { localStorage.setItem(STORE, JSON.stringify(state)); }
 
 function load() {
   try {
-    const raw = JSON.parse(localStorage.getItem(STORE));
+    const raw = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("arcipe.state.v1"));
     if (raw) return { ...defaults(), ...raw, weights: { ...META.weights, ...raw.weights } };
   } catch (e) { /* fall through */ }
   return defaults();
