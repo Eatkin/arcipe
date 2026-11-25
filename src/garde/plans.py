@@ -287,6 +287,7 @@ class Cooked:
     dish: Dish | None = None  # spare portions put away
     eaten: list[Dish] = field(default_factory=list)  # leftovers eaten
     instead: dict[str, Any] | None = None  # what was really cooked, if not the plan
+    opened: list[dict[str, Any]] = field(default_factory=list)  # tins broken into
 
     @classmethod
     def from_json(cls, raw: dict[str, Any]) -> Cooked:
@@ -297,6 +298,7 @@ class Cooked:
             dish=Dish(**raw["dish"]) if raw.get("dish") else None,
             eaten=[Dish(**d) for d in raw.get("eaten", [])],
             instead=raw.get("instead"),
+            opened=raw.get("opened", []),
         )
 
 
@@ -381,6 +383,7 @@ def _cook_meal(
     items, done.taken = pantry.take(stock.items, m.get("consumed") or {}, db)
     items, more, done.added = _batch_rest(items, m.get("made") or {}, when, db)
     done.taken += more
+    items, done.opened = pantry.open_items(items, done.taken, when, db)
     dishes = stock.dishes
     done.dish = _spare_dish(m, people, when, recipes)
     if done.dish is not None:
@@ -424,7 +427,8 @@ def _remove_dish(dishes: list[Dish], gone: Dish) -> list[Dish]:
 
 
 def _undo(stock: Pantry, done: Cooked, db: dict[str, Ingredient]) -> Pantry:
-    items = _remove_items(stock.items, done.added, db)
+    items = pantry.unopen_items(stock.items, done.opened, db)
+    items = _remove_items(items, done.added, db)
     items = pantry.give(items, done.taken, db)
     dishes = stock.dishes
     if done.dish is not None:

@@ -78,11 +78,17 @@ counts (`carrot: 6`), measures (`red_lentils: "500g"`), and with explicit expiry
   way, with no batch: you thin what you need.
 - **Scraps.** If cooking would leave less than `Ingredient.crumb` of something
   perishable (default half a unit, at most 50g, else 15g), it goes in the dish.
+- **Opened tins.** `opened_days` says how long something keeps once opened
+  (coconut milk: 4). When a meal breaks into a tin, whole tins keep their date
+  and the opened remainder gets the short one, in the plan and in the pantry
+  when you tick the meal off. So a half-used tin shows up as waste unless
+  another meal uses it.
 - **Leftovers.** A batch dish (`batch: true`) makes all its portions at once, so
   one banana bread covers several breakfasts. The solver can also cook a dish that
   keeps for twice the people (`chilli*2`) and plan a later meal as leftovers. Spare
   portions keep for `keeps_days`; after that they count as waste. Eating
-  leftovers costs 5 minutes and the small `leftovers` weight, not a repeat.
+  leftovers costs 5 minutes and the small `leftovers` weight, not a repeat. If no one dish
+  stretches to everyone, a leftovers meal can be a bit of each of several.
 
 ### Price and shopping
 

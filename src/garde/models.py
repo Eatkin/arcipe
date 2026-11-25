@@ -385,7 +385,15 @@ class Ingredient(DataModel):
     # something perishable, the dish gets the lot rather than a sad 10g of apple.
     # Defaults to half a unit (at most 50g), else 15g
     portion: float | None = None
+    # Days it keeps once opened (a tin of coconut milk: 4). Whole tins left keep
+    # their date; the opened remainder gets this. None = opening doesn't matter
+    opened_days: int | None = None
     notes: str = ""
+
+    @property
+    def unit_grams(self) -> float | None:
+        """One sealed unit: a tin, a carton, a block."""
+        return self.unit_weight or self.pack_weight
 
     @property
     def crumb(self) -> float:

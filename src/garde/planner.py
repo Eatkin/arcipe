@@ -91,6 +91,7 @@ class Lot:
     ingredient_id: str
     grams: float
     expires_day: int | None = None  # last plan day it's usable; None = keeps
+    sealed: bool = True  # unopened tins / packs; a cooked pot or opened tin isn't
 
 
 _AMOUNT = re.compile(r"^\s*([\d.]+)\s*(g|kg|ml|l)?\s*$", re.IGNORECASE)
@@ -171,23 +172,50 @@ def urgency(lots: list[Lot], day: int) -> dict[str, float]:
     return out
 
 
-def consume(lots: list[Lot], consumed: Counter[str]) -> list[Lot]:
-    """Take consumed grams from each ingredient's lots, soonest-expiring first."""
+def consume(
+    lots: list[Lot],
+    consumed: Counter[str] | Mapping[str, float],
+    db: dict[str, Ingredient] | None = None,
+    day: int | None = None,
+) -> list[Lot]:
+    """
+    Take consumed grams from each ingredient's lots, soonest-expiring first.
+    With db and day, a sealed lot that's broken into is opened: whole units keep
+    their date, the remainder keeps Ingredient.opened_days from `day`.
+    """
     remaining: dict[str, float] = dict(consumed)
     order = sorted(
         range(len(lots)),
         key=lambda i: math.inf if lots[i].expires_day is None else lots[i].expires_day,
     )
-    out = list(lots)
+    out: list[list[Lot]] = [[lot] for lot in lots]
     for i in order:
-        lot = out[i]
+        lot = lots[i]
         want = remaining.get(lot.ingredient_id, 0.0)
         if want <= 0:
             continue
         take = min(want, lot.grams)
         remaining[lot.ingredient_id] = want - take
-        out[i] = replace(lot, grams=lot.grams - take)
-    return [lot for lot in out if lot.grams > 1e-6]
+        left = replace(lot, grams=lot.grams - take)
+        out[i] = open_lot(left, db[lot.ingredient_id], day) if db and day else [left]
+    return [lot for group in out for lot in group if lot.grams > 1e-6]
+
+
+def open_lot(lot: Lot, ing: Ingredient, day: int) -> list[Lot]:
+    """What's left of a sealed lot after some was used on `day`."""
+    unit = ing.unit_grams
+    if not lot.sealed or ing.opened_days is None or not unit:
+        return [lot]
+    whole = math.floor(lot.grams / unit + 1e-6) * unit
+    opened = lot.grams - whole
+    if opened <= 1e-6:
+        return [lot]
+    until = day + ing.opened_days
+    expires = until if lot.expires_day is None else min(lot.expires_day, until)
+    return [
+        replace(lot, grams=whole),
+        Lot(lot.ingredient_id, opened, expires, sealed=False),
+    ]
 
 
 def deplete(stock: dict[str, float], resolution: Resolution) -> dict[str, float]:
@@ -217,9 +245,13 @@ def cook_batches(
         extra = min(batches * made_from.batch - grams, source_left / made_from.ratio)
         if extra < db[raw].crumb:
             continue
-        lots = consume(lots, Counter({made_from.ingredient: extra * made_from.ratio}))
+        lots = consume(
+            lots, Counter({made_from.ingredient: extra * made_from.ratio}), db, day
+        )
         keeps = made_from.keeps_days
-        lots.append(Lot(raw, extra, None if keeps is None else day + keeps))
+        lots.append(
+            Lot(raw, extra, None if keeps is None else day + keeps, sealed=False)
+        )
         made[raw] += extra
     return lots, made
 
@@ -716,7 +748,7 @@ def plan_week(
                 )
             )
             used_recipes.add(best.recipe_id)
-            lots = consume(lots, best.resolution.consumed)
+            lots = consume(lots, best.resolution.consumed, db, day)
             lots, cooked = cook_batches(lots, best.resolution, day, db)
             made += cooked
             dishes, gone = stash(

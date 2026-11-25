@@ -1,5 +1,6 @@
 chickpeas:
   name: Chickpeas
+  opened_days: 3  # once opened (drafted)
   classes: [legume, pulse]
   roles: [bulk, protein, sauce_base]
   flavour: [nutty, earthy]
@@ -18,6 +19,7 @@ chickpeas:
 
 cannellini_beans:
   name: Cannellini Beans
+  opened_days: 3  # once opened (drafted)
   classes: [legume, pulse]
   roles: [bulk, protein, sauce_base, fat_emulsifier]
   flavour: [earthy, rich]
@@ -36,6 +38,7 @@ cannellini_beans:
 
 butter_beans:
   name: Butter Beans
+  opened_days: 3  # once opened (drafted)
   classes: [legume, pulse]
   roles: [bulk, protein, sauce_base, fat_emulsifier]
   flavour: [earthy, rich]
@@ -53,6 +56,7 @@ butter_beans:
 
 black_beans:
   name: Black Beans
+  opened_days: 3  # once opened (drafted)
   classes: [legume, pulse]
   roles: [bulk, protein]
   flavour: [earthy, rich]
@@ -83,6 +87,7 @@ red_lentils:
 
 kidney_beans:
   name: Kidney Beans
+  opened_days: 3  # once opened (drafted)
   classes: [legume, pulse]
   roles: [bulk, protein]
   flavour: [earthy, rich]
@@ -101,6 +106,7 @@ kidney_beans:
 
 tofu:
   name: Tofu (firm)
+  opened_days: 4  # once opened (drafted)
   classes: [soy_product]
   roles: [bulk, protein]
   flavour: [mild]
@@ -129,6 +135,7 @@ green_lentils:
 
 tempeh:
   name: Tempeh
+  opened_days: 5  # once opened (drafted)
   classes: [soy_product, fermented]
   roles: [protein, bulk, umami_boost]
   flavour: [nutty, earthy]
@@ -205,6 +212,7 @@ dried_kidney_beans:
 
 seitan:
   name: Seitan
+  opened_days: 4  # once opened (drafted)
   classes: []
   roles: [protein, bulk]
   flavour: [umami, mild]

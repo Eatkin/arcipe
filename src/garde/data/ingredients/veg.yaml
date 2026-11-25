@@ -36,6 +36,7 @@ bell_pepper:
 
 sweetcorn:
   name: Sweetcorn
+  opened_days: 3  # once opened (drafted)
   classes: [fruit_veg]
   roles: [bulk, sweetener, texture_top]
   flavour: [sweet]

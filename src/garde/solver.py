@@ -327,7 +327,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
                 MealSlot(day=day, meal=meal, recipe_id=recipe_id, resolution=res)
             )
             bought += _buy(p, res.consumed, lots)
-            lots = consume(lots, res.consumed)
+            lots = consume(lots, res.consumed, p.ingredient_db, day)
             lots, cooked = cook_batches(lots, res, day, p.ingredient_db)
             made += cooked
             dishes, gone = stash(dishes, recipe, res, p.people, day)

@@ -40,6 +40,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import replace
 from datetime import date
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -304,6 +305,65 @@ def take(
         left = have - bite
         out[i] = with_grams(item, left, db) if left >= EMPTY_GRAMS else None
     return [i for i in out if i is not None], taken
+
+
+def open_items(
+    items: list[Item],
+    taken: list[Item],
+    when: date,
+    db: dict[str, Ingredient] | None = None,
+) -> tuple[list[Item], list[dict[str, Any]]]:
+    """
+    After taking `taken` out: lots that were broken into are opened. Whole tins
+    keep their use-by, the rest gets Ingredient.opened_days from `when`.
+    Returns (items, [{id, amount, use_by, was}] for each opened part, to undo).
+    """
+    db = db or INGREDIENTS
+    touched = {(t.id, t.use_by) for t in taken}
+    out: list[Item] = []
+    opened: list[dict[str, Any]] = []
+    for item in items:
+        ing = db[item.id]
+        unit = ing.unit_grams
+        if (item.id, item.use_by) not in touched or ing.opened_days is None or not unit:
+            out.append(item)
+            continue
+        until = (when + timedelta(days=ing.opened_days)).isoformat()
+        if item.use_by is not None and item.use_by <= until:
+            out.append(item)  # already open, or going off sooner anyway
+            continue
+        g = grams(item, db)
+        whole = math.floor(g / unit + 1e-6) * unit
+        rest = g - whole
+        if rest < EMPTY_GRAMS:
+            out.append(item)
+            continue
+        if whole >= EMPTY_GRAMS:
+            out.append(with_grams(item, whole, db))
+        part = Item(item.id, f"{round(rest)}g", until)
+        out.append(part)
+        opened.append({**asdict(part), "was": item.use_by})
+    return out, opened
+
+
+def unopen_items(
+    items: list[Item],
+    opened: list[dict[str, Any]],
+    db: dict[str, Ingredient] | None = None,
+) -> list[Item]:
+    """Undo open_items: the opened parts go back under their old use-by."""
+    db = db or INGREDIENTS
+    for raw in opened:
+        part = Item(raw["id"], raw["amount"], raw["use_by"])
+        have = sum(
+            grams(i, db) for i in items if (i.id, i.use_by) == (part.id, part.use_by)
+        )
+        g = min(grams(part, db), have)
+        if g < EMPTY_GRAMS:
+            continue
+        items = _take_lot(items, with_grams(part, g, db), db)
+        items = give(items, [Item(part.id, f"{g:.1f}g", raw.get("was"))], db)
+    return items
 
 
 def give(

@@ -443,3 +443,18 @@ def test_eating_a_mix_of_leftovers(root):
         ("lentil_soup", 1),
         ("rajma", 3),
     ]
+
+
+def test_ticking_off_opens_a_tin_and_untick_seals_it_again(root):
+    result = _result()
+    soup = result["plan"]["days"][0]["meals"][0]
+    soup["consumed"] = {"coconut_milk": 100.0}
+    soup["made"] = {}
+    record = plans.save(result, {"people": 2}, root=root)
+    stock = Pantry([Item("coconut_milk", "2")])
+    record, after = plans.cook(record, 1, "dinner", stock, when=COOK_DAY)
+    by = {i.use_by: i.amount for i in after.items}
+    days = INGREDIENTS["coconut_milk"].opened_days
+    assert by == {None: "1", f"2026-12-0{1 + days}": "300g"}
+    record, back = plans.cook(record, 1, "dinner", after, cooked=False)
+    assert back.items == [Item("coconut_milk", "2")]

@@ -89,6 +89,7 @@ butter:
 
 coconut_milk:
   name: Coconut Milk (full fat)
+  opened_days: 4  # once opened (drafted)
   classes: [plant_milk]
   roles: [fat_emulsifier, liquid, sauce_base]
   flavour: [rich, sweet, mild]
@@ -107,6 +108,7 @@ coconut_milk:
 
 coconut_cream:
   name: Coconut Cream
+  opened_days: 4  # once opened (drafted)
   classes: [plant_milk]
   roles: [fat_emulsifier, sauce_base]
   flavour: [rich, sweet]
@@ -121,6 +123,7 @@ coconut_cream:
 
 canned_tomato:
   name: Canned Tomatoes
+  opened_days: 3  # once opened (drafted)
   classes: [nightshade]
   roles: [sauce_base, liquid]
   flavour: [umami, sweet, sharp]
@@ -241,6 +244,7 @@ vegetable_stock:
 
 passata:
   name: Passata
+  opened_days: 5  # once opened (drafted)
   classes: [nightshade]
   roles: [sauce_base, liquid]
   flavour: [umami, sweet, sharp]
@@ -264,6 +268,7 @@ soy_sauce:
 
 plant_milk:
   name: Plant Milk
+  opened_days: 7  # once opened (drafted)
   classes: [plant_milk]
   roles: [liquid]
   flavour: [mild, sweet]
@@ -277,6 +282,7 @@ plant_milk:
 
 plant_cream:
   name: Plant Cream
+  opened_days: 4  # once opened (drafted)
   classes: [plant_milk]
   roles: [fat_emulsifier, sauce_base, liquid]
   flavour: [rich, mild]
@@ -430,6 +436,7 @@ sweet_chilli_sauce:
 
 plant_yogurt:
   name: Plant Yoghurt
+  opened_days: 5  # once opened (drafted)
   storage: fridge
   classes: [plant_milk, fermented]
   roles: [fat_emulsifier, sauce_base, acid_bright]

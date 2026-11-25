@@ -3,6 +3,7 @@ from collections import Counter
 
 import pytest
 
+from garde.loader import INGREDIENTS
 from garde.loader import RECIPES
 from garde.planner import Lot
 from garde.planner import consume
@@ -137,3 +138,30 @@ def test_several_lots_of_one_ingredient():
     lots = parse_inventory({"tofu": [1, {"amount": 1, "expires": 2}]})
     assert len(lots) == 2
     assert {lot.expires_day for lot in lots} == {INGREDIENTS["tofu"].shelf_life_days, 2}
+
+
+def test_opening_a_tin_gives_the_rest_a_short_date():
+    ing = INGREDIENTS["coconut_milk"]
+    lots = [Lot("coconut_milk", 3 * ing.unit_weight, None)]
+    left = consume(lots, Counter({"coconut_milk": 100.0}), INGREDIENTS, day=2)
+    assert sorted((lot.grams, lot.expires_day, lot.sealed) for lot in left) == [
+        (ing.unit_weight - 100, 2 + ing.opened_days, False),
+        (2 * ing.unit_weight, None, True),
+    ]
+    # The opened one goes first next time, and isn't opened again
+    again = consume(left, Counter({"coconut_milk": 50.0}), INGREDIENTS, day=3)
+    opened = [lot for lot in again if not lot.sealed]
+    assert [lot.expires_day for lot in opened] == [2 + ing.opened_days]
+    # Without db and day, nothing changes (old callers)
+    assert len(consume(lots, Counter({"coconut_milk": 100.0}))) == 1
+
+
+def test_a_half_used_tin_can_go_to_waste():
+    plan = plan_week(
+        {"coconut_veg_curry": RECIPES["coconut_veg_curry"]},
+        {"coconut_milk": 1, "cabbage": 1, "tofu": 1},
+        days=7,
+        randomise=False,
+    )
+    # Half the tin goes in the curry; the open half doesn't keep the week
+    assert plan.wasted["coconut_milk"] > 0
