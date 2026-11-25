@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import functools
 import json
 import random
 import re
@@ -71,6 +72,7 @@ from garde.solver import Breakdown
 from garde.solver import SolverResult
 from garde.solver import Weights
 from garde.solver import optimise_week
+from garde.solver import quickest_minutes
 from garde.solver import weights_from
 from garde.vibes import Feedback
 
@@ -178,8 +180,15 @@ def meta() -> dict[str, Any]:
         "weights": asdict(Weights()),
         "weight_scale": WEIGHT_SCALE,
         "meals": list(MEALS),
+        "quickest_minutes": _quickest(),
         "today": date.today().isoformat(),
     }
+
+
+@functools.cache
+def _quickest() -> dict[str, int]:
+    """Quickest recipe per meal type, for the time sliders' floor."""
+    return quickest_minutes(RECIPES, INGREDIENTS)
 
 
 def _source(url: str) -> dict[str, str]:
@@ -220,7 +229,11 @@ def _meal(r: Resolution) -> dict[str, Any]:
     }
 
 
-def _plan(plan: MealPlan, first_day: date) -> dict[str, Any]:
+def _plan(
+    plan: MealPlan,
+    first_day: date,
+    reasons: dict[tuple[int, str], str] | None = None,
+) -> dict[str, Any]:
     days = []
     for day in range(1, plan.days + 1):
         meals = []
@@ -239,7 +252,10 @@ def _plan(plan: MealPlan, first_day: date) -> dict[str, Any]:
                     **(
                         _meal(slot.resolution)
                         if slot.resolution
-                        else {"recipe_id": None}
+                        else {
+                            "recipe_id": None,
+                            "why": (reasons or {}).get((day, slot.meal)),
+                        }
                     ),
                 }
             )
@@ -288,7 +304,7 @@ def _plan(plan: MealPlan, first_day: date) -> dict[str, Any]:
 
 def result_json(result: SolverResult, start: date | None = None) -> dict[str, Any]:
     return {
-        "plan": _plan(result.plan, start or date.today()),
+        "plan": _plan(result.plan, start or date.today(), result.reasons),
         "breakdown": asdict(result.breakdown),
         "greedy": asdict(result.greedy),
         "evaluations": result.evaluations,

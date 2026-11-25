@@ -68,6 +68,7 @@ from garde.planner import stash
 from garde.planner import totals
 from garde.planner import urgency
 from garde.planner import variety_score
+from garde.resolver import Resolution
 from garde.resolver import resolve
 from garde.vibes import Feedback
 
@@ -151,6 +152,8 @@ class SolverResult:
     breakdown: Breakdown
     greedy: Breakdown  # the greedy planner's week, scored the same way
     evaluations: int
+    # Why each empty meal is empty, keyed (day, meal); see why_unplanned
+    reasons: dict[tuple[int, str], str] = field(default_factory=dict)
 
 
 @dataclass
@@ -169,6 +172,7 @@ class _Problem:
     leftovers: tuple[Leftover, ...] = ()  # cooked dishes in the fridge at the start
     buyable_cache: dict[int, frozenset[str]] = field(default_factory=dict)
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
+    start_cache: dict[str, Resolution] | None = None
 
 
 def _weighted_repeats(planned: list[MealSlot]) -> float:
@@ -347,6 +351,68 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     return plan, b
 
 
+def _makeable(p: _Problem) -> dict[str, Resolution]:
+    """Every recipe makeable from the starting stock (and the shop), time aside."""
+    if p.start_cache is None:
+        start = totals(p.lots)
+        p.start_cache = {}
+        for rid, r in p.recipes.items():
+            res = resolve(
+                r,
+                start,
+                p.ingredient_db,
+                servings=cook_servings(r, p.people),
+                rng=random.Random(0),
+                buyable=buyable_on(1, p),
+            )
+            if res.success:
+                p.start_cache[rid] = res
+    return p.start_cache
+
+
+def why_unplanned(p: _Problem, day: int, meal: str) -> str:
+    """A plain-English reason a meal ended up with nothing to cook."""
+    shop_hint = "" if p.shopping else " Turn on shopping to buy what's missing."
+    if not any(meal in r.meal_type for r in p.recipes.values()):
+        return f"There are no {meal} recipes yet."
+    times = [
+        res.timing.total
+        for rid, res in _makeable(p).items()
+        if meal in p.recipes[rid].meal_type
+    ]
+    if not times:
+        if p.shopping:
+            return f"No {meal} can be made from the pantry, even with shopping."
+        return f"No {meal} can be made from what's in the pantry.{shop_hint}"
+    limit = limit_for(p.max_minutes, day)
+    if limit is not None and min(times) > limit:
+        return (
+            f"The quickest {meal} you could make takes {min(times)} min,"
+            f" over the {limit} min limit for this day."
+        )
+    return (
+        f"Nothing left by then makes a {meal}: earlier meals used what it"
+        f" needed, or it went off.{shop_hint}"
+    )
+
+
+def quickest_minutes(
+    recipes: dict[str, Recipe] | None = None,
+    ingredient_db: dict[str, Ingredient] | None = None,
+) -> dict[str, int]:
+    """Quickest recipe for each meal type with everything in stock, in minutes."""
+    db = ingredient_db or INGREDIENTS
+    plenty = dict.fromkeys(db, 10000.0)
+    out: dict[str, int] = {}
+    for r in (recipes or RECIPES).values():
+        res = resolve(r, plenty, db, servings=2, rng=random.Random(0))
+        if not res.success:
+            continue
+        for meal in r.meal_type:
+            out[meal] = min(out.get(meal, res.timing.total), res.timing.total)
+    return out
+
+
 def _options(p: _Problem) -> list[list[str | None]]:
     """
     Recipes worth trying at each position: right meal type, and makeable from the
@@ -354,19 +420,7 @@ def _options(p: _Problem) -> list[list[str | None]]:
     Dishes that keep can also be cooked double, and any meal some dish that keeps
     would suit can be leftovers.
     """
-    start = totals(p.lots)
-    makeable = {
-        rid
-        for rid, r in p.recipes.items()
-        if resolve(
-            r,
-            start,
-            p.ingredient_db,
-            servings=cook_servings(r, p.people),
-            rng=random.Random(0),
-            buyable=buyable_on(1, p),
-        ).success
-    }
+    makeable = set(_makeable(p))
     keeps = [p.recipes[rid] for rid in makeable if p.recipes[rid].keeps_days > 0]
     per_meal: dict[str, list[str | None]] = {}
     for meal in p.meals:
@@ -517,6 +571,7 @@ def optimise_week(
         breakdown=breakdown,
         greedy=simulate(greedy, p)[1],
         evaluations=len(p.cache),
+        reasons={(d, m): why_unplanned(p, d, m) for d, m in plan.unplanned},
     )
 
 

@@ -141,3 +141,44 @@ def test_progress_can_stop_the_search():
 
     with pytest.raises(StopError):
         _solve(iterations=200, progress=stop)
+
+
+# ---------------------------------------------------------------------------
+# Why a meal is empty
+# ---------------------------------------------------------------------------
+
+_DRIED = {
+    "apple": "900g",
+    "banana": "240g",
+    "brussels_sprouts": "500g",
+    "dried_butter_beans": "900g",
+    "dried_chickpeas": "900g",
+    "dried_kidney_beans": "900g",
+}
+
+
+def _why(**kw):
+    from garde.solver import optimise_week
+
+    result = optimise_week(iterations=30, restarts=1, rng=random.Random(0), **kw)
+    return result.plan.unplanned, result.reasons
+
+
+def test_too_tight_a_time_limit_says_so():
+    unplanned, reasons = _why(inventory=_DRIED, days=2, max_minutes=15)
+    assert unplanned == [(1, "dinner"), (2, "dinner")]
+    assert "quickest dinner you could make takes" in reasons[(1, "dinner")]
+    assert "over the 15 min limit" in reasons[(1, "dinner")]
+
+
+def test_an_empty_pantry_suggests_shopping():
+    unplanned, reasons = _why(inventory={}, days=1)
+    assert unplanned == [(1, "dinner")]
+    assert "Turn on shopping" in reasons[(1, "dinner")]
+
+
+def test_quickest_minutes_per_meal():
+    from garde.solver import quickest_minutes
+
+    q = quickest_minutes()
+    assert 0 < q["breakfast"] <= q["dinner"] <= 60

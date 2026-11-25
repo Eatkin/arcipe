@@ -321,3 +321,14 @@ def test_shop_endpoint(server):
     with pytest.raises(urllib.error.HTTPError) as e:
         urllib.request.urlopen(_req(url, {"extra": {"id": "unicorn", "amount": "1"}}))
     assert e.value.code == 400
+
+
+def test_empty_meals_say_why():
+    out = plan_request(
+        {"inventory": {}, "days": 1, "effort": 1, "max_minutes": 5},
+        Feedback(recipes=RECIPES),
+    )
+    (meal,) = out["plan"]["days"][0]["meals"]
+    assert meal["recipe_id"] is None
+    assert meal["why"]
+    assert meta()["quickest_minutes"]["dinner"] > 5

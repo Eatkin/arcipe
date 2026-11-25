@@ -266,6 +266,7 @@ function renderKnobs() {
     <label><input type="checkbox" value="${m}" ${state.meals.includes(m) ? "checked" : ""}>${m}</label>`).join("");
   $("meals").querySelectorAll("input").forEach((cb) => cb.addEventListener("change", () => {
     state.meals = [...$("meals").querySelectorAll("input:checked")].map((c) => c.value);
+    applyTimeFloor();
     changed();
   }));
   $("weights").innerHTML = Object.entries(META.weight_scale).map(([k, s]) => `
@@ -279,6 +280,28 @@ function renderKnobs() {
       state.weights[k] = Number(e.target.value); knobLabels(); changed();
     });
   }
+  applyTimeFloor();
+}
+
+// Nothing is quicker than the quickest recipe for each meal picked, so the time
+// sliders don't go below it (rounded down to the slider's 5-minute steps)
+function timeFloor() {
+  const q = META.quickest_minutes || {};
+  const slowest = Math.max(10, ...state.meals.map((m) => q[m] || 0));
+  return Math.floor(slowest / 5) * 5;
+}
+
+function applyTimeFloor() {
+  const floor = timeFloor();
+  for (const id of ["weeknight", "weekend"]) {
+    $(id).min = floor;
+    if (state[id] < floor) { state[id] = floor; $(id).value = floor; save(); }
+  }
+  const q = META.quickest_minutes || {};
+  const slowest = state.meals.filter((m) => q[m]).sort((a, b) => q[b] - q[a])[0];
+  $("time-floor").textContent = slowest
+    ? `The quickest ${slowest} takes about ${q[slowest]} min, so the sliders start at ${floor}.`
+    : "";
   knobLabels();
 }
 
@@ -448,7 +471,8 @@ function mealEl(day, m, keyPrefix = "") {
   const el = document.createElement("div");
   el.className = "meal";
   if (!m.recipe_id) {
-    el.innerHTML = `<div class="kind">${m.meal}</div><div class="unplanned">Nothing to cook. Add something to the pantry or turn on shopping.</div>`;
+    el.innerHTML = `<div class="kind">${m.meal}</div><div class="unplanned">Nothing to cook.</div>
+      <div class="why">${esc(m.why || "Add something to the pantry or turn on shopping.")}</div>`;
     return el;
   }
   if (m.leftovers_from != null) {
