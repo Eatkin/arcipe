@@ -22,7 +22,7 @@ dev = ["ruff", "ty", "pytest", "pre-commit"]
 ui = ["playwright"]
 scrape = [
     "setuptools>=84.2.1",
-    "undetected-chromedriver>=3.5.5",
+    "undetected-chromedriver==3.5.5",  # NOT the PyPI package "undetected" (taken over)
 ]
 
 [build-system]

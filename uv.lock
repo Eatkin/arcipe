@@ -220,7 +220,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "setuptools", marker = "extra == 'scrape'", specifier = ">=84.2.1" },
     { name = "ty", marker = "extra == 'dev'" },
-    { name = "undetected-chromedriver", marker = "extra == 'scrape'", specifier = ">=3.5.5" },
+    { name = "undetected-chromedriver", marker = "extra == 'scrape'", specifier = "==3.5.5" },
 ]
 provides-extras = ["dev", "ui", "scrape"]
 

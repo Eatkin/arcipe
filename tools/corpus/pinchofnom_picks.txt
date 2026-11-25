@@ -1,0 +1,87 @@
+# Pinch of Nom recipes worth fetching: slugs under https://pinchofnom.com/recipes/
+# Chosen from the vegan + vegetarian index (corpus/pinchofnom-urls.json, 1125
+# recipes) for new dish families and gaps, not volume: one archetype per family.
+# `fetch.py pinchofnom` fetches only these.
+
+# --- archetypes with no source yet ---
+cauliflower-madras
+saag-aloo
+vegan-katsu-curry
+gingerbread-porridge
+
+# --- new family: risotto (uses mushrooms, squash, leeks) ---
+butternut-squash-risotto
+garlic-mushroom-risotto
+slow-cooker-leek-and-mushroom-pearl-barley-risotto
+sweetcorn-risotto
+
+# --- new family: lasagne / layered pasta bake ---
+veggie-lasagne
+mushroom-and-spinach-lasagne
+chilli-bean-lasagne
+
+# --- new family: ragu / bolognese (mushroom, lentil) ---
+mushroom-bolognese
+veggie-spaghetti-bolognese
+
+# --- new family: dal ---
+creamy-lentil-dhal
+slow-cooker-sweet-potato-and-red-lentil-dhal
+
+# --- new family: biryani ---
+vegetable-biryani
+garlic-mushroom-biryani
+
+# --- new family: keema ---
+mushroom-keema
+
+# --- new family: stuffed veg ---
+slow-cooker-stuffed-peppers
+stuffed-squash
+imam-bayildi
+
+# --- new family: gnocchi ---
+butternut-squash-and-sage-gnocchi
+mediterranean-style-gnocchi-traybake
+
+# --- new family: Sunday roast centrepiece ---
+chestnut-roast
+veggie-wellington
+
+# --- new family: Thai curry ---
+vegetarian-thai-style-green-curry
+yellow-thai-style-curry
+
+# --- new family: Caribbean / Creole ---
+jamaican-rice-and-peas
+caribbean-vegetable-stew
+vegetarian-gumbo
+
+# --- Chinese (unused cuisine context) ---
+hot-and-sour-soup
+salt-and-pepper-tofu
+sticky-garlic-and-chilli-tofu
+vegetarian-sweet-and-sour
+broccoli-and-mushroom-stir-fry
+chinese-style-curried-noodles
+fried-rice-chinese-fakeaway
+
+# --- curries filling out existing families ---
+chana-masala
+vegetable-korma
+vegetarian-tikka-masala
+mushroom-and-spinach-curry
+yellow-pea-and-sweet-potato-curry
+bombay-potatoes
+
+# --- stews and pies on existing archetypes (mushroom-heavy) ---
+bean-and-mushroom-bourguignon
+lentil-stew-with-herby-dumplings
+mushroom-and-nut-cottage-pie
+samosa-pie
+mushroom-chilli
+
+# --- pasta ---
+spaghetti-alla-puttanesca
+roasted-butternut-squash-pasta
+pesto-and-green-bean-spaghetti
