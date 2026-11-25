@@ -28,7 +28,7 @@ green_grain_bowl:
     More rustic than the pasta — sauce is more of a dressing than a coating.
   colour_dominant: green
   cuisine_context: []
-  preferred_ingredients: []
+  preferred_ingredients: [farro, quinoa, pearl_barley, millet, bulgur, buckwheat]  # whole grains over rice
   required_ingredients: []
   slots: [grain_base, green_sauce, protein_bulk, aromatic_base, acid_bright, texture_top]
   slot_overrides:
