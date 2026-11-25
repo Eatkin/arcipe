@@ -46,7 +46,7 @@ const isWeekend = (s) => [0, 6].includes(parseDay(s).getDay());
 function defaults() {
   return {
     people: 2, days: 7, meals: ["dinner"], start_date: today(),
-    weeknight: 45, weekend: NO_LIMIT, weights: { ...META.weights }, effort: 3, seed: 0,
+    weeknight: 45, weekend: NO_LIMIT, handson: NO_LIMIT, weights: { ...META.weights }, effort: 3, seed: 0,
     shopping: false, pins: {},
   };
 }
@@ -335,6 +335,7 @@ function renderKnobs() {
   $("start_date").value = state.start_date;
   $("weeknight").value = state.weeknight;
   $("weekend").value = state.weekend;
+  $("handson").value = state.handson;
   $("effort").value = state.effort;
   $("shopping").checked = state.shopping;
   $("meals").innerHTML = META.meals.map((m) => `
@@ -372,6 +373,10 @@ function applyTimeFloor() {
     $(id).min = floor;
     if (state[id] < floor) { state[id] = floor; $(id).value = floor; save(); }
   }
+  const h = META.least_hands_on || {};
+  const handsFloor = Math.max(5, Math.floor(Math.max(0, ...state.meals.map((m) => h[m] || 0)) / 5) * 5);
+  $("handson").min = handsFloor;
+  if (state.handson < handsFloor) { state.handson = handsFloor; $("handson").value = handsFloor; save(); }
   const q = META.quickest_minutes || {};
   const slowest = state.meals.filter((m) => q[m]).sort((a, b) => q[b] - q[a])[0];
   $("time-floor").textContent = slowest
@@ -383,6 +388,7 @@ function applyTimeFloor() {
 function knobLabels() {
   $("weeknight-val").textContent = minutesWord(state.weeknight);
   $("weekend-val").textContent = minutesWord(state.weekend);
+  $("handson-val").textContent = minutesWord(state.handson);
   $("effort-val").textContent = EFFORT_WORDS[state.effort];
   for (const k of Object.keys(META.weight_scale)) {
     $(`w-${k}`).title = `weight ${Number(state.weights[k]).toFixed(1)} (default ${META.weights[k]})`;
@@ -401,6 +407,7 @@ function requestBody() {
   return {
     people: state.people, days: state.days, meals: state.meals, start_date: state.start_date,
     weeknight_minutes: limit(state.weeknight), weekend_minutes: limit(state.weekend),
+    weeknight_active_minutes: limit(state.handson),
     weights: state.weights, effort: state.effort, seed: state.seed, shopping: state.shopping,
     pins: planPins(),
   };
@@ -1091,7 +1098,7 @@ async function boot() {
     $(id).addEventListener("input", (e) => { state[id] = Number(e.target.value) || 1; changed(); });
   }
   $("start_date").addEventListener("change", (e) => { state.start_date = e.target.value || today(); changed(); });
-  for (const id of ["weeknight", "weekend", "effort"]) {
+  for (const id of ["weeknight", "weekend", "handson", "effort"]) {
     $(id).addEventListener("input", (e) => { state[id] = Number(e.target.value); knobLabels(); changed(); });
   }
   $("shopping").addEventListener("change", (e) => { state.shopping = e.target.checked; changed(); });

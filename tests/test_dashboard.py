@@ -474,3 +474,12 @@ def test_options_for_an_unsaved_plan():
 
     got = options_request({**body, "choice": choice, "day": 1, "meal": "dinner"}, fb)
     assert all({"pick", "name", "minutes", "delta"} <= set(o) for o in got["options"])
+
+
+def test_hands_on_limit_on_weeknights_only():
+    args, _ = solve_args(
+        {"start_date": "2026-12-04", "days": 3, "weeknight_active_minutes": 15},
+        Feedback(recipes=RECIPES),
+    )
+    assert args["max_active_minutes"] == [15, None, None]  # Fri, Sat, Sun
+    assert meta()["least_hands_on"]["dinner"] > 0

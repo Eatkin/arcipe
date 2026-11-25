@@ -65,6 +65,15 @@ InventoryInput = Mapping[str, InventoryEntry | Sequence[InventoryEntry]]
 MinutesLimit = int | None | Sequence[int | None]
 
 
+def within_limits(
+    res: Resolution, max_minutes: int | None, max_active: int | None
+) -> bool:
+    """Quick enough: start to plate, and hands-on."""
+    return (max_minutes is None or res.timing.total <= max_minutes) and (
+        max_active is None or res.timing.active <= max_active
+    )
+
+
 def limit_for(max_minutes: MinutesLimit, day: int) -> int | None:
     """The time limit on plan day `day` (1-based)."""
     if max_minutes is None or isinstance(max_minutes, int):
@@ -544,12 +553,13 @@ def _pick(
     rng: random.Random,
     max_minutes: int | None = None,
     feedback: Feedback | None = None,
+    max_active: int | None = None,
 ) -> RecipeScore | None:
     viable = [
         rs
         for rs in ranked
         if rs.resolution.success
-        and (max_minutes is None or rs.resolution.timing.total <= max_minutes)
+        and within_limits(rs.resolution, max_minutes, max_active)
     ]
     fresh = [rs for rs in viable if rs.recipe_id not in used_recipes]
     pool = fresh or viable  # allow repeats once every recipe has been used
@@ -581,6 +591,7 @@ def plan_week(
     rng: random.Random | None = None,
     feedback: Feedback | None = None,
     leftovers: Sequence[Leftover] = (),
+    max_active_minutes: MinutesLimit = None,
 ) -> MealPlan:
     """
     Plan meals across `days` days given an inventory. Greedy: one meal at a time.
@@ -602,6 +613,7 @@ def plan_week(
         meals_per_day:        list of meal names, e.g. ["lunch", "dinner"]
         people:               servings per meal
         max_minutes:          skip recipes that take longer than this, start to plate
+        max_active_minutes:   ...or need more hands-on time than this
                               (one number, or a list with one per day)
         max_same_class_gap:   avoid repeating ingredient class within N days
         ingredient_db:        ingredient db, defaults to INGREDIENTS
@@ -667,6 +679,7 @@ def plan_week(
                 rng,
                 limit_for(max_minutes, day),
                 feedback,
+                limit_for(max_active_minutes, day),
             )
             if best is None:
                 planned.append(MealSlot(day=day, meal=meal))

@@ -237,3 +237,16 @@ def test_alternatives_are_makeable_and_ranked():
     assert all(a.pick != result.pick(2, "dinner") for a in alts)
     deltas = [a.delta for a in alts]
     assert deltas == sorted(deltas)
+
+
+def test_hands_on_limit_is_hard():
+    result = _solve(1, days=3, max_active_minutes=15)
+    for slot in result.plan.slots:
+        if slot.resolution and slot.leftovers_from is None:
+            assert slot.resolution.timing.active <= 15
+
+
+def test_too_tight_a_hands_on_limit_says_so():
+    unplanned, reasons = _why(inventory=_DRIED, days=1, max_active_minutes=2)
+    assert unplanned == [(1, "dinner")]
+    assert "hands-on limit" in reasons[(1, "dinner")]

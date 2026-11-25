@@ -72,6 +72,7 @@ from garde.planner import stash
 from garde.planner import totals
 from garde.planner import urgency
 from garde.planner import variety_score
+from garde.planner import within_limits
 from garde.resolver import Resolution
 from garde.resolver import resolve
 from garde.vibes import Feedback
@@ -193,6 +194,7 @@ class _Problem:
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
     start_cache: dict[str, Resolution] | None = None
     pins: Pins = field(default_factory=dict)
+    max_active: MinutesLimit = None  # hands-on limit, like max_minutes
 
     def position(self, day: int, meal: str) -> int:
         return (day - 1) * len(self.meals) + _meal_index(self.meals, meal)
@@ -238,9 +240,10 @@ def _cook(p: _Problem, recipe_id: str, lots: list[Lot], day: int, times: int = 1
         affinity=p.feedback.ingredient_affinity(recipe) if p.feedback else None,
         buyable=buyable_on(day, p),
     )
-    limit = limit_for(p.max_minutes, day)
-    too_long = limit is not None and res.timing.total > limit
-    return None if not res.success or too_long else res
+    quick = within_limits(
+        res, limit_for(p.max_minutes, day), limit_for(p.max_active, day)
+    )
+    return res if res.success and quick else None
 
 
 def _buy(p: _Problem, consumed: Counter[str], lots: list[Lot]) -> Counter[str]:
@@ -424,17 +427,36 @@ def why_unplanned(p: _Problem, day: int, meal: str) -> str:
             f"The quickest {meal} you could make takes {min(times)} min,"
             f" over the {limit} min limit for this day."
         )
-    return (
+    return _too_hands_on(p, day, meal) or (
         f"Nothing left by then makes a {meal}: earlier meals used what it"
         f" needed, or it went off.{shop_hint}"
+    )
+
+
+def _too_hands_on(p: _Problem, day: int, meal: str) -> str | None:
+    limit = limit_for(p.max_active, day)
+    if limit is None:
+        return None
+    least = min(
+        res.timing.active
+        for rid, res in _makeable(p).items()
+        if meal in p.recipes[rid].meal_type
+    )
+    if least <= limit:
+        return None
+    return (
+        f"The least hands-on {meal} you could make needs {least} min of work,"
+        f" over the {limit} min hands-on limit for this day."
     )
 
 
 def quickest_minutes(
     recipes: dict[str, Recipe] | None = None,
     ingredient_db: dict[str, Ingredient] | None = None,
+    hands_on: bool = False,
 ) -> dict[str, int]:
-    """Quickest recipe for each meal type with everything in stock, in minutes."""
+    """Quickest recipe for each meal type with everything in stock, in minutes
+    (start to plate, or hands-on)."""
     db = ingredient_db or INGREDIENTS
     plenty = dict.fromkeys(db, 10000.0)
     out: dict[str, int] = {}
@@ -442,8 +464,9 @@ def quickest_minutes(
         res = resolve(r, plenty, db, servings=2, rng=random.Random(0))
         if not res.success:
             continue
+        minutes = res.timing.active if hands_on else res.timing.total
         for meal in r.meal_type:
-            out[meal] = min(out.get(meal, res.timing.total), res.timing.total)
+            out[meal] = min(out.get(meal, minutes), minutes)
     return out
 
 
@@ -531,6 +554,7 @@ def _problem(
     shopping: bool,
     leftovers: Sequence[Leftover],
     pins: Pins | None,
+    max_active: MinutesLimit = None,
 ) -> _Problem:
     db = ingredient_db or INGREDIENTS
     recipes = recipes or RECIPES
@@ -554,6 +578,7 @@ def _problem(
         shopping=shopping,
         leftovers=tuple(leftovers),
         pins=dict(pins or {}),
+        max_active=max_active,
     )
 
 
@@ -572,6 +597,7 @@ def _greedy(p: _Problem, inventory: InventoryInput | None, seed: float) -> Choic
         rng=random.Random(seed),
         feedback=p.feedback,
         leftovers=p.leftovers,
+        max_active_minutes=p.max_active,
     )
     picks = [
         LEFTOVERS if s.leftovers_from is not None else s.recipe_id for s in plan.slots
@@ -602,6 +628,7 @@ def optimise_week(
     leftovers: Sequence[Leftover] = (),
     pins: Pins | None = None,
     start: Sequence[str | None] | None = None,
+    max_active_minutes: MinutesLimit = None,
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
@@ -609,7 +636,8 @@ def optimise_week(
     Never does worse than the greedy planner: the search starts from its plan.
     shopping=True lets the plan buy things (see module docstring); the bill is
     in result.plan.bought and result.plan.shopping_list().
-    max_minutes can be one limit or a list with one per day.
+    max_minutes can be one limit or a list with one per day, and so can
+    max_active_minutes (hands-on time).
     progress, if given, hears how the search is going (see Progress).
     leftovers are cooked dishes already in the fridge (garde.pantry.to_leftovers).
     pins fix meals by hand: {(day, meal): "chilli" | "chilli*2" | LEFTOVERS | SKIP}.
@@ -631,6 +659,7 @@ def optimise_week(
         shopping,
         leftovers,
         pins,
+        max_active_minutes,
     )
     options = _options(p)
     greedy = _greedy(p, inventory, rng.random())
@@ -704,6 +733,7 @@ def alternatives(
     shopping: bool = False,
     leftovers: Sequence[Leftover] = (),
     pins: Pins | None = None,
+    max_active_minutes: MinutesLimit = None,
     **_: object,
 ) -> list[Alternative]:
     """
@@ -726,6 +756,7 @@ def alternatives(
         shopping,
         leftovers,
         pins,
+        max_active_minutes,
     )
     base = tuple(choice)
     if len(base) != p.days * len(p.meals):

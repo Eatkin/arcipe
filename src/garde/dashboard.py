@@ -20,7 +20,8 @@ Endpoints:
     GET  /api/household    {not_kept: [ids]}: staples this kitchen doesn't keep
     PUT  /api/household    same shape; plans shop for those instead
     POST /api/plan         {days, meals, people, start_date, weeknight_minutes,
-                            weekend_minutes, max_minutes, weights, effort, seed,
+                            weekend_minutes, max_minutes, weeknight_active_minutes,
+                            weights, effort, seed,
                             shopping, inventory}  -> the plan
                            Without `inventory` it plans from the saved pantry.
     POST /api/plan/stream  same body; Server-Sent Events: `progress` events while
@@ -212,6 +213,7 @@ def meta() -> dict[str, Any]:
         "weight_scale": WEIGHT_SCALE,
         "meals": list(MEALS),
         "quickest_minutes": _quickest(),
+        "least_hands_on": _least_hands_on(),
         "today": date.today().isoformat(),
     }
 
@@ -220,6 +222,12 @@ def meta() -> dict[str, Any]:
 def _quickest() -> dict[str, int]:
     """Quickest recipe per meal type, for the time sliders' floor."""
     return quickest_minutes(RECIPES, INGREDIENTS)
+
+
+@functools.cache
+def _least_hands_on() -> dict[str, int]:
+    """Least hands-on recipe per meal type, for the hands-on slider's floor."""
+    return quickest_minutes(RECIPES, INGREDIENTS, hands_on=True)
 
 
 def _source(url: str) -> dict[str, str]:
@@ -386,6 +394,17 @@ def _minutes(body: dict, key: str) -> int | None:
     return _int(body, key, 0, 0, 24 * 60) or None
 
 
+def _hands_on_limits(body: dict, start: date, days: int) -> list[int | None] | None:
+    """A hands-on limit on weeknights (weekends have none), or None."""
+    weeknight = _minutes(body, "weeknight_active_minutes")
+    if weeknight is None:
+        return None
+    return [
+        None if (start + timedelta(days=d)).weekday() >= 5 else weeknight
+        for d in range(days)
+    ]
+
+
 def _time_limits(body: dict, start: date, days: int) -> int | list[int | None] | None:
     """One limit for every day, or weeknight / weekend limits (Sat and Sun)."""
     if "weeknight_minutes" not in body and "weekend_minutes" not in body:
@@ -460,6 +479,7 @@ def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
         "meals_per_day": meals_per_day,
         "people": _int(body, "people", 2, 1, 12),
         "max_minutes": _time_limits(body, start, days),
+        "max_active_minutes": _hands_on_limits(body, start, days),
         "weights": weights_from(raw_weights),
         "iterations": iterations,
         "restarts": restarts,
