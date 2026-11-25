@@ -10,6 +10,11 @@ const EFFORT_WORDS = ["", "quick look", "light", "normal", "thorough", "leave no
 let META = null;
 let state = null;          // settings, kept in localStorage
 let pantry = [];           // [{id, amount, use_by, area}], kept on the server
+let dishes = [];           // [{recipe_id, portions, use_by, cooked, grams_per_portion}], same
+let lastResult = null;     // the shown plan, as /api/plan returned it
+let lastBody = null;       // ...and the settings that made it
+let savedPlans = [];       // summaries from /api/plans
+let savedPlan = null;      // the saved plan being looked at
 let ratings = {};          // "day-meal" -> +1/-1 for the shown plan
 let running = null;        // AbortController while a search runs
 let hasPlan = false;
@@ -19,6 +24,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const ingById = (id) => META.ingredients.find((i) => i.id === id);
+const recipeName = (id) => (META.recipes.find((r) => r.id === id) || { name: id }).name;
 const ingByName = (name) => {
   const n = name.trim().toLowerCase();
   return META.ingredients.find((i) => i.name.toLowerCase() === n || i.id === n);
@@ -61,12 +67,14 @@ function load() {
 
 // ------------------------------------------------------------------ tabs
 function route() {
-  const tab = location.hash === "#pantry" ? "pantry" : "plan";
-  for (const t of ["plan", "pantry"]) {
+  const [tab0, planId] = location.hash.slice(1).split("/");
+  const tab = ["pantry", "plans"].includes(tab0) ? tab0 : "plan";
+  for (const t of ["plan", "plans", "pantry"]) {
     $(`view-${t}`).classList.toggle("on", t === tab);
     $(`tab-${t}`).classList.toggle("on", t === tab);
   }
   if (tab === "plan") renderPantrySummary();
+  if (tab === "plans") showPlans(planId).catch((e) => showError(e.message));
 }
 
 // ------------------------------------------------------------------ pantry
@@ -107,8 +115,38 @@ function renderPantry() {
     });
     box.appendChild(panel);
   }
+  renderDishes();
   $("staples").innerHTML = META.ingredients.filter((i) => i.unlimited)
     .map((i) => `<span class="chip">${esc(i.name)}</span>`).join("");
+}
+
+function renderDishes() {
+  $("dishes-count").textContent = plural(dishes.length, "dish").replace("dishs", "dishes");
+  if (!dishes.length) {
+    $("dishes").innerHTML = `<div class="hint">Nothing cooked waiting. Tick a meal off on a saved plan and spare portions land here.</div>`;
+    return;
+  }
+  $("dishes").innerHTML = `<div class="drow prow head"><span>Dish</span><span>Portions</span><span>Use by</span><span></span><span></span></div>`;
+  for (const dish of dishes) {
+    const el = document.createElement("div");
+    el.className = "drow";
+    el.innerHTML = `
+      <span class="dname" title="${dish.cooked ? `cooked ${esc(prettyDay(dish.cooked))}` : ""}">${esc(recipeName(dish.recipe_id))}</span>
+      <input type="number" min="0" step="0.5" value="${esc(dish.portions)}" aria-label="Portions">
+      <input type="date" value="${esc(dish.use_by)}" aria-label="Use by">
+      ${badge(dish.use_by)}
+      <button class="x" title="Eaten or binned">×</button>`;
+    const [portions, useBy] = el.querySelectorAll("input");
+    portions.addEventListener("input", () => { dish.portions = Number(portions.value) || 0; pantryChanged(); });
+    useBy.addEventListener("change", () => {
+      if (!useBy.value) return;
+      dish.use_by = useBy.value; renderPantry(); pantryChanged();
+    });
+    el.querySelector("button").addEventListener("click", () => {
+      dishes.splice(dishes.indexOf(dish), 1); renderPantry(); pantryChanged();
+    });
+    $("dishes").appendChild(el);
+  }
 }
 
 // This area's things first, then everything else
@@ -161,7 +199,7 @@ function savePantry() {
     .map((r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null }));
   pantrySaving = fetch("/api/pantry", {
     method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items }),
+    body: JSON.stringify({ items, dishes: dishes.filter((d) => d.portions > 0) }),
   }).then(async (res) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
@@ -176,9 +214,13 @@ async function flushPantry() {
   else await pantrySaving;
 }
 
-async function loadPantry() {
-  const data = await (await fetch("/api/pantry")).json();
+function setPantry(data) {
   pantry = data.items.map((i) => ({ ...i, use_by: i.use_by || "", area: areaOf(i.id) }));
+  dishes = data.dishes || [];
+}
+
+async function loadPantry() {
+  setPantry(await (await fetch("/api/pantry")).json());
   // One-off move of the old in-browser fridge list
   const old = JSON.parse(localStorage.getItem("garde.state.v1") || "null");
   if (!pantry.length && old && old.fridge && old.fridge.length) {
@@ -194,15 +236,18 @@ async function loadPantry() {
 
 function renderPantrySummary() {
   const have = pantry.filter((r) => r.id && String(r.amount).trim());
-  if (!have.length) {
+  if (!have.length && !dishes.length) {
     $("pantry-summary").innerHTML = `<p class="hint">Nothing in yet. Add what you've got and the plan will use it up.</p>`;
     return;
   }
   const soon = have.filter((r) => r.use_by && daysBetween(today(), r.use_by) <= 2)
     .sort((a, b) => a.use_by.localeCompare(b.use_by));
+  const cooked = dishes.length ? `, ${dishes.length} cooked dish${dishes.length === 1 ? "" : "es"}` : "";
   $("pantry-summary").innerHTML = `
-    <div class="summary-count">${plural(have.length, "thing")} in${soon.length ? `, <b>${soon.length}</b> to use soon` : ""}</div>
-    <ul class="summary-list">${soon.map((r) => `
+    <div class="summary-count">${plural(have.length, "thing")} in${cooked}${soon.length ? `, <b>${soon.length}</b> to use soon` : ""}</div>
+    <ul class="summary-list">${dishes.map((d) => `
+      <li><span>${esc(recipeName(d.recipe_id))} × ${d.portions}</span>${badge(d.use_by)}</li>`).join("")}
+    ${soon.map((r) => `
       <li><span>${esc(ingById(r.id).name)}</span>${badge(r.use_by)}</li>`).join("")}</ul>`;
 }
 
@@ -273,18 +318,20 @@ async function plan() {
   showError("");
   await flushPantry();
   running = new AbortController();
+  const body = requestBody();
   setRunning(true);
   progress({ done: 0, total: 1 }, "Starting…");
   try {
     const res = await fetch("/api/plan/stream", {
       method: "POST", signal: running.signal,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody()),
+      body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     await readEvents(res.body, {
       progress: (d) => progress(d),
       result: (d) => {
+        lastBody = body;
         render(d);
         progress({ done: 1, total: 1 }, `Done: ${d.evaluations.toLocaleString()} different weeks tried.`);
       },
@@ -352,6 +399,9 @@ function metric(label, now, before, unit, lowerIsBetter = true, digits = 0) {
 
 function render(data) {
   hasPlan = true;
+  lastResult = data;
+  $("save-btn").disabled = false;
+  $("save-btn").textContent = "Save plan";
   document.querySelector("main").classList.remove("is-stale");
   ratings = {};
   const b = data.breakdown, g = data.greedy;
@@ -394,17 +444,18 @@ function howTo(m) {
   </details>`;
 }
 
-function mealEl(day, m) {
+function mealEl(day, m, keyPrefix = "") {
   const el = document.createElement("div");
   el.className = "meal";
   if (!m.recipe_id) {
     el.innerHTML = `<div class="kind">${m.meal}</div><div class="unplanned">Nothing to cook. Add something to the pantry or turn on shopping.</div>`;
     return el;
   }
-  if (m.leftovers_from) {
+  if (m.leftovers_from != null) {
+    const from = m.leftovers_from_date ? prettyDay(m.leftovers_from_date) : `day ${m.leftovers_from}`;
     el.innerHTML = `<div class="kind">${m.meal}</div>
       <div class="title"><span class="name">${esc(m.recipe_name)}</span>
-      <span class="chip">leftovers from day ${m.leftovers_from}</span></div>`;
+      <span class="chip">leftovers from ${esc(from)}</span></div>`;
     return el;
   }
   const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
@@ -420,7 +471,7 @@ function mealEl(day, m) {
       <button data-r="1" title="Cooked it, liked it">👍</button>
       <button data-r="-1" title="Cooked it, not again" class="down">👎</button>
     </div>`;
-  const key = `${day}-${m.meal}`;
+  const key = `${keyPrefix}${day}-${m.meal}`;
   el.querySelectorAll(".rate button").forEach((btn) => {
     if (ratings[key] === Number(btn.dataset.r)) btn.classList.add("on");
     btn.addEventListener("click", () => rate(key, m, Number(btn.dataset.r), el));
@@ -472,6 +523,133 @@ function renderStock(stock, plan) {
 
 const pct = (a, b) => (b ? Math.max(0, Math.min(100, (100 * a) / b)) : 0);
 
+// ------------------------------------------------------------------ saved plans
+async function api(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json" },
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function savePlan() {
+  if (!lastResult) return;
+  try {
+    const saved = await api("/api/plans", { method: "POST", body: { result: lastResult, settings: lastBody } });
+    $("save-btn").disabled = true;
+    $("save-btn").textContent = "Saved ✓";
+    $("status").textContent = `saved: ${saved.name}`;
+    location.hash = `#plans/${saved.id}`;
+  } catch (e) { showError(`Plan not saved: ${e.message}`); }
+}
+
+async function showPlans(planId) {
+  savedPlans = (await api("/api/plans")).plans;
+  const id = planId || (savedPlans[0] && savedPlans[0].id);
+  savedPlan = id ? await api(`/api/plans/${id}`).catch(() => null) : null;
+  renderPlanList();
+  renderSaved();
+}
+
+function renderPlanList() {
+  if (!savedPlans.length) { $("plans-list").innerHTML = `<p class="hint">None yet.</p>`; return; }
+  $("plans-list").innerHTML = `<ul class="plan-list">${savedPlans.map((p) => `
+    <li><a href="#plans/${esc(p.id)}" class="${savedPlan && savedPlan.id === p.id ? "on" : ""}">
+      <div>${esc(p.name)}</div>
+      <div class="sub">${p.cooked} of ${plural(p.meals, "meal")} done · saved ${esc(prettyDay(p.saved_at.slice(0, 10)))}</div>
+    </a></li>`).join("")}</ul>`;
+}
+
+function renderSaved() {
+  $("saved-empty").style.display = savedPlan ? "none" : "block";
+  $("saved").style.display = savedPlan ? "block" : "none";
+  if (!savedPlan) return;
+  const s = savedPlan.settings || {};
+  $("saved-name").textContent = savedPlan.name;
+  $("saved-meta").textContent = [
+    plural(savedPlan.people, "person").replace("persons", "people"),
+    plural(savedPlan.plan.days.length, "day"),
+    (s.meals || []).join(", "),
+  ].filter(Boolean).join(" · ");
+  const grid = $("saved-grid");
+  grid.innerHTML = "";
+  for (const day of savedPlan.plan.days) {
+    const card = document.createElement("section");
+    card.className = "panel day";
+    card.innerHTML = `<h3><span>${prettyDay(day.date)}</span>${day.date === today() ? `<span class="chip">today</span>` : ""}</h3>`;
+    for (const m of day.meals) card.appendChild(savedMealEl(day, m));
+    grid.appendChild(card);
+  }
+}
+
+function tookText(done) {
+  const parts = [];
+  if (done.taken.length) {
+    const names = [...new Set(done.taken.map((i) => (ingById(i.id) || { name: i.id }).name))];
+    parts.push(`Took out ${names.join(", ")}`);
+  }
+  for (const i of done.added) parts.push(`put away ${(ingById(i.id) || { name: i.id }).name}`);
+  if (done.dish) parts.push(`put away ${plural(done.dish.portions, "portion")}`);
+  const eaten = done.eaten.reduce((n, d) => n + d.portions, 0);
+  if (done.eaten.length) parts.push(`${plural(eaten, "portion")} out of the fridge`);
+  return parts.length ? `${parts.join("; ")}.` : "Nothing in the pantry to take out.";
+}
+
+function savedMealEl(day, m) {
+  const el = mealEl(day.day, m, `${savedPlan.id}-`);
+  if (!m.recipe_id) return el;
+  el.classList.toggle("done", Boolean(m.cooked));
+  const leftovers = m.leftovers_from != null;
+  const box = document.createElement("div");
+  box.innerHTML = `<label class="cook"><input type="checkbox" ${m.cooked ? "checked" : ""}>
+      ${leftovers ? "Eaten" : "Cooked"}${m.cooked ? ` <span class="chip">${esc(prettyDay(m.cooked.on))}</span>` : ""}</label>
+    ${m.cooked ? `<div class="took">${esc(tookText(m.cooked))}</div>` : ""}`;
+  el.insertBefore(box, el.querySelector(".kind").nextSibling);
+  const tick = box.querySelector("input");
+  tick.addEventListener("change", () => cookMeal(day.day, m, tick));
+  return el;
+}
+
+async function cookMeal(day, m, tick) {
+  tick.disabled = true;
+  try {
+    await flushPantry();
+    const data = await api(`/api/plans/${savedPlan.id}/cook`, {
+      method: "POST", body: { day, meal: m.meal, cooked: tick.checked, date: today() },
+    });
+    savedPlan = data.plan;
+    setPantry(data.pantry);
+    renderPantry();
+    markStale();
+    savedPlans = (await api("/api/plans")).plans;
+    renderPlanList();
+    renderSaved();
+    $("status").textContent = tick.checked ? `${m.recipe_name}: done, pantry updated` : `${m.recipe_name}: put back`;
+  } catch (e) {
+    showError(e.message);
+    tick.checked = !tick.checked;
+    tick.disabled = false;
+  }
+}
+
+async function deletePlan() {
+  if (!savedPlan) return;
+  const btn = $("saved-delete");
+  if (btn.dataset.armed !== "1") {  // two clicks, no browser dialog
+    btn.dataset.armed = "1"; btn.textContent = "Really delete?";
+    setTimeout(() => { btn.dataset.armed = ""; btn.textContent = "Delete"; }, 3000);
+    return;
+  }
+  btn.dataset.armed = ""; btn.textContent = "Delete";
+  await api(`/api/plans/${savedPlan.id}`, { method: "DELETE" });
+  savedPlan = null;
+  if (location.hash === "#plans") await showPlans();
+  else location.hash = "#plans";
+}
+
 // ------------------------------------------------------------------ boot
 async function boot() {
   META = await (await fetch("/api/meta")).json();
@@ -493,6 +671,8 @@ async function boot() {
   $("reshuffle").addEventListener("click", () => { state.seed = Math.floor(Math.random() * 1e9); changed(); plan(); });
   $("reset-weights").addEventListener("click", () => { state.weights = { ...META.weights }; renderKnobs(); changed(); });
   $("plan-btn").addEventListener("click", plan);
+  $("save-btn").addEventListener("click", savePlan);
+  $("saved-delete").addEventListener("click", () => deletePlan().catch((e) => showError(e.message)));
   $("status").textContent = "";
 }
 boot().catch((e) => showError(`Couldn't reach the planner: ${e.message}`));

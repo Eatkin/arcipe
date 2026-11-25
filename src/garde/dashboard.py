@@ -10,8 +10,10 @@ see the week and how to cook it, rate what you cooked. Standard library only.
 Endpoints:
     GET  /                 the page (static/dashboard.html, .css, .js)
     GET  /api/meta         ingredients, recipes, weights and what they mean
-    GET  /api/pantry       {items: [{id, amount, use_by}]}
-    PUT  /api/pantry       same shape; saved to $GARDE_HOME/pantry.json
+    GET  /api/pantry       {items: [{id, amount, use_by}],
+                            dishes: [{recipe_id, portions, use_by, cooked, ...}]}
+    PUT  /api/pantry       same shape; saved to $GARDE_HOME/pantry.json. Without
+                           `dishes` the saved dishes are kept.
     POST /api/plan         {days, meals, people, start_date, weeknight_minutes,
                             weekend_minutes, max_minutes, weights, effort, seed,
                             shopping, inventory}  -> the plan
@@ -20,6 +22,14 @@ Endpoints:
                            it searches, then one `result` (or `error`). Closing
                            the connection stops the search.
     POST /api/rate         {recipe_id, ingredients, rating, note}
+    GET  /api/plans        saved plans, newest first: [{id, name, saved_at, ...}]
+    POST /api/plans        {result, settings, name} -> the saved plan
+                           (result is what /api/plan returned)
+    GET  /api/plans/<id>   one saved plan
+    DELETE /api/plans/<id>
+    POST /api/plans/<id>/cook  {day, meal, cooked: true|false, date}
+                           tick a meal off (or back on): takes its ingredients
+                           out of the pantry -> {plan, pantry}
 """
 
 from __future__ import annotations
@@ -28,6 +38,7 @@ import argparse
 import contextlib
 import json
 import random
+import re
 import threading
 import time
 from collections.abc import Callable
@@ -43,6 +54,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from garde import pantry
+from garde import plans
 from garde.loader import INGREDIENTS
 from garde.loader import RECIPES
 from garde.method import display_name
@@ -130,6 +142,8 @@ WEIGHT_SCALE: dict[str, dict[str, Any]] = {
     },
 }
 _FEEDBACK_LOCK = threading.Lock()
+# Held while the pantry or a saved plan is read, changed and written back
+_KITCHEN_LOCK = threading.Lock()
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +195,8 @@ def _meal(r: Resolution) -> dict[str, Any]:
         "active_minutes": r.timing.active,
         "make_ahead": [display_name(i) for i in r.timing.make_ahead],
         "ingredients": sorted(r.used),
+        "consumed": {i: round(g, 1) for i, g in sorted(r.consumed.items())},
+        "made": {i: round(g, 1) for i, g in sorted(r.made.items())},
         "slots": [
             {
                 "label": a.slot_label,
@@ -210,6 +226,11 @@ def _plan(plan: MealPlan, first_day: date) -> dict[str, Any]:
                 {
                     "meal": slot.meal,
                     "leftovers_from": slot.leftovers_from,
+                    "leftovers_from_date": None
+                    if slot.leftovers_from is None
+                    else (
+                        first_day + timedelta(days=slot.leftovers_from - 1)
+                    ).isoformat(),
                     **(
                         _meal(slot.resolution)
                         if slot.resolution
@@ -317,12 +338,18 @@ def _time_limits(body: dict, start: date, days: int) -> int | list[int | None] |
     ]
 
 
-def _inventory(body: dict, start: date) -> dict:
+def _stock(body: dict, start: date) -> tuple[dict, list]:
+    """(inventory, leftovers): from the body, or from the saved pantry without one."""
     if "inventory" not in body:
-        return pantry.to_inventory(pantry.load(), start)
-    return {
+        saved = pantry.load()
+        return (
+            pantry.to_inventory(saved.items, start),
+            pantry.to_leftovers(saved.dishes, start),
+        )
+    inventory = {
         k: v for k, v in (body.get("inventory") or {}).items() if v not in ("", None)
     }
+    return inventory, []
 
 
 def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
@@ -337,8 +364,10 @@ def solve_args(body: dict, feedback: Feedback) -> tuple[dict[str, Any], date]:
     }
     start = _date(body, "start_date")
     days = _int(body, "days", 7, 1, 14)
+    inventory, leftovers = _stock(body, start)
     args = {
-        "inventory": _inventory(body, start),
+        "inventory": inventory,
+        "leftovers": leftovers,
         "days": days,
         "meals_per_day": [m for m in MEALS if m in meals],
         "people": _int(body, "people", 2, 1, 12),
@@ -401,19 +430,69 @@ def rate_request(body: dict, feedback: Feedback) -> dict[str, Any]:
 
 
 def pantry_get(feedback: Feedback) -> dict[str, Any]:
-    return {"items": [asdict(i) for i in pantry.load()]}
+    return pantry.load().to_json()
 
 
 def pantry_put(body: dict, feedback: Feedback) -> dict[str, Any]:
-    try:
-        items = pantry.validate(body.get("items"))
-    except ValueError as e:
-        raise BadRequestError(str(e)) from e
-    pantry.save(items)
-    return {"items": [asdict(i) for i in items]}
+    with _KITCHEN_LOCK:
+        try:
+            items = pantry.validate(body.get("items"))
+            dishes = (
+                pantry.validate_dishes(body["dishes"])
+                if "dishes" in body
+                else pantry.load().dishes
+            )
+        except ValueError as e:
+            raise BadRequestError(str(e)) from e
+        stock = pantry.Pantry(items, dishes)
+        pantry.save(stock)
+    return stock.to_json()
 
 
-ROUTES = {"/api/plan": plan_request, "/api/rate": rate_request}
+def plans_list(body: dict, feedback: Feedback) -> dict[str, Any]:
+    return {"plans": plans.list_plans()}
+
+
+def plan_save(body: dict, feedback: Feedback) -> dict[str, Any]:
+    return plans.save(body.get("result"), body.get("settings"), body.get("name"))
+
+
+def plan_get(plan_id: str, body: dict) -> dict[str, Any]:
+    return plans.load(plan_id)
+
+
+def plan_delete(plan_id: str, body: dict) -> dict[str, Any]:
+    plans.delete(plan_id)
+    return {"deleted": plan_id}
+
+
+def plan_cook(plan_id: str, body: dict) -> dict[str, Any]:
+    day = _int(body, "day", 0, 1, 14)
+    meal = body.get("meal")
+    if meal not in MEALS:
+        raise BadRequestError(f"meal must be one of {MEALS}")
+    when = _date(body, "date")
+    with _KITCHEN_LOCK:
+        record, stock = plans.cook_and_save(
+            plan_id, day, meal, cooked=bool(body.get("cooked", True)), when=when
+        )
+    return {"plan": record, "pantry": stock.to_json()}
+
+
+ROUTES = {
+    "POST /api/plan": plan_request,
+    "POST /api/rate": rate_request,
+    "PUT /api/pantry": pantry_put,
+    "POST /api/plans": plan_save,
+    "GET /api/plans": plans_list,
+}
+# /api/plans/<id>[/cook], by method
+PLAN_ROUTES = {
+    ("GET", ""): plan_get,
+    ("DELETE", ""): plan_delete,
+    ("POST", "/cook"): plan_cook,
+}
+_PLAN_PATH = re.compile(r"^/api/plans/([^/]+)(/cook)?$")
 
 
 def _body(raw: bytes) -> dict:
@@ -423,13 +502,22 @@ def _body(raw: bytes) -> dict:
     return body
 
 
-def handle_post(path: str, raw: bytes, feedback: Feedback) -> tuple[int, Any]:
-    routes = {**ROUTES, "PUT /api/pantry": pantry_put}
-    route = routes.get(path)
-    if route is None:
-        return HTTPStatus.NOT_FOUND, {"error": "not found"}
+def handle(method: str, url: str, raw: bytes, feedback: Feedback) -> tuple[int, Any]:
+    """An API request -> (status, JSON payload)."""
     try:
-        return HTTPStatus.OK, route(_body(raw), feedback)
+        route = ROUTES.get(f"{method} {url}")
+        if route is not None:
+            return HTTPStatus.OK, route(_body(raw), feedback)
+        found = _PLAN_PATH.match(url)
+        plan_route = found and PLAN_ROUTES.get((method, found.group(2) or ""))
+        if not found or not plan_route:
+            return HTTPStatus.NOT_FOUND, {"error": "not found"}
+        return HTTPStatus.OK, plan_route(found.group(1), _body(raw))
+    except plans.PlanError as e:
+        status = (
+            HTTPStatus.NOT_FOUND if str(e) == "no such plan" else HTTPStatus.BAD_REQUEST
+        )
+        return status, {"error": str(e)}
     except (BadRequestError, json.JSONDecodeError) as e:
         return HTTPStatus.BAD_REQUEST, {"error": str(e)}
 
@@ -495,16 +583,19 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/pantry":
             self._json(HTTPStatus.OK, pantry_get(self.feedback))
         else:
-            self._json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            self._json(*handle("GET", self.path, b"", self.feedback))
 
     def do_PUT(self) -> None:
-        self._json(*handle_post(f"PUT {self.path}", self._raw(), self.feedback))
+        self._json(*handle("PUT", self.path, self._raw(), self.feedback))
+
+    def do_DELETE(self) -> None:
+        self._json(*handle("DELETE", self.path, self._raw(), self.feedback))
 
     def do_POST(self) -> None:
         if self.path == "/api/plan/stream":
             self._stream()
             return
-        self._json(*handle_post(self.path, self._raw(), self.feedback))
+        self._json(*handle("POST", self.path, self._raw(), self.feedback))
 
     def _stream(self) -> None:
         try:

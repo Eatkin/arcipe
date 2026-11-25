@@ -223,3 +223,72 @@ def test_static_files_stay_in_static():
     assert static_file("/static/../dashboard.py") is None
     assert static_file("/static/..%2Fdashboard.py") is None
     assert static_file("/static/nope.js") is None
+
+
+def _json(req):
+    return json.loads(urllib.request.urlopen(req).read())
+
+
+def test_saved_plan_tick_off_and_back(server):
+    items = [
+        {"id": "red_lentils", "amount": "500g", "use_by": None},
+        {"id": "potato", "amount": "6", "use_by": None},
+        {"id": "carrot", "amount": "6", "use_by": "2026-12-05"},
+    ]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    settings = {"days": 2, "effort": 1, "start_date": "2026-12-01", "people": 2}
+    result = _json(_req(server + "/api/plan", settings))
+    for day in result["plan"]["days"]:
+        for m in day["meals"]:
+            if m["recipe_id"] and m["leftovers_from"] is None:
+                assert m["consumed"]
+    saved = _json(_req(server + "/api/plans", {"result": result, "settings": settings}))
+    listed = _json(server + "/api/plans")["plans"]
+    assert [p["id"] for p in listed] == [saved["id"]]
+    assert _json(f"{server}/api/plans/{saved['id']}") == saved
+
+    meal = next(m for m in result["plan"]["days"][0]["meals"] if m["recipe_id"])
+    url = f"{server}/api/plans/{saved['id']}/cook"
+    body = {"day": 1, "meal": meal["meal"], "date": "2026-12-01"}
+    ticked = _json(_req(url, body))
+    assert ticked["plan"]["plan"]["days"][0]["meals"][0]["cooked"]
+    assert ticked["pantry"] == _json(server + "/api/pantry")
+    assert ticked["pantry"]["items"] != items
+
+    back = _json(_req(url, {**body, "cooked": False}))
+    assert back["pantry"]["dishes"] == []
+    grams = {i["id"]: i["amount"] for i in back["pantry"]["items"]}
+    assert grams == {i["id"]: i["amount"] for i in items}
+
+    _json(_req(f"{server}/api/plans/{saved['id']}", method="DELETE"))
+    assert _json(server + "/api/plans")["plans"] == []
+
+
+def test_pantry_put_without_dishes_keeps_them(server):
+    dishes = [{"recipe_id": "lentil_soup", "portions": 2, "use_by": "2026-12-03"}]
+    _json(_req(server + "/api/pantry", {"items": [], "dishes": dishes}, "PUT"))
+    got = _json(_req(server + "/api/pantry", {"items": []}, "PUT"))
+    assert got["dishes"][0]["recipe_id"] == "lentil_soup"
+    args, _ = solve_args({"start_date": "2026-12-01"}, Feedback(recipes=RECIPES))
+    assert args["leftovers"][0].recipe_id == "lentil_soup"
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "body", "code"),
+    [
+        ("GET", "/api/plans/../pantry", None, 404),
+        ("GET", "/api/plans/20261125-183012-ab12", None, 404),
+        ("POST", "/api/plans", {"result": {}}, 400),
+        (
+            "POST",
+            "/api/plans/20261125-183012-ab12/cook",
+            {"day": 1, "meal": "brunch"},
+            400,
+        ),
+        ("PUT", "/api/plans", {}, 404),
+    ],
+)
+def test_plan_endpoints_reject_bad_requests(server, method, path, body, code):
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(server + path, body, method))
+    assert e.value.code == code

@@ -34,7 +34,8 @@ for the core package.
 | `planner.py` | lots with expiry, greedy planner, batch pots (`cook_batches`), leftover dishes |
 | `solver.py` | simulated annealing over the week; scores by simulating with the real resolver |
 | `timing.py`, `vibes.py`, `method.py` | DAG timing, learned taste from 👍/👎, cooking outline from the slot graph |
-| `pantry.py`, `dashboard.py` + `static/dashboard.{html,css,js}` | saved pantry (`$GARDE_HOME/pantry.json`), stdlib web UI with SSE search progress |
+| `pantry.py`, `plans.py` | saved pantry with cooked dishes (`$GARDE_HOME/pantry.json`); saved plans and ticking off cooked meals (`$GARDE_HOME/plans/`) |
+| `dashboard.py` + `static/dashboard.{html,css,js}` | stdlib web UI with SSE search progress |
 | `tools/corpus/` | scraping real recipes: `fetch.py` → `parse.py` → `analyse.py` |
 | `corpus/` | scraped pages and `recipes.json`: **gitignored**, local only |
 | `.scratch.md` | the user's running notes: ideas, follow-ups, done list. Keep it current |

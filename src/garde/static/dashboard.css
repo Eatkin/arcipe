@@ -178,3 +178,22 @@ td.waste { color: var(--warn); font-weight: 600; }
 .summary-list { list-style: none; padding: 0; margin: 0 0 12px; font-size: 13px; }
 .summary-list li { display: flex; justify-content: space-between; padding: 2px 0; }
 .summary-count { font-size: 15px; margin-bottom: 8px; }
+
+/* ---------------------------------------------------------- saved plans */
+.plan-list { list-style: none; margin: 0; padding: 0; }
+.plan-list a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); }
+.plan-list a:hover { background: var(--chip); }
+.plan-list a.on { background: var(--accent-soft); }
+.plan-list .sub { font-size: 12px; color: var(--muted); }
+.saved-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.saved-head > div { flex: 1; }
+.saved-title { font-size: 17px; font-weight: 650; }
+button.danger:hover { border-color: var(--warn); color: var(--warn); }
+.cook { display: flex; gap: 6px; align-items: center; font-weight: 550; margin: 6px 0; }
+.cook input { accent-color: var(--accent); width: 16px; height: 16px; }
+.meal.done .name { text-decoration: line-through; text-decoration-color: var(--muted); }
+.meal.done { opacity: .75; }
+.took { font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+.drow { display: grid; grid-template-columns: minmax(150px, 1fr) 76px 140px 80px 26px; gap: 6px;
+  margin-bottom: 6px; align-items: center; }
+.drow .dname { font-weight: 550; }

@@ -29,7 +29,8 @@ uv run --extra dev pytest             # tests
 | `solver.py` | Whole-week search, scoring each candidate week by simulating it |
 | `vibes.py` | Learns taste from 👍/👎 ratings |
 | `method.py` | A rough cooking outline from a recipe's slot graph |
-| `pantry.py` | What's in the kitchen, saved between visits |
+| `pantry.py` | What's in the kitchen (ingredients and cooked dishes), saved between visits |
+| `plans.py` | Saved plans, and ticking off what you cooked |
 | `dashboard.py` + `static/` | Local web UI: pantry, settings, live search progress, plan, how to cook, ratings |
 
 ### Data model
@@ -113,6 +114,15 @@ bad night doesn't ban anything.
   has an amount and a use-by date (the last good day). It's saved to
   `~/.garde/pantry.json` (or `$GARDE_HOME`) and plans start from it. Days left are
   counted from the plan's start date, and anything past its date is ignored.
+  **Cooked, in the fridge** lists leftover dishes (portions and a use-by); plans
+  serve them as leftovers meals before cooking anything new.
+- **Saved plans** tab: **Save plan** keeps the shown week in
+  `~/.garde/plans/<id>.json`. Tick a meal off as **Cooked** and its ingredients
+  come out of the pantry (the grams the plan worked out, soonest use-by first,
+  anything not listed skipped). The rest of a pot of beans goes in as cooked beans,
+  and portions beyond the people eating go in as a dish if the recipe keeps.
+  Ticking a leftovers meal as **Eaten** takes its portions out. Unticking puts it
+  all back.
 - **Plan** tab: settings on the left, with the solver weights as plain sliders
   ("Use up food: don't mind binning a bit ↔ use every last scrap"). Weeknights and
   weekends have separate time limits. Nothing runs until you press **Plan the

@@ -12,6 +12,7 @@
   <h1>Garde Manger</h1>
   <nav class="tabs" role="tablist">
     <a href="#plan" role="tab" id="tab-plan">Plan</a>
+    <a href="#plans" role="tab" id="tab-plans">Saved plans</a>
     <a href="#pantry" role="tab" id="tab-pantry">Pantry</a>
   </nav>
   <span class="status" id="status">loading…</span>
@@ -71,6 +72,7 @@
   <main>
     <section class="panel runbar">
       <button class="primary" id="plan-btn">Plan the week</button>
+      <button id="save-btn" disabled title="Keep this plan, to tick meals off as you cook them">Save plan</button>
       <div class="progress-wrap">
         <div class="progress"><span id="progress-bar"></span></div>
         <div class="progress-text" id="progress-text">Set things up on the left, then press Plan.</div>
@@ -95,11 +97,40 @@
   </main>
 </div>
 
+<!-- =============================================================== plans -->
+<div class="view layout" id="view-plans">
+  <aside>
+    <section class="panel">
+      <h2>Saved plans</h2>
+      <div id="plans-list"></div>
+    </section>
+  </aside>
+  <main id="saved-main">
+    <div class="empty" id="saved-empty">Plan a week, press <b>Save plan</b>, and it shows up here.
+      Tick meals off as you cook them and their ingredients come out of the pantry.</div>
+    <div id="saved" style="display:none">
+      <section class="panel saved-head">
+        <div>
+          <div class="saved-title" id="saved-name"></div>
+          <div class="hint" id="saved-meta"></div>
+        </div>
+        <button id="saved-delete" class="danger">Delete</button>
+      </section>
+      <div class="days" id="saved-grid"></div>
+    </div>
+  </main>
+</div>
+
 <!-- ============================================================== pantry -->
 <div class="view" id="view-pantry">
   <p class="intro">What's in. Amount is a count (“3” carrots) or a weight (“500g”).
     Use-by is the last good day; leave it blank for things that keep.
     Changes save as you go.</p>
+  <section class="panel" id="dishes-panel">
+    <div class="area-head"><h2>Cooked, in the fridge</h2><span class="count" id="dishes-count"></span></div>
+    <p class="hint">Leftovers from meals you've ticked off. The plan serves them before cooking something new.</p>
+    <div id="dishes"></div>
+  </section>
   <div class="areas" id="areas"></div>
   <section class="panel">
     <details>

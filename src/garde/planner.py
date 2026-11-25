@@ -576,6 +576,7 @@ def plan_week(
     randomise: bool = True,
     rng: random.Random | None = None,
     feedback: Feedback | None = None,
+    leftovers: Sequence[Leftover] = (),
 ) -> MealPlan:
     """
     Plan meals across `days` days given an inventory. Greedy: one meal at a time.
@@ -603,6 +604,7 @@ def plan_week(
         randomise:            jitter scores slightly for variety between runs
         rng:                  random source, pass a seeded Random for repeatable plans
         feedback:             your ratings (garde.vibes) to steer recipes and ingredients
+        leftovers:            cooked dishes already in the fridge (garde.pantry.to_leftovers)
     """
     recipe_db = recipes or RECIPES
     db = ingredient_db or INGREDIENTS
@@ -616,7 +618,7 @@ def plan_week(
     unplanned: list[tuple[int, str]] = []
     used_recipes: set[str] = set()
     wasted: Counter[str] = Counter()
-    dishes: list[Leftover] = []
+    dishes: list[Leftover] = list(leftovers)
     made: Counter[str] = Counter()
 
     for day in range(1, days + 1):

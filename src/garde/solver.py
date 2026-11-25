@@ -38,6 +38,7 @@ import math
 import random
 from collections import Counter
 from collections.abc import Callable
+from collections.abc import Sequence
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import fields
@@ -165,6 +166,7 @@ class _Problem:
     weights: Weights
     feedback: Feedback | None = None
     shopping: bool = False
+    leftovers: tuple[Leftover, ...] = ()  # cooked dishes in the fridge at the start
     buyable_cache: dict[int, frozenset[str]] = field(default_factory=dict)
     cache: dict[Choice, tuple[MealPlan, Breakdown]] = field(default_factory=dict)
 
@@ -239,7 +241,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     unplanned: list[tuple[int, str]] = []
     wasted: Counter[str] = Counter()
     bought: Counter[str] = Counter()
-    dishes: list[Leftover] = []
+    dishes: list[Leftover] = list(p.leftovers)
     made: Counter[str] = Counter()
     b = Breakdown()
     picks = iter(choice)
@@ -374,7 +376,12 @@ def _options(p: _Problem) -> list[list[str | None]]:
             for rid in here
             if p.recipes[rid].keeps_days > 0 and not p.recipes[rid].batch
         ]
-        leftovers = [LEFTOVERS] if any(meal in r.meal_type for r in keeps) else []
+        leftovers = (
+            [LEFTOVERS]
+            if any(meal in r.meal_type for r in keeps)
+            or any(meal in d.meal_types for d in p.leftovers)
+            else []
+        )
         per_meal[meal] = [*here, *doubles, *leftovers, None]
     return [per_meal[meal] for _ in range(p.days) for meal in p.meals]
 
@@ -434,6 +441,7 @@ def optimise_week(
     feedback: Feedback | None = None,
     shopping: bool = False,
     progress: Progress | None = None,
+    leftovers: Sequence[Leftover] = (),
 ) -> SolverResult:
     """
     Plan the week to minimise the weighted objective (see module docstring).
@@ -443,6 +451,7 @@ def optimise_week(
     in result.plan.bought and result.plan.shopping_list().
     max_minutes can be one limit or a list with one per day.
     progress, if given, hears how the search is going (see Progress).
+    leftovers are cooked dishes already in the fridge (garde.pantry.to_leftovers).
     """
     rng = rng or random.Random()
     db = ingredient_db or INGREDIENTS
@@ -459,6 +468,7 @@ def optimise_week(
         weights=weights or Weights(),
         feedback=feedback,
         shopping=shopping,
+        leftovers=tuple(leftovers),
     )
     options = _options(p)
 
@@ -474,6 +484,7 @@ def optimise_week(
         randomise=False,
         rng=random.Random(rng.random()),
         feedback=feedback,
+        leftovers=leftovers,
     )
     greedy: Choice = tuple(
         LEFTOVERS if s.leftovers_from is not None else s.recipe_id
