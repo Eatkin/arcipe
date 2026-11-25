@@ -19,6 +19,14 @@ Reuse rule (recipe.no_ingredient_reuse): every pick "claims" the raw ingredients
 made from (its prepared-form bases, or itself). A later pick that would claim one of the
 same raw ingredients is rejected, so carrot and roasted_carrot can't both appear.
 Ingredients flagged `staple` are never claimed and can be used freely.
+
+Made ingredients (Ingredient.made_from): with none of it in stock, cooked chickpeas
+can still come from dried chickpeas. Drawing takes what's stocked first, then makes
+the rest from the source; Resolution.made says how much was made so the planner can
+cook a whole batch and keep the rest.
+
+Scraps: after the dish is filled, a perishable ingredient that would be left with
+less than Ingredient.crumb grams goes into the dish too.
 """
 
 from __future__ import annotations
@@ -77,6 +85,8 @@ class Resolution:
     consumed: Counter[str] = field(default_factory=Counter)
     servings: int = 0
     timing: Timing = field(default_factory=Timing)
+    # Grams of made ingredients (made_from) produced from their source for this dish
+    made: Counter[str] = field(default_factory=Counter)
 
     @property
     def success(self) -> bool:
@@ -141,6 +151,17 @@ def normalise_stock(
     return stock
 
 
+def have(
+    raw: str, stock: dict[str, float], ingredient_db: dict[str, Ingredient]
+) -> float:
+    """Stocked grams of `raw` on hand, counting what could be made from its source."""
+    grams = stock.get(raw, 0.0)
+    ing = ingredient_db.get(raw)
+    if ing is not None and ing.made_from is not None:
+        grams += stock.get(ing.made_from.ingredient, 0.0) / ing.made_from.ratio
+    return grams
+
+
 def stocked_per_gram(
     ing_id: str,
     ingredient_db: dict[str, Ingredient],
@@ -165,7 +186,7 @@ def makeable_grams(
     """How many in-dish grams of `ing_id` the stock can provide."""
     per_gram = stocked_per_gram(ing_id, ingredient_db, prepared_db)
     return min(
-        (stock.get(raw, 0.0) / ratio if ratio > 0 else INF)
+        (have(raw, stock, ingredient_db) / ratio if ratio > 0 else INF)
         for raw, ratio in per_gram.items()
     )
 
@@ -180,7 +201,11 @@ def available_pool(
     staples, and any prepared form whose base ingredients are all in stock.
     """
     stock = normalise_stock(inventory, ingredient_db)
-    raw = {i for i, g in stock.items() if g > 0}
+    raw = {i for i, g in stock.items() if g > 0} | {
+        i
+        for i, ing in ingredient_db.items()
+        if ing.made_from is not None and stock.get(ing.made_from.ingredient, 0.0) > 0
+    }
     makeable = {
         p.id for p in prepared_db.values() if all(b in raw for b in p.base_ingredients)
     }
@@ -492,6 +517,7 @@ class _Assigner:
     chosen: dict[str, dict[str, float]] = field(default_factory=dict)
     claimed: set[str] = field(default_factory=set)
     consumed: Counter[str] = field(default_factory=Counter)
+    made: Counter[str] = field(default_factory=Counter)
     to_buy: set[str] = field(default_factory=set)  # raw ids not in stock, buyable
 
     def needs_buying(self, ing_id: str) -> bool:
@@ -513,8 +539,41 @@ class _Assigner:
         for raw, ratio in stocked_per_gram(
             ing_id, self.ingredient_db, self.prepared_db
         ).items():
-            self.stock[raw] -= grams * ratio
-            self.consumed[raw] += grams * ratio
+            self.take(raw, grams * ratio)
+
+    def take(self, raw: str, grams: float) -> None:
+        """Stocked grams of `raw`: from stock first, then made from its source."""
+        on_hand = max(self.stock.get(raw, 0.0), 0.0)
+        direct = min(grams, on_hand)
+        if direct > 0:
+            self.stock[raw] = on_hand - direct
+            self.consumed[raw] += direct
+        short = grams - direct
+        made_from = self.ingredient_db[raw].made_from
+        if short <= 1e-9 or made_from is None:
+            return
+        src = made_from.ingredient
+        self.stock[src] = self.stock.get(src, 0.0) - short * made_from.ratio
+        self.consumed[src] += short * made_from.ratio
+        self.made[raw] += short
+
+    def sweep(
+        self, start: dict[str, float], grams: dict[str, dict[str, float]]
+    ) -> None:
+        """Use up scraps: perishables that would be left with less than a crumb."""
+        for raw in list(self.consumed):
+            ing = self.ingredient_db.get(raw)
+            left = self.stock.get(raw, 0.0)
+            if ing is None or start.get(raw, 0.0) == INF or not 0 < left < ing.crumb:
+                continue
+            if not (ing.perishable or (ing.made_from and ing.made_from.keeps_days)):
+                continue
+            self.stock[raw] = 0.0
+            self.consumed[raw] += left
+            for slot_grams in grams.values():  # show it in the dish where it went
+                if raw in slot_grams:
+                    slot_grams[raw] += left / ing.stock_ratio
+                    break
 
     def fill(
         self,
@@ -528,7 +587,12 @@ class _Assigner:
         Take ingredients in order until the slot's amount is covered (or, for trace
         slots, until max_ingredients). Rolls back if coverage stays too low.
         """
-        snapshot = (dict(self.stock), set(self.claimed), Counter(self.consumed))
+        snapshot = (
+            dict(self.stock),
+            set(self.claimed),
+            Counter(self.consumed),
+            Counter(self.made),
+        )
         taken: dict[str, float] = {}
         got = 0.0
         share = (
@@ -559,7 +623,7 @@ class _Assigner:
 
         ok = bool(taken) and (need is None or got >= need * MIN_SLOT_COVERAGE)
         if not ok:
-            self.stock, self.claimed, self.consumed = snapshot
+            self.stock, self.claimed, self.consumed, self.made = snapshot
             taken = {}
         self.chosen[slot.id] = taken
         return ok
@@ -627,8 +691,8 @@ def _bias(
     bias = {i: VIBES_SCALE * a for i, a in (affinity or {}).items()}
     if not buyable:
         return bias, set()
-    have = {i for i, g in stock.items() if g > 0}
-    penalty = {i: buy_penalty(db[i]) for i in buyable if i in db and i not in have}
+    have_any = {i for i in db if have(i, stock, db) > 0}
+    penalty = {i: buy_penalty(db[i]) for i in buyable if i in db and i not in have_any}
     for i, pen in penalty.items():
         stock[i] = INF
         bias[i] = bias.get(i, 0.0) - pen
@@ -730,7 +794,13 @@ def resolve(
             )
         )
 
+    picks.sweep(stock, {a.slot_id: a.grams for a in assignments})
     used = {i for a in assignments for i in a.assigned}
+    timing = recipe_timing(recipe, {a.slot_id: a.assigned for a in assignments}, preps)
+    for raw in picks.made:
+        made_from = db[raw].made_from
+        if made_from is not None and made_from.time.total > 0:
+            timing.make_ahead.append(raw)  # cook the beans; thinning cream isn't prep
     return Resolution(
         recipe_id=recipe.id,
         recipe_name=recipe.name,
@@ -740,9 +810,8 @@ def resolve(
         unplaceable_required=[r for r in recipe.required_ingredients if r not in used],
         consumed=Counter({k: v for k, v in picks.consumed.items() if v > 0}),
         servings=servings,
-        timing=recipe_timing(
-            recipe, {a.slot_id: a.assigned for a in assignments}, preps
-        ),
+        timing=timing,
+        made=Counter({k: v for k, v in picks.made.items() if v > 1e-9}),
     )
 
 
@@ -780,7 +849,7 @@ def rank_recipes(
             inventory,
             ingredient_db,
             rng=rng,
-            servings=servings,
+            servings=recipe.serves if recipe.batch else servings,
             urgency=urgency,
             affinity=feedback.ingredient_affinity(recipe) if feedback else None,
             buyable=buyable,

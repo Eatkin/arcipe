@@ -140,6 +140,12 @@ def check_references(
     """Return a list of dangling id references in the data. Empty means consistent."""
     known = set(ingredients) | set(prepared)
     problems = _check_prepared(ingredients, prepared)
+    for ing in ingredients.values():
+        src = ing.made_from.ingredient if ing.made_from else None
+        if src is not None and src not in ingredients:
+            problems.append(f"ingredient {ing.id}: made_from unknown {src!r}")
+        elif src is not None and ingredients[src].made_from is not None:
+            problems.append(f"ingredient {ing.id}: made_from {src!r} is made itself")
     for recipe in recipes.values():
         problems += _check_recipe(recipe, known)
     return problems

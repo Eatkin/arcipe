@@ -305,6 +305,35 @@ class IngredientClass(DataModel):
 
 
 # ---------------------------------------------------------------------------
+# Time — minutes of hands-on work and of waiting
+# ---------------------------------------------------------------------------
+
+
+class Time(DataModel):
+    active: int = 0  # minutes you're actually doing something
+    passive: int = 0  # minutes it simmers / roasts / soaks without you
+
+    @property
+    def total(self) -> int:
+        return self.active + self.passive
+
+
+class MadeFrom(DataModel):
+    """
+    An ingredient you can make from another one you keep: cooked chickpeas from
+    dried, coconut milk from coconut cream. Cooking a batch ahead leaves the rest
+    in the fridge as its own stock, with its own (shorter) life.
+    """
+
+    ingredient: str  # what it's made from, e.g. dried_chickpeas
+    ratio: float  # stocked grams of that per gram made (dried beans ~0.4)
+    # Grams made at once (a pot of beans). None = make exactly what's needed
+    batch: float | None = None
+    keeps_days: int | None = None  # how long what's made keeps. None = ages
+    time: Time = Field(default_factory=Time)  # done ahead, off the critical path
+
+
+# ---------------------------------------------------------------------------
 # Ingredient — concrete ingredient, member of one or more classes
 # ---------------------------------------------------------------------------
 
@@ -340,7 +369,22 @@ class Ingredient(DataModel):
     # Functional ingredient that can appear in several slots of one recipe without
     # breaking no_ingredient_reuse, e.g. flour in both a flatbread and a roux
     staple: bool = False
+    # Can be made from something else in stock when you've none of it as such
+    made_from: MadeFrom | None = None
+    # Smallest amount worth keeping (g). If cooking would leave less than this of
+    # something perishable, the dish gets the lot rather than a sad 10g of apple.
+    # Defaults to half a unit (at most 50g), else 15g
+    portion: float | None = None
     notes: str = ""
+
+    @property
+    def crumb(self) -> float:
+        """Leftovers smaller than this get used up rather than kept."""
+        if self.portion is not None:
+            return self.portion
+        if self.unit_weight is not None:
+            return min(self.unit_weight / 2, 50.0)
+        return 15.0
 
     @property
     def perishable(self) -> bool:
@@ -349,20 +393,6 @@ class Ingredient(DataModel):
     @property
     def pack_grams(self) -> float:
         return self.pack_weight or self.unit_weight or 500.0
-
-
-# ---------------------------------------------------------------------------
-# Time — minutes of hands-on work and of waiting
-# ---------------------------------------------------------------------------
-
-
-class Time(DataModel):
-    active: int = 0  # minutes you're actually doing something
-    passive: int = 0  # minutes it simmers / roasts / soaks without you
-
-    @property
-    def total(self) -> int:
-        return self.active + self.passive
 
 
 # ---------------------------------------------------------------------------
@@ -468,6 +498,12 @@ class Recipe(DataModel):
     no_ingredient_reuse: bool = True  # same ingredient can't fill two slots
     colour_dominant: ColourFamily | None = None
     serves: int = 2
+    # Cooked as one batch of `serves` portions whoever's eating (a loaf, a tray
+    # bake) rather than scaled to the people at the table
+    batch: bool = False
+    # Days the cooked dish keeps, so portions left over can be eaten at later
+    # meals. 0 = eat it all now (anything left over is waste)
+    keeps_days: int = 0
     # Real recipes this archetype was abstracted from — cook from these
     sources: list[str] = Field(default_factory=list)
     notes: str = ""

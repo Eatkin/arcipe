@@ -34,7 +34,8 @@ uv run --extra dev pytest             # tests
   `stock_ratio` (dried lentils swell: 0.4g dried per 1g cooked),
   `shelf_life_days`, `max_per_serving` (garlic caps at 8g a head),
   `unlimited` (pantry staple, assumed in stock), `staple` (may appear in several
-  slots of one dish, e.g. flour).
+  slots of one dish, e.g. flour), `made_from` (see below), `portion` (smallest
+  amount worth keeping).
 - **Prepared ingredient** — ingredient + method = new roles: cashews → cashew cream.
   `base_ratio` says how much base it takes; `make_ahead` keeps soaks off the clock.
 - **Slot** — the roles an ingredient must cover, acceptable prep methods, colour,
@@ -42,7 +43,9 @@ uv run --extra dev pytest             # tests
   `trace`) and `time` (active + passive minutes).
 - **Recipe** — slots plus edges between them. Cooking edges (`combine`, `fold_in`…)
   run in sequence; assembly edges (`coat`, `top`, `finish`) cook in parallel.
-  `slot_overrides` tweaks a shared slot for one recipe:
+  `batch: true` makes a whole batch of `serves` portions whoever's eating (a loaf);
+  `keeps_days` says how long leftovers last. `slot_overrides` tweaks a shared slot
+  for one recipe:
   ```yaml
   green_grain_bowl:
     slot_overrides:
@@ -55,6 +58,22 @@ Slot amounts are grams **as they land in the dish**. Stock is grams **as stocked
 `stock_ratio` and `base_ratio` convert between them. Inventory can be given as
 counts (`carrot: 6`), measures (`red_lentils: "500g"`), and with explicit expiry
 (`spinach: {amount: 1, expires: 2}`).
+
+### Made ingredients, scraps and leftovers
+
+- **Made from something else.** `chickpeas` has `made_from: {ingredient:
+  dried_chickpeas, ratio: 0.42, batch: 600, keeps_days: 4}`. Stocked chickpeas
+  (tins, or a pot you cooked earlier) are used first; otherwise they're cooked from
+  dried, a whole pot at a time, and the rest of the pot goes in the fridge as its
+  own stock with its own expiry. Coconut milk is made from coconut cream the same
+  way, with no batch: you thin what you need.
+- **Scraps.** If cooking would leave less than `Ingredient.crumb` of something
+  perishable (default half a unit, at most 50g, else 15g), it goes in the dish.
+- **Leftovers.** A batch dish (`batch: true`) makes all its portions at once, so
+  one banana bread covers several breakfasts. The solver can also cook a dish that
+  keeps for twice the people (`chilli*2`) and plan a later meal as leftovers. Spare
+  portions keep for `keeps_days`; after that they count as waste. Eating
+  leftovers costs 5 minutes and the small `leftovers` weight, not a repeat.
 
 ### Price and shopping
 

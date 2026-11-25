@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 import time
@@ -29,7 +30,7 @@ BOOKMARKS = ROOT.parent / "recipe-viewer" / "recipes.yaml"
 
 SANDRA_SITEMAP = "https://www.vegansandra.com/sitemap.xml"
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
-DELAY = 4.0
+DELAY = float(os.environ.get("FETCH_DELAY", "4"))
 MAX_BACKOFF = 300
 
 # Bookmarks that aren't tagged vegan but are vegetable-led and easy to veganise

@@ -2,6 +2,8 @@
 vegan_banana_bread:
   id: vegan_banana_bread
   name: The Best Vegan Banana Bread
+  batch: true  # one loaf, whoever is eating
+  keeps_days: 5  # leftovers keep this long in the fridge
   description: >
     Moist classic banana bread utilizing overripe bananas for structure,
     with an optional crunchy/sweet fold-in.

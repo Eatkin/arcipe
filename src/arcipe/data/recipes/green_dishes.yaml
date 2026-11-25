@@ -64,6 +64,7 @@ green_flatbread:
 
 creamy_tomato_lentil:
   name: Creamy Tomato Lentil
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     A rich tomato-based sauce with lentils as the protein.
     Cashews or white beans as fat emulsifier give it creaminess without dairy.
@@ -84,6 +85,7 @@ creamy_tomato_lentil:
 creamy_tuscan_beans:
   id: creamy_tuscan_beans
   name: Creamy Tuscan White Beans
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     A rich, velvety white bean stew loaded with sautéed mushrooms, 
     sun-dried tomatoes, and greens, finished with melted vegan parm.

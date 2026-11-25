@@ -1,5 +1,6 @@
 rajma:
   name: Rajma
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Simple, light kidney bean curry. Tomato forward, no cream.
     Spiced but not fiery. One of those dishes that's better the next day.
@@ -17,6 +18,7 @@ rajma:
 
 butter_chickpeas:
   name: Butter Chickpeas
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Vegan butter chicken adjacent. Rich creamy tomato sauce,
     chickpeas as protein. Fat emulsifier is coconut milk or cashew/sunflower cream.
@@ -37,6 +39,7 @@ butter_chickpeas:
 
 cauliflower_madras:
   name: Cauliflower Madras
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Hot, dry-ish tomato curry. Cauliflower roasted before going in — keeps texture.
     Chilli forward, no fat emulsifier.
@@ -56,6 +59,7 @@ cauliflower_madras:
 
 vindaloo:
   name: Vindaloo
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Fierce. Tomato and vinegar base, heavy chilli.
     Vinegar is structural not optional — it's what makes it vindaloo.
@@ -76,6 +80,7 @@ vindaloo:
 
 saag:
   name: Saag (Aloo / Tofu / Chana)
+  keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     Spinach-based green curry sauce. Starchy bulk slot takes potato (aloo),
     tofu, or chickpeas (chana). Creamy fat optional but recommended.
@@ -117,6 +122,7 @@ katsu_curry:
 
 carrot_curry_gravy:
   name: Roasted Carrot Curry Gravy
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Cheap, deeply satisfying. Root veg roasted until caramelised then blended
     with tomato and spices into a smooth, mildly sweet gravy.

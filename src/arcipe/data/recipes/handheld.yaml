@@ -1,5 +1,6 @@
 patties:
   name: Veggie Patties / Burgers
+  keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     Mashed beans or grains with grated veg, a binder and spices, shaped and fried.
     In a bun with pickles and sauce, or on a plate with salad.

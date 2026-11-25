@@ -17,10 +17,16 @@ never disagrees with what the planner would actually cook:
               + time       * hours of cooking
               - liked      * how much you've liked each recipe cooked (-1..1)
               + price      * price points spent (Price level x packs bought)
+              + leftovers  * meals of leftovers (breakfast/snack ones count less)
 
 Shopping (optional): one shop on day 1. Anything short is bought in whole packs;
 whatever's left in the pack stays in stock for later meals (or goes to waste).
 Fresh things only count as buyable for meals within their shelf life.
+
+Leftovers: a meal can be LEFTOVERS (eat the soonest-expiring cooked dish that
+suits it) or "recipe*2" (cook enough for two meals, if the dish keeps). Batch
+recipes (a loaf) always make a whole batch. Leftovers cost a few minutes of
+reheating, no repeat penalty, and a small `leftovers` weight instead.
 
 Search: start from the greedy plan, then simulated annealing over "change one
 meal" and "swap two meals" moves. Evaluations are cached by plan.
@@ -40,14 +46,20 @@ from arcipe.loader import RECIPES
 from arcipe.models import Ingredient
 from arcipe.models import Recipe
 from arcipe.planner import InventoryInput
+from arcipe.planner import Leftover
 from arcipe.planner import Lot
 from arcipe.planner import MealPlan
 from arcipe.planner import MealSlot
 from arcipe.planner import classes_used_recently
 from arcipe.planner import consume
+from arcipe.planner import cook_batches
+from arcipe.planner import cook_servings
+from arcipe.planner import eat_leftovers
 from arcipe.planner import expire
+from arcipe.planner import expire_dishes
 from arcipe.planner import parse_inventory
 from arcipe.planner import plan_week
+from arcipe.planner import stash
 from arcipe.planner import totals
 from arcipe.planner import urgency
 from arcipe.planner import variety_score
@@ -64,8 +76,20 @@ SPILL_DAYS = 3
 REPEAT_FACTOR = {"breakfast": 0.25, "snack": 0.25}
 # ...and an hour making breakfast hurts more than an hour making dinner
 TIME_FACTOR = {"breakfast": 3.0, "lunch": 1.5}
+# Warming up / plating leftovers
+LEFTOVER_MINUTES = 5
 
-Choice = tuple[str | None, ...]  # recipe id per (day, meal), day-major
+# Choice entries: a recipe id, "<recipe id>*2" (cook double), LEFTOVERS, or None
+LEFTOVERS = "~leftovers"
+DOUBLE = "*2"
+Choice = tuple[str | None, ...]  # one entry per (day, meal), day-major
+
+
+def parse_pick(pick: str) -> tuple[str, int]:
+    """'chilli*2' -> ('chilli', 2)."""
+    if pick.endswith(DOUBLE):
+        return pick.removesuffix(DOUBLE), 2
+    return pick, 1
 
 
 @dataclass(frozen=True)
@@ -78,6 +102,7 @@ class Weights:
     time: float = 0.2  # per hour of total cooking time
     liked: float = 2.0  # per meal, times its learned recipe score (-1..1)
     price: float = 0.5  # per price point spent when shopping (a pricey pack = 3)
+    leftovers: float = 0.5  # per meal of leftovers (breakfast/snack: a quarter)
 
 
 @dataclass
@@ -91,6 +116,7 @@ class Breakdown:
     weighted_hours: float = 0.0  # cooking time with breakfast/lunch weighted up
     liked: float = 0.0
     price_points: int = 0  # sum of Price level x packs bought
+    leftover_meals: float = 0.0  # weighted like repeats
     objective: float = 0.0
 
     def describe(self) -> str:
@@ -99,7 +125,7 @@ class Breakdown:
             f" | spill {self.spill_g:5.0f}g | unplanned {self.unplanned}"
             f" | repeats {self.repeats:g} | variety {self.variety:4.2f}"
             f" | {self.minutes} min cooking | liked {self.liked:+.2f}"
-            f" | spend {self.price_points}"
+            f" | spend {self.price_points} | leftovers {self.leftover_meals:g}"
         )
 
 
@@ -132,6 +158,8 @@ def _weighted_repeats(planned: list[MealSlot]) -> float:
     seen: set[str] = set()
     repeats = 0.0
     for slot in planned:
+        if slot.leftovers_from is not None:
+            continue  # eating up a dish isn't cooking it again
         if slot.recipe_id in seen:
             repeats += REPEAT_FACTOR.get(slot.meal, 1.0)
         elif slot.recipe_id:
@@ -153,14 +181,14 @@ def buyable_on(day: int, p: _Problem) -> frozenset[str]:
     return p.buyable_cache[day]
 
 
-def _cook(p: _Problem, recipe_id: str, lots: list[Lot], day: int, meal: str):
+def _cook(p: _Problem, recipe_id: str, lots: list[Lot], day: int, times: int = 1):
     """Resolve one meal against current stock (+ the shop); None if it can't be made."""
     recipe = p.recipes[recipe_id]
     res = resolve(
         recipe,
         totals(lots),
         p.ingredient_db,
-        servings=p.people,
+        servings=cook_servings(recipe, p.people, times),
         urgency=urgency(lots, day),
         rng=random.Random(0),
         affinity=p.feedback.ingredient_affinity(recipe) if p.feedback else None,
@@ -195,23 +223,52 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
     unplanned: list[tuple[int, str]] = []
     wasted: Counter[str] = Counter()
     bought: Counter[str] = Counter()
+    dishes: list[Leftover] = []
+    made: Counter[str] = Counter()
     b = Breakdown()
     picks = iter(choice)
 
     for day in range(1, p.days + 1):
         lots, gone = expire(lots, day)
         wasted += gone
+        dishes, gone = expire_dishes(dishes, day)
+        wasted += gone
         for meal in p.meals:
-            recipe_id = next(picks)
-            res = _cook(p, recipe_id, lots, day, meal) if recipe_id else None
+            pick = next(picks)
+            if pick == LEFTOVERS:
+                dishes, dish = eat_leftovers(dishes, meal, p.people)
+                if dish is None:
+                    planned.append(MealSlot(day=day, meal=meal))
+                    unplanned.append((day, meal))
+                    continue
+                b.leftover_meals += REPEAT_FACTOR.get(meal, 1.0)
+                b.minutes += LEFTOVER_MINUTES
+                b.weighted_hours += LEFTOVER_MINUTES / 60 * TIME_FACTOR.get(meal, 1.0)
+                if p.feedback:
+                    b.liked += p.feedback.recipe_score(dish.recipe_id)
+                planned.append(
+                    MealSlot(
+                        day=day,
+                        meal=meal,
+                        recipe_id=dish.recipe_id,
+                        resolution=dish.resolution,
+                        leftovers_from=dish.cooked_day,
+                    )
+                )
+                continue
+            recipe_id, times = parse_pick(pick) if pick else (None, 1)
+            res = _cook(p, recipe_id, lots, day, times) if recipe_id else None
             if res is None or recipe_id is None:
                 planned.append(MealSlot(day=day, meal=meal))
                 unplanned.append((day, meal))
                 continue
+            recipe = p.recipes[recipe_id]
             recent = classes_used_recently(planned, day, p.gap, p.ingredient_db)
             b.variety += 1.0 - variety_score(res, recent, p.ingredient_db)
             b.minutes += res.timing.total
-            b.weighted_hours += res.timing.total / 60 * TIME_FACTOR.get(meal, 1.0)
+            # A loaf gets baked whenever suits, not at 7am
+            factor = 1.0 if recipe.batch else TIME_FACTOR.get(meal, 1.0)
+            b.weighted_hours += res.timing.total / 60 * factor
             if p.feedback:
                 b.liked += p.feedback.recipe_score(recipe_id)
             planned.append(
@@ -219,8 +276,14 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
             )
             bought += _buy(p, res.consumed, lots)
             lots = consume(lots, res.consumed)
+            lots, cooked = cook_batches(lots, res, day, p.ingredient_db)
+            made += cooked
+            dishes, gone = stash(dishes, recipe, res, p.people, day)
+            wasted += gone
 
     lots, gone = expire(lots, p.days + 1)
+    wasted += gone
+    dishes, gone = expire_dishes(dishes, p.days + 1)
     wasted += gone
 
     b.waste_g = sum(wasted.values())
@@ -228,6 +291,10 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         lot.grams
         for lot in lots
         if lot.expires_day is not None and lot.expires_day <= p.days + SPILL_DAYS
+    ) + sum(
+        d.portions * d.grams_per_portion
+        for d in dishes
+        if d.expires_day <= p.days + SPILL_DAYS
     )
     b.unplanned = len(unplanned)
     b.repeats = _weighted_repeats(planned)
@@ -242,6 +309,7 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         + w.time * b.weighted_hours
         - w.liked * b.liked
         + w.price * b.price_points
+        + w.leftovers * b.leftover_meals
     )
 
     plan = MealPlan(
@@ -254,6 +322,8 @@ def simulate(choice: Choice, p: _Problem) -> tuple[MealPlan, Breakdown]:
         wasted=wasted,
         remaining_lots=lots,
         bought=bought,
+        leftovers=dishes,
+        made=made,
     )
     p.cache[choice] = (plan, b)
     return plan, b
@@ -263,6 +333,8 @@ def _options(p: _Problem) -> list[list[str | None]]:
     """
     Recipes worth trying at each position: right meal type, and makeable from the
     starting stock at all (stock only shrinks, so anything else never will be).
+    Dishes that keep can also be cooked double, and any meal some dish that keeps
+    would suit can be leftovers.
     """
     start = totals(p.lots)
     makeable = {
@@ -272,16 +344,23 @@ def _options(p: _Problem) -> list[list[str | None]]:
             r,
             start,
             p.ingredient_db,
-            servings=p.people,
+            servings=cook_servings(r, p.people),
             rng=random.Random(0),
             buyable=buyable_on(1, p),
         ).success
     }
-    per_meal = {
-        meal: sorted(rid for rid in makeable if meal in p.recipes[rid].meal_type)
-        for meal in p.meals
-    }
-    return [[*per_meal[meal], None] for _ in range(p.days) for meal in p.meals]
+    keeps = [p.recipes[rid] for rid in makeable if p.recipes[rid].keeps_days > 0]
+    per_meal: dict[str, list[str | None]] = {}
+    for meal in p.meals:
+        here = sorted(rid for rid in makeable if meal in p.recipes[rid].meal_type)
+        doubles = [
+            rid + DOUBLE
+            for rid in here
+            if p.recipes[rid].keeps_days > 0 and not p.recipes[rid].batch
+        ]
+        leftovers = [LEFTOVERS] if any(meal in r.meal_type for r in keeps) else []
+        per_meal[meal] = [*here, *doubles, *leftovers, None]
+    return [per_meal[meal] for _ in range(p.days) for meal in p.meals]
 
 
 def _neighbour(
@@ -374,7 +453,10 @@ def optimise_week(
         rng=random.Random(rng.random()),
         feedback=feedback,
     )
-    greedy: Choice = tuple(s.recipe_id for s in greedy_plan.slots)
+    greedy: Choice = tuple(
+        LEFTOVERS if s.leftovers_from is not None else s.recipe_id
+        for s in greedy_plan.slots
+    )
     greedy = tuple(
         c if c in opts else None for c, opts in zip(greedy, options, strict=True)
     )

@@ -97,7 +97,25 @@ coconut_milk:
   unit_weight: 400
   cuisine_context: [indian, chinese]
   nutrition: [high_fat]
+  made_from:
+    ingredient: coconut_cream
+    ratio: 0.5  # half cream, half water
+    keeps_days: 3
   notes: Full fat only. The lite stuff is a waste of everyone's time.
+
+coconut_cream:
+  name: Coconut Cream
+  classes: [plant_milk]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [rich, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 400
+  unit_weight: 400
+  cuisine_context: [indian, thai]
+  nutrition: [high_fat]
+  notes: Thins down to coconut milk (coconut_milk.made_from).
 
 canned_tomato:
   name: Canned Tomatoes

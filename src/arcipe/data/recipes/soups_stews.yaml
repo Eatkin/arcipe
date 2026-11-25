@@ -1,5 +1,6 @@
 lentil_soup:
   name: Lentil Soup
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Onion, a root veg, lentils and stock, a bay leaf or a spoon of spice, lemon at
     the end. Cheap, filling, and forgiving of whatever veg is going soft.
@@ -25,6 +26,7 @@ lentil_soup:
 
 veg_soup:
   name: Chunky Vegetable Soup
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     The Estonian/British everyday soup: onion, carrot, potato and whatever else in
     stock with bay and dill, beans for body, parsley on top. Dumplings optional.
@@ -48,6 +50,7 @@ veg_soup:
 
 blended_soup:
   name: Creamy Blended Soup
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     One main veg — squash, broccoli, cauliflower, sweet potato, carrot — softened
     with onion, simmered in stock, blended with something creamy. Seeds on top.
@@ -70,6 +73,7 @@ blended_soup:
 
 bean_chilli:
   name: Bean Chilli
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Onion, peppers, two kinds of beans, tomatoes, cumin, smoked paprika and chilli,
     sweetcorn stirred in. Over rice or in tortillas, with avocado and lime.
@@ -96,6 +100,7 @@ bean_chilli:
 
 stroganoff:
   name: Mushroom Stroganoff
+  keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     Onions and mushrooms fried hard, paprika, a splash of soy, plant cream and
     mustard. Over buckwheat, rice, pasta or mash.
@@ -122,6 +127,7 @@ stroganoff:
 
 goulash:
   name: Paprika Goulash
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     A paprika-red stew of onion, peppers, potatoes and beans or soy chunks in
     tomato, caraway-ish with a bay leaf. Bread on the side or nothing at all.
@@ -145,6 +151,7 @@ goulash:
 
 shepherds_pie:
   name: Shepherd's Pie
+  keeps_days: 3  # leftovers keep this long in the fridge
   description: >
     Lentils (or buckwheat, or soy mince) and veg in a thick savoury gravy, topped
     with mash and baked. Sunday dinner that uses up the root veg.

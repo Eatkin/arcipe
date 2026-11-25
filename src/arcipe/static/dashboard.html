@@ -400,7 +400,7 @@ function render(data) {
     for (const m of day.meals) card.appendChild(mealEl(day.day, m));
     grid.appendChild(card);
   }
-  renderStock(data.plan.stock);
+  renderStock(data.plan.stock, data.plan);
 }
 
 function countMeals(data) {
@@ -412,6 +412,12 @@ function mealEl(day, m) {
   el.className = "meal";
   if (!m.recipe_id) {
     el.innerHTML = `<div class="kind">${m.meal}</div><div class="unplanned">Nothing to cook — add something to the fridge</div>`;
+    return el;
+  }
+  if (m.leftovers_from) {
+    el.innerHTML = `<div class="kind">${m.meal}</div>
+      <div class="title"><span class="name">${m.recipe_name}</span>
+      <span class="chip">leftovers from day ${m.leftovers_from}</span></div>`;
     return el;
   }
   const slots = m.slots.map((s) => `<li><span class="slot" title="${s.label}">${s.label}</span>
@@ -461,17 +467,19 @@ function renderShopping(items) {
     <div class="shop-total">${items.length} things · ${total} price points</div>`;
 }
 
-function renderStock(stock) {
+function renderStock(stock, plan) {
   if (!stock.length) { $("stock").innerHTML = `<div class="empty">Nothing tracked — add things to the fridge.</div>`; return; }
   $("stock").innerHTML = `<table>
-    <tr><th>Ingredient</th><th>Had</th><th>Bought</th><th>Used</th><th>Left</th><th>Wasted</th><th></th></tr>
+    <tr><th>Ingredient</th><th>Had</th><th>Bought / made</th><th>Used</th><th>Left</th><th>Wasted</th><th></th></tr>
     ${stock.map((s) => `<tr>
-      <td>${s.name}</td><td>${s.start}g</td><td>${s.bought ? s.bought + "g" : "–"}</td><td>${s.used}g</td><td>${s.left}g</td>
+      <td>${s.name}</td><td>${s.start}g</td><td>${s.bought ? s.bought + "g" : s.made ? s.made + "g made" : "–"}</td><td>${s.used}g</td><td>${s.left}g</td>
       <td class="${s.wasted ? "waste" : ""}">${s.wasted ? s.wasted + "g" : "–"}</td>
       <td><div class="bar">
-        <span class="used" style="width:${pct(s.used, s.start + s.bought)}%"></span>
-        <span class="wasted" style="width:${pct(s.wasted, s.start + s.bought)}%"></span></div></td>
-    </tr>`).join("")}</table>`;
+        <span class="used" style="width:${pct(s.used, s.start + s.bought + s.made)}%"></span>
+        <span class="wasted" style="width:${pct(s.wasted, s.start + s.bought + s.made)}%"></span></div></td>
+    </tr>`).join("")}</table>
+    ${plan.leftovers_wasted.map((d) => `<div class="empty waste">${d.name} leftovers went off: ${d.wasted}g</div>`).join("")}
+    ${plan.leftovers_left.map((d) => `<div class="empty">Still in the fridge: ${d.portions} portions of ${d.name}</div>`).join("")}`;
 }
 
 const pct = (a, b) => (b ? Math.max(0, Math.min(100, (100 * a) / b)) : 0);

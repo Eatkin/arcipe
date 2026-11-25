@@ -83,6 +83,7 @@ def meta() -> dict[str, Any]:
             "time": "per hour of cooking",
             "liked": "pull towards recipes you've rated well",
             "price": "per price point spent, when shopping is on",
+            "leftovers": "per meal of leftovers instead of cooking",
         },
         "meals": list(MEALS),
     }
@@ -129,6 +130,7 @@ def _plan(plan: MealPlan) -> dict[str, Any]:
             meals.append(
                 {
                     "meal": slot.meal,
+                    "leftovers_from": slot.leftovers_from,
                     **(
                         _meal(slot.resolution)
                         if slot.resolution
@@ -139,9 +141,10 @@ def _plan(plan: MealPlan) -> dict[str, Any]:
         days.append({"day": day, "meals": meals})
     stock = []
     bought = {i: n * INGREDIENTS[i].pack_grams for i, n in plan.bought.items()}
-    for ing_id in sorted(set(plan.inventory_start) | set(bought), key=_display_name):
+    keys = set(plan.inventory_start) | set(bought) | set(plan.made)
+    for ing_id in sorted(keys, key=_display_name):
         start = plan.inventory_start.get(ing_id, 0.0)
-        extra = bought.get(ing_id, 0.0)
+        extra = bought.get(ing_id, 0.0) + plan.made.get(ing_id, 0.0)
         left = plan.inventory_remaining.get(ing_id, 0.0)
         wasted = plan.wasted.get(ing_id, 0.0)
         stock.append(
@@ -149,13 +152,32 @@ def _plan(plan: MealPlan) -> dict[str, Any]:
                 "id": ing_id,
                 "name": _display_name(ing_id),
                 "start": round(start),
-                "bought": round(extra),
+                "bought": round(bought.get(ing_id, 0.0)),
+                "made": round(plan.made.get(ing_id, 0.0)),
                 "used": round(start + extra - left - wasted),
                 "left": round(left),
                 "wasted": round(wasted),
             }
         )
-    return {"days": days, "stock": stock, "shopping": plan.shopping_items()}
+    dishes = [
+        {
+            "name": RECIPES[key.split(":", 1)[1]].name,
+            "wasted": round(grams),
+        }
+        for key, grams in sorted(plan.wasted.items())
+        if key.startswith("leftovers:")
+    ]
+    left = [
+        {"name": RECIPES[d.recipe_id].name, "portions": round(d.portions, 1)}
+        for d in plan.leftovers
+    ]
+    return {
+        "days": days,
+        "stock": stock,
+        "shopping": plan.shopping_items(),
+        "leftovers_wasted": dishes,
+        "leftovers_left": left,
+    }
 
 
 def result_json(result: SolverResult) -> dict[str, Any]:

@@ -6,8 +6,13 @@ chickpeas:
   colour: yellow
   season: [all]
   price: cheap
-  unit_weight: 240
-  unlimited: true
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_chickpeas
+    ratio: 0.42
+    batch: 600  # a pot: ~250g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
   notes: Aquafaba (liquid) is separately useful as binder/emulsifier.
 
@@ -19,7 +24,13 @@ cannellini_beans:
   colour: white
   season: [all]
   price: cheap
-  unit_weight: 240
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_cannellini_beans
+    ratio: 0.4
+    batch: 600  # a pot: ~250g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
   notes: Blended white beans make an incredibly creamy sauce base.
 
@@ -31,8 +42,13 @@ butter_beans:
   colour: white
   season: [all]
   price: cheap
-  unit_weight: 240
-  unlimited: true
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_butter_beans
+    ratio: 0.45
+    batch: 600  # a pot: ~250g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
 
 black_beans:
@@ -43,8 +59,13 @@ black_beans:
   colour: black
   season: [all]
   price: cheap
-  unit_weight: 240
-  unlimited: true
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_black_beans
+    ratio: 0.4
+    batch: 600  # a pot: ~250g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
   cuisine_context: [mexican]
   nutrition: [high_protein, high_fibre]
 
@@ -68,8 +89,13 @@ kidney_beans:
   colour: red
   season: [all]
   price: cheap
-  unit_weight: 240
-  unlimited: true
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_kidney_beans
+    ratio: 0.4
+    batch: 600  # a pot: ~250g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
   nutrition: [high_protein, high_fibre]
   notes: The canonical rajma bean. Canned is fine, dried is better.
 
@@ -126,3 +152,53 @@ soy_chunks:
   stock_ratio: 0.35
   nutrition: [high_protein]
   notes: Rehydrated weight is ~3x dry.
+
+dried_chickpeas:
+  name: Dried Chickpeas
+  classes: [legume]
+  roles: []  # cooked first: see chickpeas.made_from
+  flavour: [earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_cannellini_beans:
+  name: Dried Cannellini Beans
+  classes: [legume]
+  roles: []  # cooked first: see cannellini_beans.made_from
+  flavour: [earthy]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_butter_beans:
+  name: Dried Butter Beans
+  classes: [legume]
+  roles: []  # cooked first: see butter_beans.made_from
+  flavour: [earthy]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_black_beans:
+  name: Dried Black Beans
+  classes: [legume]
+  roles: []  # cooked first: see black_beans.made_from
+  flavour: [earthy]
+  colour: black
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_kidney_beans:
+  name: Dried Kidney Beans
+  classes: [legume]
+  roles: []  # cooked first: see kidney_beans.made_from
+  flavour: [earthy]
+  colour: red
+  season: [all]
+  price: cheap
+  pack_weight: 500

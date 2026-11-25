@@ -14,6 +14,14 @@ left out of the inventory entirely; listing one makes it tracked.
 Stock model:
     A Lot is some grams of one ingredient with the last day it's usable. Meals
     draw from the earliest-expiring lot first. Lots that pass their day are waste.
+    Made ingredients (cooked beans from dried) are cooked in whole batches: what
+    the meal doesn't use becomes a new lot that keeps for made_from.keeps_days.
+
+Leftovers:
+    A batch recipe (a loaf) makes recipe.serves portions however many are eating;
+    anything else can be cooked for more people than are eating. Portions left
+    over keep for recipe.keeps_days and can be eaten at a later meal of a type the
+    recipe suits. Portions that pass their day are waste, like any other lot.
 
 Flow:
     parse_inventory(inventory)      -> list[Lot]
@@ -165,6 +173,110 @@ def deplete(stock: dict[str, float], resolution: Resolution) -> dict[str, float]
     return updated
 
 
+def cook_batches(
+    lots: list[Lot], res: Resolution, day: int, db: dict[str, Ingredient]
+) -> tuple[list[Lot], Counter[str]]:
+    """
+    After a meal: made ingredients are cooked a whole batch at a time, so round
+    each up to its batch size and keep the rest as a lot of its own.
+    Returns (lots, grams made in all, for the meal and the batch).
+    """
+    made = Counter(res.made)
+    for raw, grams in res.made.items():
+        made_from = db[raw].made_from
+        if made_from is None or made_from.batch is None:
+            continue
+        batches = math.ceil(grams / made_from.batch - 1e-9)
+        source_left = totals(lots).get(made_from.ingredient, 0.0)
+        extra = min(batches * made_from.batch - grams, source_left / made_from.ratio)
+        if extra < db[raw].crumb:
+            continue
+        lots = consume(lots, Counter({made_from.ingredient: extra * made_from.ratio}))
+        keeps = made_from.keeps_days
+        lots.append(Lot(raw, extra, None if keeps is None else day + keeps))
+        made[raw] += extra
+    return lots, made
+
+
+# ---------------------------------------------------------------------------
+# Leftovers: cooked dishes waiting to be eaten
+# ---------------------------------------------------------------------------
+
+
+def leftover_key(recipe_id: str) -> str:
+    """How wasted leftovers are keyed in MealPlan.wasted, beside ingredient ids."""
+    return f"leftovers:{recipe_id}"
+
+
+@dataclass(frozen=True)
+class Leftover:
+    recipe_id: str
+    portions: float
+    grams_per_portion: float  # stocked grams that went into each portion
+    cooked_day: int
+    expires_day: int  # last day it's good
+    meal_types: tuple[str, ...]
+    resolution: Resolution  # what was cooked, for showing the meal again
+
+
+def cook_servings(recipe: Recipe, people: int, times: int = 1) -> int:
+    """Portions to cook: a whole batch, or `times` helpings for each person."""
+    return recipe.serves if recipe.batch else people * times
+
+
+def stash(
+    dishes: list[Leftover], recipe: Recipe, res: Resolution, people: int, day: int
+) -> tuple[list[Leftover], Counter[str]]:
+    """Keep the portions nobody ate. Returns (dishes, grams wasted right away)."""
+    spare = res.servings - people
+    if spare <= 1e-9:
+        return dishes, Counter()
+    per_portion = sum(res.consumed.values()) / res.servings
+    if recipe.keeps_days <= 0:
+        return dishes, Counter({leftover_key(recipe.id): spare * per_portion})
+    dish = Leftover(
+        recipe_id=recipe.id,
+        portions=spare,
+        grams_per_portion=per_portion,
+        cooked_day=day,
+        expires_day=day + recipe.keeps_days,
+        meal_types=tuple(recipe.meal_type),
+        resolution=res,
+    )
+    return [*dishes, dish], Counter()
+
+
+def expire_dishes(
+    dishes: list[Leftover], day: int
+) -> tuple[list[Leftover], Counter[str]]:
+    """Throw out leftovers past their day. Returns (kept, grams wasted)."""
+    kept, wasted = [], Counter()
+    for d in dishes:
+        if d.expires_day < day:
+            wasted[leftover_key(d.recipe_id)] += d.portions * d.grams_per_portion
+        else:
+            kept.append(d)
+    return kept, wasted
+
+
+def eat_leftovers(
+    dishes: list[Leftover], meal: str, people: int
+) -> tuple[list[Leftover], Leftover | None]:
+    """Serve the soonest-expiring leftovers that suit this meal and stretch to everyone."""
+    fits = [
+        i
+        for i, d in enumerate(dishes)
+        if meal in d.meal_types and d.portions >= people - 1e-9
+    ]
+    if not fits:
+        return dishes, None
+    i = min(fits, key=lambda i: dishes[i].expires_day)
+    dish = dishes[i]
+    rest = replace(dish, portions=dish.portions - people)
+    out = dishes[:i] + ([rest] if rest.portions > 1e-9 else []) + dishes[i + 1 :]
+    return out, dish
+
+
 # ---------------------------------------------------------------------------
 # Variety constraint helpers
 # ---------------------------------------------------------------------------
@@ -244,10 +356,49 @@ class MealSlot:
     meal: str
     recipe_id: str | None = None
     resolution: Resolution | None = None
+    leftovers_from: int | None = None  # day it was cooked, if this is leftovers
 
     @property
     def filled(self) -> bool:
         return self.resolution is not None and self.resolution.success
+
+
+class _Colours:
+    """ANSI codes for the terminal summary, or blanks."""
+
+    def __init__(self, on: bool) -> None:
+        def code(n: str) -> str:
+            return f"\033[{n}m" if on else ""
+
+        self.cyan, self.green, self.yellow = code("36"), code("32"), code("33")
+        self.red, self.bold, self.reset = code("31"), code("1"), code("0")
+
+
+def _slot_lines(slot: MealSlot, c: _Colours) -> list[str]:
+    """One meal in the terminal summary."""
+    tag = f"  [{slot.meal.upper()}]"
+    r = slot.resolution
+    if not slot.filled or r is None:
+        return [f"{tag} {c.red}✗ unplanned{c.reset}"]
+    name = f"{tag} {c.bold}{c.green}{r.recipe_name}{c.reset}"
+    if slot.leftovers_from is not None:
+        return [f"{name}  (leftovers from day {slot.leftovers_from})"]
+    lines = [
+        f"{name}  (serves {r.servings}, {r.timing.total} min,"
+        f" {r.timing.active} hands-on)"
+    ]
+    if r.timing.make_ahead:
+        lines.append(
+            f"    {c.cyan}⏰ make ahead: {', '.join(r.timing.make_ahead)}{c.reset}"
+        )
+    for a in r.assignments:
+        if not a.assigned:
+            continue
+        picks = ", ".join(
+            f"{i} {a.grams[i]:.0f}g" if a.grams.get(i) else i for i in a.assigned
+        )
+        lines.append(f"    • {a.slot_label + ':':<28} {c.yellow}{picks}{c.reset}")
+    return lines
 
 
 @dataclass
@@ -261,6 +412,8 @@ class MealPlan:
     wasted: Counter[str] = field(default_factory=Counter)  # grams expired unused
     remaining_lots: list[Lot] = field(default_factory=list)
     bought: Counter[str] = field(default_factory=Counter)  # packs, from one shop
+    leftovers: list[Leftover] = field(default_factory=list)  # still good at the end
+    made: Counter[str] = field(default_factory=Counter)  # grams cooked from dried etc.
 
     @property
     def success_rate(self) -> float:
@@ -273,75 +426,47 @@ class MealPlan:
         return sum(self.wasted.values()) / start if start else 0.0
 
     def summary(self, use_color: bool = True) -> str:
-        # Simple ANSI escape sequences for clean terminal aesthetics
-        CYAN = "\033[36m" if use_color else ""
-        GREEN = "\033[32m" if use_color else ""
-        YELLOW = "\033[33m" if use_color else ""
-        RED = "\033[31m" if use_color else ""
-        BOLD = "\033[1m" if use_color else ""
-        RESET = "\033[0m" if use_color else ""
-
+        c = _Colours(use_color)
         filled_count = sum(1 for s in self.slots if s.filled)
-        rule = f"{BOLD}{'=' * 50}{RESET}"
-
+        rule = f"{c.bold}{'=' * 50}{c.reset}"
+        all_done = filled_count == len(self.slots)
         lines = [
             rule,
-            f"{BOLD}📅 Meal Plan — {self.days} days x {self.meals_per_day}{RESET}",
-            f"📊 Planned: {GREEN if filled_count == len(self.slots) else YELLOW}{filled_count}/{len(self.slots)} meals{RESET}",
+            f"{c.bold}📅 Meal Plan — {self.days} days x {self.meals_per_day}{c.reset}",
+            f"📊 Planned: {c.green if all_done else c.yellow}"
+            f"{filled_count}/{len(self.slots)} meals{c.reset}",
             rule,
             "",
         ]
-
         for day in range(1, self.days + 1):
-            lines.append(f"{CYAN}{BOLD}♦ Day {day}{RESET}")
-
+            lines.append(f"{c.cyan}{c.bold}♦ Day {day}{c.reset}")
             day_slots = [s for s in self.slots if s.day == day]
             if not day_slots:
                 lines.append("  (No meals scheduled)")
-                continue
-
             for slot in day_slots:
-                if slot.filled and slot.resolution:
-                    r = slot.resolution
-                    lines.append(
-                        f"  [{slot.meal.upper()}] {BOLD}{GREEN}{r.recipe_name}{RESET}"
-                        f"  (serves {r.servings}, {r.timing.total} min,"
-                        f" {r.timing.active} hands-on)"
-                    )
-                    if r.timing.make_ahead:
-                        lines.append(
-                            f"    {CYAN}⏰ make ahead: {', '.join(r.timing.make_ahead)}{RESET}"
-                        )
-                    for a in r.assignments:
-                        if not a.assigned:
-                            continue
-                        label_str = f"{a.slot_label}:"
-                        ingredients_str = ", ".join(
-                            f"{i} {a.grams[i]:.0f}g" if a.grams.get(i) else i
-                            for i in a.assigned
-                        )
-                        lines.append(
-                            f"    • {label_str:<28} {YELLOW}{ingredients_str}{RESET}"
-                        )
-                else:
-                    lines.append(f"  [{slot.meal.upper()}] {RED}✗ unplanned{RESET}")
+                lines += _slot_lines(slot, c)
             lines.append("")
 
-        lines += [rule, f"{BOLD}📦 Stock{RESET}", rule]
+        lines += [rule, f"{c.bold}📦 Stock{c.reset}", rule]
         for ing_id in sorted(self.inventory_start):
             start = self.inventory_start[ing_id]
             left = self.inventory_remaining.get(ing_id, 0.0)
             wasted = self.wasted.get(ing_id, 0.0)
             used = start - left - wasted
-            colour = RED if wasted else RESET
-            note = f"  {RED}wasted {wasted:.0f}g{RESET}" if wasted else ""
+            colour = c.red if wasted else c.reset
+            note = f"  {c.red}wasted {wasted:.0f}g{c.reset}" if wasted else ""
             lines.append(
-                f"  {ing_id:<22} {colour}{left:>6.0f}g left{RESET}  (used {used:.0f}g){note}"
+                f"  {ing_id:<22} {colour}{left:>6.0f}g left{c.reset}  (used {used:.0f}g){note}"
             )
+        for key, grams in sorted(self.wasted.items()):
+            if key.startswith("leftovers:"):
+                lines.append(
+                    f"  {c.red}leftover {key.split(':', 1)[1]} went off: {grams:.0f}g{c.reset}"
+                )
         lines += [
             "",
-            f"{BOLD}🗑  Waste: {sum(self.wasted.values()):.0f}g "
-            f"({self.waste_fraction:.0%} of starting stock){RESET}",
+            f"{c.bold}🗑  Waste: {sum(self.wasted.values()):.0f}g "
+            f"({self.waste_fraction:.0%} of starting stock){c.reset}",
         ]
         return "\n".join(lines)
 
@@ -446,6 +571,7 @@ def plan_week(
             3. Pick the successful recipe that best rescues at-risk stock and
                avoids recently used ingredient classes (no repeats until all used)
             4. Draw its ingredients from the soonest-expiring lots
+        Leftovers that suit the meal are eaten first, instead of cooking.
 
     Args:
         recipes:              recipe db, defaults to RECIPES
@@ -472,11 +598,27 @@ def plan_week(
     unplanned: list[tuple[int, str]] = []
     used_recipes: set[str] = set()
     wasted: Counter[str] = Counter()
+    dishes: list[Leftover] = []
+    made: Counter[str] = Counter()
 
     for day in range(1, days + 1):
         lots, gone = expire(lots, day)
         wasted += gone
+        dishes, gone = expire_dishes(dishes, day)
+        wasted += gone
         for meal in meals:
+            dishes, dish = eat_leftovers(dishes, meal, people)
+            if dish is not None:
+                planned.append(
+                    MealSlot(
+                        day=day,
+                        meal=meal,
+                        recipe_id=dish.recipe_id,
+                        resolution=dish.resolution,
+                        leftovers_from=dish.cooked_day,
+                    )
+                )
+                continue
             meal_recipes = {
                 rid: r for rid, r in recipe_db.items() if meal in r.meal_type
             }
@@ -516,9 +658,17 @@ def plan_week(
             )
             used_recipes.add(best.recipe_id)
             lots = consume(lots, best.resolution.consumed)
+            lots, cooked = cook_batches(lots, best.resolution, day, db)
+            made += cooked
+            dishes, gone = stash(
+                dishes, recipe_db[best.recipe_id], best.resolution, people, day
+            )
+            wasted += gone
 
     # Lots whose last good day fell inside the plan and went uneaten are waste too
     lots, gone = expire(lots, days + 1)
+    wasted += gone
+    dishes, gone = expire_dishes(dishes, days + 1)
     wasted += gone
 
     return MealPlan(
@@ -530,6 +680,8 @@ def plan_week(
         unplanned=unplanned,
         wasted=wasted,
         remaining_lots=lots,
+        leftovers=dishes,
+        made=made,
     )
 
 

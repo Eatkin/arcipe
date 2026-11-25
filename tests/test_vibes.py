@@ -67,7 +67,7 @@ def test_disliked_ingredient_loses_a_close_call():
 
 
 def test_solver_avoids_a_disliked_recipe():
-    inventory = {"potato": 4, "carrot": 6}
+    inventory = {"potato": 4, "carrot": 6, "chickpeas": 3, "butter_beans": 2}
     plain = optimise_week(
         inventory=inventory, days=3, iterations=300, rng=random.Random(0)
     )

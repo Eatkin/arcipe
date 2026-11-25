@@ -51,6 +51,7 @@ tomato_pasta:
 
 baked_pasta:
   name: Creamy Baked Pasta / Mac
+  keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     Pasta folded through a creamy, cheesy sauce with greens or courgette, topped
     with breadcrumbs and baked until golden. Mac and cheese's grown-up cousin.
@@ -75,6 +76,7 @@ baked_pasta:
 
 pasta_salad:
   name: Pasta Salad
+  keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     Cold pasta with crunchy raw veg, beans, a creamy or pesto dressing and herbs.
     Packs well, uses up odds and ends of salad veg.
