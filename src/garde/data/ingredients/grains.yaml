@@ -227,3 +227,66 @@ gram_flour:
   nutrition: [high_protein]
   cuisine_context: [indian]
   notes: Chickpea omelettes, bhajias, binding patties.
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+udon:
+  name: Udon Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  stock_ratio: 0.4  # dried; the vacuum packs of fresh are ~1.0
+  cuisine_context: [japanese]
+  nutrition: [high_carb]
+
+soba:
+  name: Soba Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  stock_ratio: 0.4
+  cuisine_context: [japanese]
+  nutrition: [high_carb]
+
+wholemeal_flour:
+  name: Wholemeal Flour
+  classes: [grain]
+  roles: [gluten, binder, thickener]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 1500
+  nutrition: [high_fibre]
+
+tapioca_flour:
+  name: Tapioca Flour
+  classes: [starch]
+  roles: [thickener, binder]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  max_per_serving: 15
+  notes: Glossier and stretchier than cornflour; the chew in cheesy sauces and bubble tea.
+
+acorn_flour:
+  name: Acorn Starch (dotori)
+  classes: [starch]
+  roles: [binder, thickener]
+  flavour: [nutty, bitter]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 500
+  max_per_serving: 30
+  cuisine_context: [korean]
+  notes: Boiled with water it sets into dotorimuk, a savoury jelly eaten with a soy dressing.

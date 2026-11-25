@@ -241,3 +241,59 @@ vital_wheat_gluten:
   pack_weight: 500
   nutrition: [high_protein]
   notes: Kneaded with stock and spices into seitan (250g -> ~8 servings).
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+urad_dal:
+  name: Urad Dal (split black gram)
+  classes: [legume, pulse]
+  roles: [bulk_blendable, protein, sauce_base]
+  flavour: [earthy, mild]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [indian]
+  nutrition: [high_protein, high_iron, high_fibre]
+  notes: Soaked and blended, it sets like egg; with kala namak it makes a scramble.
+
+mushy_peas:
+  name: Mushy Peas (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk_blendable, sauce_base, protein]
+  flavour: [sweet, earthy]
+  colour: green
+  season: [all]
+  price: cheap
+  unit_weight: 300
+  cuisine_context: [british]
+  nutrition: [high_protein, high_fibre]
+
+tinned_peas:
+  name: Garden Peas (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume]
+  roles: [bulk, garnish]
+  flavour: [sweet]
+  colour: green
+  season: [all]
+  price: cheap
+  unit_weight: 180  # drained
+  cuisine_context: [british]
+  nutrition: [high_fibre]
+  notes: Softer than frozen; better stirred into curries and pies than as a side.
+
+dried_tofu_sticks:
+  name: Dried Tofu Sticks (fuzhu)
+  classes: [soy_product]
+  roles: [protein, bulk]
+  flavour: [mild, nutty]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  stock_ratio: 0.4  # soaked overnight they roughly double and a half (drafted)
+  cuisine_context: [chinese]
+  nutrition: [high_protein]
+  notes: Soak overnight, then braise or stir-fry. Chewy; drinks up sauce.

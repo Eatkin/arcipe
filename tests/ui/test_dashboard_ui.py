@@ -171,11 +171,28 @@ def test_shopping_list_by_aisle(server, page):
 
 def test_staples_toggle(server, page):
     page.goto(server + "/#pantry")
-    page.click("#view-pantry details summary")
+    page.click("#staples-box summary")
+    names = page.locator("#staples button").all_text_contents()
+    assert names == sorted(names, key=str.lower)
     page.click("#staples button[data-id=cashews]")
     page.wait_for_selector("#staples button[data-id=cashews].off")
     got = json.loads(urllib.request.urlopen(server + "/api/household").read())
     assert got == {"not_kept": ["cashews"]}
+
+
+def test_bulk_add(server, page):
+    page.goto(server + "/#pantry")
+    page.click("#bulk summary")
+    page.fill("#bulk-list input[data-id=udon]", "300g")
+    page.fill("#bulk-list input[data-id=mushy_peas]", "2")
+    page.click("#bulk-add")
+    page.wait_for_function(
+        "document.getElementById('status').textContent === 'pantry saved'"
+    )
+    got = json.loads(urllib.request.urlopen(server + "/api/pantry").read())
+    amounts = {i["id"]: i["amount"] for i in got["items"]}
+    assert amounts["udon"] == "300g" and amounts["mushy_peas"] == "2"
+    assert page.locator("#bulk-list input[data-id=udon]").input_value() == ""
 
 
 def test_freeze_a_dish_and_an_item(server, page):

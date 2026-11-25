@@ -167,12 +167,21 @@
   </section>
   <div class="areas" id="areas"></div>
   <section class="panel">
-    <details>
+    <details id="bulk">
+      <summary><h2 style="display:inline">Add lots at once</h2></summary>
+      <p class="hint">Everything the planner knows, A to Z. Type an amount next to what you've got
+        (a count or grams, as above), then add them all. “in” means you've already some listed.</p>
+      <div class="bulk-list" id="bulk-list"></div>
+      <button class="primary" id="bulk-add" disabled>Add to the pantry</button>
+    </details>
+  </section>
+  <section class="panel">
+    <details id="staples-box">
       <summary><h2 style="display:inline">Assumed always in</h2> <span class="count" id="staples-count"></span></summary>
-      <p class="hint">Staples every kitchen has, so you don't list them: spices, oil, flour and so on.
-        Click any you don't keep: plans will shop for them, or skip dishes that need them.
+      <p class="hint">Staples you nearly always have, so you don't list them: spices, oil, flour and so on.
+        Untick any you've run out of or don't keep: plans will shop for them, or skip dishes that need them.
         (Adding one to the pantry above also tracks how much you have.)</p>
-      <div class="staples" id="staples"></div>
+      <ul class="staples" id="staples"></ul>
     </details>
   </section>
 </div>

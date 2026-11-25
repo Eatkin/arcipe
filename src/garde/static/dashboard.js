@@ -124,11 +124,15 @@ function renderPantry() {
 // Staples assumed in: click one you don't keep and plans shop for it instead
 let notKept = [];
 
+const byName = (a, b) => a.name.localeCompare(b.name);
+
 function renderStaples() {
-  const staples = META.ingredients.filter((i) => i.unlimited);
-  $("staples").innerHTML = staples.map((i) => `
-    <button class="chip staple ${notKept.includes(i.id) ? "off" : ""}" data-id="${esc(i.id)}"
-      title="${notKept.includes(i.id) ? "Not kept: plans shop for it. Click if you do keep it." : "Click if you don't keep it"}">${esc(i.name)}</button>`).join("");
+  const staples = META.ingredients.filter((i) => i.unlimited).sort(byName);
+  $("staples").innerHTML = staples.map((i) => {
+    const off = notKept.includes(i.id);
+    return `<li><button class="staple ${off ? "off" : ""}" data-id="${esc(i.id)}" aria-pressed="${!off}"
+      title="${off ? "Not kept: plans shop for it. Click if you do keep it." : "Click if you don't keep it"}"><span class="tick">${off ? "" : "✓"}</span>${esc(i.name)}</button></li>`;
+  }).join("");
   $("staples-count").textContent = notKept.length ? `${notKept.length} not kept` : "";
   $("staples").querySelectorAll("button").forEach((btn) => btn.addEventListener("click", async () => {
     const id = btn.dataset.id;
@@ -140,6 +144,40 @@ function renderStaples() {
       $("status").textContent = `${ingName(id)}: ${notKept.includes(id) ? "not kept, plans will shop for it" : "assumed in"}`;
     } catch (e) { showError(e.message); }
   }));
+}
+
+// Bulk add: every tracked ingredient A to Z, type amounts for what you've got, add the lot
+function renderBulk() {
+  const have = (id) => pantry.some((r) => r.id === id && String(r.amount).trim());
+  let letter = "";
+  $("bulk-list").innerHTML = META.ingredients.filter((i) => !i.unlimited).sort(byName).map((i) => {
+    const first = i.name[0].toUpperCase();
+    const head = first !== letter ? `<div class="aisle">${esc((letter = first))}</div>` : "";
+    return `${head}<label class="bulk-row ${have(i.id) ? "have" : ""}">
+      <span>${esc(i.name)}${have(i.id) ? ` <span class="chip">in</span>` : ""}</span>
+      <input type="text" data-id="${esc(i.id)}" placeholder="${i.unit_weight ? "count" : "grams"}" aria-label="${esc(i.name)} amount">
+    </label>`;
+  }).join("");
+  $("bulk-list").querySelectorAll("input").forEach((el) => el.addEventListener("input", bulkCount));
+  bulkCount();
+}
+
+function bulkCount() {
+  const n = [...$("bulk-list").querySelectorAll("input")].filter((el) => el.value.trim()).length;
+  $("bulk-add").disabled = !n;
+  $("bulk-add").textContent = n ? `Add ${plural(n, "thing")} to the pantry` : "Add to the pantry";
+}
+
+function bulkAdd() {
+  const filled = [...$("bulk-list").querySelectorAll("input")].filter((el) => el.value.trim());
+  for (const el of filled) {
+    const ing = ingById(el.dataset.id);
+    pantry.push({ id: ing.id, amount: el.value.trim(), use_by: defaultUseBy(ing), area: areaOf(ing.id) });
+  }
+  renderPantry();
+  pantryChanged();
+  renderBulk();
+  $("status").textContent = `added ${plural(filled.length, "thing")}`;
 }
 
 // Into the freezer (keeps META.freezer_days) or out of it (2 more days)
@@ -1140,6 +1178,8 @@ async function boot() {
   $("plan-btn").addEventListener("click", plan);
   $("save-btn").addEventListener("click", savePlan);
   $("extra-add").addEventListener("click", addExtra);
+  $("bulk-add").addEventListener("click", bulkAdd);
+  $("bulk").addEventListener("toggle", () => { if ($("bulk").open) renderBulk(); });
   $("extra-amount").addEventListener("keydown", (e) => { if (e.key === "Enter") addExtra(); });
   $("all-ingredients").innerHTML = META.ingredients.filter((i) => !i.unlimited)
     .map((i) => `<option value="${esc(i.name)}">`).join("");

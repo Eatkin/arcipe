@@ -290,3 +290,16 @@ fennel_seed:
   price: negligible
   unlimited: true
   cuisine_context: [indian, italian]
+
+kala_namak:
+  name: Kala Namak (black salt)
+  classes: [seasoning]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami]
+  colour: white
+  season: [all]
+  price: negligible
+  unlimited: true
+  max_per_serving: 2
+  cuisine_context: [indian]
+  notes: Sulphurous and eggy; the trick in tofu and urad dal scrambles.

@@ -258,3 +258,55 @@ sauerkraut:
   price: moderate
   max_per_serving: 80
   cuisine_context: [eastern_european]
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+green_olives:
+  name: Green Olives
+  opened_days: 14  # in the fridge once opened (drafted)
+  classes: [fermented]
+  roles: [umami_boost, acid_bright, garnish]
+  flavour: [sharp, umami]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  max_per_serving: 30
+  cuisine_context: [mediterranean, levantine, italian]
+
+water_chestnuts:
+  name: Water Chestnuts (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [root_veg]
+  roles: [raw_crunch, texture_top]
+  flavour: [sweet, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  unit_weight: 140  # drained
+  max_per_serving: 60
+  cuisine_context: [chinese, thai]
+  notes: Stay crunchy however long they cook.
+
+pickled_leeks:
+  name: Pickled Leeks
+  classes: [fermented, allium]
+  roles: [acid_bright, raw_crunch, garnish]
+  flavour: [sharp, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  max_per_serving: 30
+  cuisine_context: [chinese]
+
+pickled_red_cabbage:
+  name: Pickled Red Cabbage
+  classes: [fermented, brassica]
+  roles: [acid_bright, raw_crunch, garnish]
+  flavour: [sharp, sweet]
+  colour: purple
+  season: [all]
+  price: cheap
+  pack_weight: 450
+  max_per_serving: 50
+  cuisine_context: [british, eastern_european]
