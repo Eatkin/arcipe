@@ -123,17 +123,17 @@ thai_curry:
   keeps_days: 2  # leftovers keep this long in the fridge
   description: >
     No jar of paste: spring onion, garlic and ginger blended with coriander and/or
-    basil, cumin, coriander and turmeric, coconut cream, and soy with fish sauce
+    basil, cumin, coriander and turmeric, coconut milk, and soy with fish sauce
     or Worcestershire into a sauce. Veg and tofu simmered in it, lime at the end,
     over rice. More herbs makes it green; more turmeric, yellow.
   colour_dominant: green
   cuisine_context: [thai]
-  preferred_ingredients: [green_onion, garlic, ginger, lemongrass, coriander_leaf, basil, cumin, coriander_seed, turmeric_dried, coconut_cream, coconut_milk, soy_sauce, vegan_fish_sauce, worcestershire_sauce, lime, tofu, sweet_potato, courgette, bell_pepper, green_beans, basmati_rice]
+  preferred_ingredients: [green_onion, garlic, ginger, lemongrass, coriander_leaf, basil, cumin, coriander_seed, turmeric_dried, coconut_milk, soy_sauce, vegan_fish_sauce, worcestershire_sauce, lime, tofu, sweet_potato, courgette, bell_pepper, green_beans, basmati_rice]
   slots: [rice_base, curry_aromatic, curry_herb_paste, spice_bloom, creamy_curry_fat, stir_fry_seasoning, curry_bulk, curry_protein, heat, acid_bright]
   slot_overrides:
     curry_aromatic: {label: Spring Onion / Garlic / Ginger, preferred_classes: [allium, rhizome, fresh_herb], amount: {per_serving: 50}, time: {active: 5, passive: 0}}
     spice_bloom: {max_ingredients: 3}
-    creamy_curry_fat: {label: Coconut Cream, preferred_classes: [plant_milk]}
+    creamy_curry_fat: {label: Coconut Milk, preferred_classes: [plant_milk]}
     stir_fry_seasoning: {label: Soy / Fish Sauce, amount: {per_serving: 10}}
     curry_protein: {optional: true, max_ingredients: 1, preferred_classes: [soy_product, legume]}
   edges:
@@ -149,7 +149,8 @@ thai_curry:
   sources:
     - https://pinchofnom.com/recipes/vegetarian-thai-style-green-curry/
   notes: >
-    The household's way: blend the sauce, don't buy paste. Fry the sauce for a
+    The household's way: blend the sauce, don't buy paste. The coconut milk is
+    coconut cream thinned with water (coconut_milk is made_from coconut_cream). Fry the sauce for a
     minute, add the veg and a splash of water, simmer 10-15 min. It's a sauce,
     not a paste, so it doesn't keep like one: make it on the night.
 
