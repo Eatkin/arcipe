@@ -74,7 +74,7 @@ urad_scramble:
   cuisine_context: [universal, indian]
   meal_type: [breakfast]
   serves: 2
-  required_ingredients: [urad_batter, kala_namak]
+  required_ingredients: [urad_batter, kala_namak, turmeric_dried]
   preferred_ingredients: [urad_dal, kala_namak, turmeric_dried, nutritional_yeast, soy_sauce, onion, mushrooms, spinach, tomato, chives, bread]
   slots: [blend_veg, spice_bloom, stir_fry_seasoning, aromatic_base, cooked_veg, griddle, umami_boost, finish_herb, bread_base]
   slot_overrides:
