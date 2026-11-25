@@ -377,15 +377,17 @@ yeast:
   unlimited: true
 
 mustard:
-  name: Mustard
+  name: Dijon Mustard
   classes: [condiment]
-  roles: [acid_bright, umami_boost]
+  roles: [acid_bright, fat_emulsifier, umami_boost]
   flavour: [sharp, spicy]
   colour: yellow
   season: [all]
   price: moderate
   pack_weight: 200
   max_per_serving: 10
+  cuisine_context: [french, british]
+  notes: The only mustard in the house. Holds a vinaigrette together.
 
 rice_vinegar:
   name: Rice (Wine) Vinegar
@@ -553,19 +555,6 @@ vegan_oyster_sauce:
   max_per_serving: 15
   cuisine_context: [chinese]
   notes: Mushroom-based. Stir-fried greens, noodles, braises.
-
-dijon_mustard:
-  name: Dijon Mustard
-  classes: [condiment]
-  roles: [acid_bright, fat_emulsifier, umami_boost]
-  flavour: [sharp, spicy]
-  colour: yellow
-  season: [all]
-  price: moderate
-  pack_weight: 200
-  max_per_serving: 10
-  cuisine_context: [french, british]
-  notes: Holds a vinaigrette together.
 
 tabasco:
   name: Tabasco

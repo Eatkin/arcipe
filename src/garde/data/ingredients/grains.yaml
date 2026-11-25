@@ -279,14 +279,15 @@ tapioca_flour:
   notes: Glossier and stretchier than cornflour; the chew in cheesy sauces and bubble tea.
 
 acorn_flour:
-  name: Acorn Starch (dotori)
-  classes: [starch]
+  name: Acorn Flour
+  classes: [grain]
   roles: [binder, thickener]
-  flavour: [nutty, bitter]
+  flavour: [nutty, earthy, bitter]
   colour: brown
   season: [all]
-  price: pricey
+  price: negligible  # foraged
   pack_weight: 500
-  max_per_serving: 30
-  cuisine_context: [korean]
-  notes: Boiled with water it sets into dotorimuk, a savoury jelly eaten with a soy dressing.
+  max_per_serving: 40
+  nutrition: [high_fat]
+  notes: Homemade from foraged acorns (soaked, dried, ground). No gluten, so mix it
+    with wheat flour for bread, pancakes and flatbreads.
