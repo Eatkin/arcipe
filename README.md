@@ -122,7 +122,9 @@ bad night doesn't ban anything.
   anything not listed skipped). The rest of a pot of beans goes in as cooked beans,
   and portions beyond the people eating go in as a dish if the recipe keeps.
   Ticking a leftovers meal as **Eaten** takes its portions out. Unticking puts it
-  all back.
+  all back. The plan's **Shopping** list ticks off too: each pack goes into the
+  pantry with its usual shelf life from that day, and "Bought something else?"
+  adds anything that wasn't on the list.
 - **Plan** tab: settings on the left, with the solver weights as plain sliders
   ("Use up food: don't mind binning a bit ↔ use every last scrap"). Weeknights and
   weekends have separate time limits. Nothing runs until you press **Plan the

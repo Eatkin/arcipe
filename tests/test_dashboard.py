@@ -292,3 +292,32 @@ def test_plan_endpoints_reject_bad_requests(server, method, path, body, code):
     with pytest.raises(urllib.error.HTTPError) as e:
         urllib.request.urlopen(_req(server + path, body, method))
     assert e.value.code == code
+
+
+def test_shop_endpoint(server):
+    _json(_req(server + "/api/pantry", {"items": [], "dishes": []}, "PUT"))
+    body = {
+        "days": 2,
+        "effort": 1,
+        "start_date": "2026-12-01",
+        "shopping": True,
+        "inventory": {},
+    }
+    result = _json(_req(server + "/api/plan", body))
+    shopping = result["plan"]["shopping"]
+    assert shopping  # nothing in, so it has to buy
+    saved = _json(_req(server + "/api/plans", {"result": result, "settings": body}))
+    url = f"{server}/api/plans/{saved['id']}/shop"
+    first = shopping[0]["id"]
+    got = _json(_req(url, {"id": first, "date": "2026-12-01"}))
+    assert [i["id"] for i in got["pantry"]["items"]] == [first]
+    assert got["plan"]["plan"]["shopping"][0]["bought"]["on"] == "2026-12-01"
+    extra = {"id": "spinach", "amount": "1"}
+    got = _json(_req(url, {"extra": extra, "date": "2026-12-01"}))
+    assert {i["id"] for i in got["pantry"]["items"]} == {first, "spinach"}
+    got = _json(_req(url, {"extra_index": 0}))
+    got = _json(_req(url, {"id": first, "bought": False}))
+    assert got["pantry"]["items"] == []
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(url, {"extra": {"id": "unicorn", "amount": "1"}}))
+    assert e.value.code == 400

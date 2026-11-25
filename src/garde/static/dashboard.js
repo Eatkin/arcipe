@@ -559,7 +559,7 @@ function renderPlanList() {
   $("plans-list").innerHTML = `<ul class="plan-list">${savedPlans.map((p) => `
     <li><a href="#plans/${esc(p.id)}" class="${savedPlan && savedPlan.id === p.id ? "on" : ""}">
       <div>${esc(p.name)}</div>
-      <div class="sub">${p.cooked} of ${plural(p.meals, "meal")} done · saved ${esc(prettyDay(p.saved_at.slice(0, 10)))}</div>
+      <div class="sub">${p.cooked} of ${plural(p.meals, "meal")} done${p.to_buy ? ` · ${p.bought}/${p.to_buy} bought` : ""} · saved ${esc(prettyDay(p.saved_at.slice(0, 10)))}</div>
     </a></li>`).join("")}</ul>`;
 }
 
@@ -574,6 +574,7 @@ function renderSaved() {
     plural(savedPlan.plan.days.length, "day"),
     (s.meals || []).join(", "),
   ].filter(Boolean).join(" · ");
+  renderSavedShopping();
   const grid = $("saved-grid");
   grid.innerHTML = "";
   for (const day of savedPlan.plan.days) {
@@ -613,26 +614,76 @@ function savedMealEl(day, m) {
   return el;
 }
 
+// POST a change to the saved plan; it comes back with the pantry it changed
+async function changePlan(what, body, done) {
+  await flushPantry();
+  const data = await api(`/api/plans/${savedPlan.id}/${what}`, {
+    method: "POST", body: { date: today(), ...body },
+  });
+  savedPlan = data.plan;
+  setPantry(data.pantry);
+  renderPantry();
+  markStale();
+  savedPlans = (await api("/api/plans")).plans;
+  renderPlanList();
+  renderSaved();
+  $("status").textContent = done;
+}
+
 async function cookMeal(day, m, tick) {
   tick.disabled = true;
   try {
-    await flushPantry();
-    const data = await api(`/api/plans/${savedPlan.id}/cook`, {
-      method: "POST", body: { day, meal: m.meal, cooked: tick.checked, date: today() },
-    });
-    savedPlan = data.plan;
-    setPantry(data.pantry);
-    renderPantry();
-    markStale();
-    savedPlans = (await api("/api/plans")).plans;
-    renderPlanList();
-    renderSaved();
-    $("status").textContent = tick.checked ? `${m.recipe_name}: done, pantry updated` : `${m.recipe_name}: put back`;
+    await changePlan("cook", { day, meal: m.meal, cooked: tick.checked },
+      tick.checked ? `${m.recipe_name}: done, pantry updated` : `${m.recipe_name}: put back`);
   } catch (e) {
     showError(e.message);
     tick.checked = !tick.checked;
     tick.disabled = false;
   }
+}
+
+const ingName = (id) => (ingById(id) || { name: id }).name;
+const useByText = (d) => (d ? `use by ${prettyDay(d)}` : "keeps");
+
+function renderSavedShopping() {
+  const rows = savedPlan.plan.shopping || [];
+  const extras = savedPlan.extras || [];
+  const got = rows.filter((r) => r.bought).length;
+  $("shop-count").textContent = rows.length ? `${got} of ${rows.length} bought` : "";
+  $("saved-shop").innerHTML = rows.length ? `<ul class="shop">${rows.map((r) => `
+    <li class="tickable ${r.bought ? "got" : ""}">
+      <input type="checkbox" data-id="${esc(r.id)}" ${r.bought ? "checked" : ""} aria-label="Bought ${esc(r.name)}">
+      <span class="n">${r.packs}×</span>
+      <span>${esc(r.name)} <span class="g">${r.grams}g</span></span>
+      <span class="price">${r.bought ? `in the pantry, ${esc(useByText(r.bought.use_by))}` : esc(r.price_word || "")}</span></li>`).join("")}</ul>`
+    : `<p class="hint">Nothing to buy on this plan.</p>`;
+  $("saved-shop").querySelectorAll("input").forEach((box) => box.addEventListener("change", async () => {
+    box.disabled = true;
+    const name = ingName(box.dataset.id);
+    try {
+      await changePlan("shop", { id: box.dataset.id, bought: box.checked },
+        box.checked ? `${name}: in the pantry` : `${name}: taken back out`);
+    } catch (e) { showError(e.message); box.checked = !box.checked; box.disabled = false; }
+  }));
+  $("saved-extras").innerHTML = extras.length ? `<ul class="shop">${extras.map((x, i) => `
+    <li><span>${esc(ingName(x.id))} <span class="g">${esc(x.amount)}</span></span>
+      <span class="price">${esc(useByText(x.use_by))}</span>
+      <button class="x" data-i="${i}" title="Take it back out">×</button></li>`).join("")}</ul>` : "";
+  $("saved-extras").querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () =>
+    changePlan("shop", { extra_index: Number(btn.dataset.i) }, "taken back out")
+      .catch((e) => showError(e.message))));
+}
+
+async function addExtra() {
+  const found = ingByName($("extra-name").value);
+  if (!found) { showError(`Don't know "${$("extra-name").value}". Pick one from the list.`); return; }
+  const extra = { id: found.id, amount: $("extra-amount").value.trim(), use_by: $("extra-use-by").value || null };
+  try {
+    await changePlan("shop", { extra }, `${found.name}: in the pantry`);
+    showError("");
+    for (const id of ["extra-name", "extra-amount", "extra-use-by"]) $(id).value = "";
+    $("extra-name").focus();
+  } catch (e) { showError(e.message); }
 }
 
 async function deletePlan() {
@@ -672,6 +723,10 @@ async function boot() {
   $("reset-weights").addEventListener("click", () => { state.weights = { ...META.weights }; renderKnobs(); changed(); });
   $("plan-btn").addEventListener("click", plan);
   $("save-btn").addEventListener("click", savePlan);
+  $("extra-add").addEventListener("click", addExtra);
+  $("extra-amount").addEventListener("keydown", (e) => { if (e.key === "Enter") addExtra(); });
+  $("all-ingredients").innerHTML = META.ingredients.filter((i) => !i.unlimited)
+    .map((i) => `<option value="${esc(i.name)}">`).join("");
   $("saved-delete").addEventListener("click", () => deletePlan().catch((e) => showError(e.message)));
   $("status").textContent = "";
 }

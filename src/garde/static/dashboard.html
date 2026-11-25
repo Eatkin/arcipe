@@ -116,6 +116,18 @@
         </div>
         <button id="saved-delete" class="danger">Delete</button>
       </section>
+      <section class="panel">
+        <div class="area-head"><h2>Shopping</h2><span class="count" id="shop-count"></span></div>
+        <div id="saved-shop"></div>
+        <div class="extras" id="saved-extras"></div>
+        <div class="prow add-extra">
+          <input type="text" id="extra-name" list="all-ingredients" placeholder="Bought something else?" aria-label="Ingredient">
+          <input type="text" id="extra-amount" placeholder="amount" aria-label="Amount">
+          <input type="date" id="extra-use-by" aria-label="Use by" title="Leave blank for its usual shelf life">
+          <button id="extra-add">Add</button>
+        </div>
+        <p class="hint">Ticked things go straight into the pantry, with their usual shelf life from today.</p>
+      </section>
       <div class="days" id="saved-grid"></div>
     </div>
   </main>

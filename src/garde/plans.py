@@ -22,6 +22,12 @@ cooked (cook) changes the pantry:
     a leftovers meal eats `people` portions of that recipe's dish.
 
 What changed is kept on the meal under `cooked`, so untick puts it back.
+
+Shopping: each row of `plan.shopping` can be ticked off as bought (shop), which
+puts its packs in the pantry with the usual shelf life from that day, and the
+row keeps what went in under `bought`. Things bought that weren't on the list
+go in `extras` (add_extra, remove_extra). Unticking takes them back out, as far
+as they're still there.
 """
 
 from __future__ import annotations
@@ -30,6 +36,7 @@ import json
 import math
 import re
 import secrets
+from collections.abc import Callable
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
@@ -127,6 +134,20 @@ def _check_plan(
     return plan
 
 
+def _check_shopping(rows: Any, db: dict[str, Ingredient]) -> list[dict[str, Any]]:
+    if rows is None:
+        return []
+    if not isinstance(rows, list):
+        raise PlanError("shopping must be a list")
+    for row in rows:
+        if not isinstance(row, dict) or row.get("id") not in db:
+            raise PlanError("shopping: unknown ingredient")
+        packs = row.get("packs")
+        if not isinstance(packs, int) or packs < 1:
+            raise PlanError(f"shopping: {row['id']} needs a number of packs")
+    return rows
+
+
 def _people(settings: dict[str, Any]) -> int:
     try:
         people = int(settings.get("people") or 2)
@@ -154,7 +175,11 @@ def save(
     if not isinstance(result, dict):
         raise PlanError("result must be an object")
     settings = settings if isinstance(settings, dict) else {}
-    plan = _check_plan(result.get("plan"), db or INGREDIENTS, recipes or RECIPES)
+    db = db or INGREDIENTS
+    plan = _check_plan(result.get("plan"), db, recipes or RECIPES)
+    plan["shopping"] = _check_shopping(plan.get("shopping"), db)
+    for row in plan["shopping"]:
+        row.setdefault("bought", None)
     now = (now or datetime.now()).replace(microsecond=0)
     start = date.fromisoformat(plan["days"][0]["date"])
     for day in plan["days"]:
@@ -169,6 +194,7 @@ def save(
         "settings": settings,
         "plan": plan,
         "breakdown": result.get("breakdown") or {},
+        "extras": [],
     }
     _write(record, root)
     return record
@@ -192,6 +218,7 @@ def summary(record: dict[str, Any]) -> dict[str, Any]:
     meals = [
         m for d in record["plan"]["days"] for m in d["meals"] if m.get("recipe_id")
     ]
+    shopping = record["plan"].get("shopping") or []
     return {
         "id": record["id"],
         "name": record["name"],
@@ -200,6 +227,8 @@ def summary(record: dict[str, Any]) -> dict[str, Any]:
         "days": len(record["plan"]["days"]),
         "meals": len(meals),
         "cooked": sum(1 for m in meals if m.get("cooked")),
+        "to_buy": len(shopping),
+        "bought": sum(1 for row in shopping if row.get("bought")),
     }
 
 
@@ -403,6 +432,19 @@ def cook(
     return record, stock
 
 
+def update(
+    plan_id: str,
+    change: Callable[[dict[str, Any], Pantry], tuple[dict[str, Any], Pantry]],
+    root: Path | None = None,
+    pantry_path: Path | None = None,
+) -> tuple[dict[str, Any], Pantry]:
+    """Apply `change` (cook, shop, ...) to the saved plan and pantry; write both."""
+    record, stock = change(load(plan_id, root), pantry.load(pantry_path))
+    pantry.save(stock, pantry_path)
+    _write(record, root)
+    return record, stock
+
+
 def cook_and_save(
     plan_id: str,
     day: int,
@@ -413,8 +455,109 @@ def cook_and_save(
     pantry_path: Path | None = None,
 ) -> tuple[dict[str, Any], Pantry]:
     """cook() on the saved plan and pantry, writing both back."""
-    record = load(plan_id, root)
-    record, stock = cook(record, day, meal, pantry.load(pantry_path), cooked, when)
-    pantry.save(stock, pantry_path)
-    _write(record, root)
-    return record, stock
+    return update(
+        plan_id,
+        lambda record, stock: cook(record, day, meal, stock, cooked, when),
+        root,
+        pantry_path,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Shopping
+# ---------------------------------------------------------------------------
+
+
+def fresh_use_by(ing: Ingredient, when: date) -> str | None:
+    """Last good day of something bought on `when`: its usual shelf life."""
+    return _plus_days(
+        when, None if ing.shelf_life_days is None else ing.shelf_life_days - 1
+    )
+
+
+def _amount(ing: Ingredient, grams: float) -> str:
+    """A count if it comes in whole units, else grams."""
+    if ing.unit_weight:
+        count = grams / ing.unit_weight
+        if abs(count - round(count)) < 1e-6:
+            return f"{round(count)}"
+    return f"{round(grams)}g"
+
+
+def _row(record: dict[str, Any], ing_id: str) -> dict[str, Any]:
+    for row in record["plan"].get("shopping") or []:
+        if row["id"] == ing_id:
+            return row
+    raise PlanError(f"{ing_id} isn't on the shopping list")
+
+
+def shop(
+    record: dict[str, Any],
+    ing_id: str,
+    stock: Pantry,
+    bought: bool = True,
+    when: date | None = None,
+    db: dict[str, Ingredient] | None = None,
+) -> tuple[dict[str, Any], Pantry]:
+    """Tick a shopping-list row off as bought (into the pantry), or untick it."""
+    db = db or INGREDIENTS
+    row = _row(record, ing_id)
+    if bought == bool(row.get("bought")):
+        return record, stock
+    if bought:
+        when = when or date.today()
+        ing = db[ing_id]
+        item = Item(
+            ing_id, _amount(ing, row["packs"] * ing.pack_grams), fresh_use_by(ing, when)
+        )
+        row["bought"] = {**asdict(item), "on": when.isoformat()}
+        return record, Pantry(pantry.give(stock.items, [item], db), stock.dishes)
+    item = _item(row["bought"])
+    row["bought"] = None
+    return record, Pantry(_remove_items(stock.items, [item], db), stock.dishes)
+
+
+def _item(raw: dict[str, Any]) -> Item:
+    return Item(raw["id"], raw["amount"], raw.get("use_by"))
+
+
+def add_extra(
+    record: dict[str, Any],
+    ing_id: str,
+    amount: str,
+    stock: Pantry,
+    use_by: str | None = None,
+    when: date | None = None,
+    db: dict[str, Ingredient] | None = None,
+) -> tuple[dict[str, Any], Pantry]:
+    """Something bought that wasn't on the list: into the pantry and the plan."""
+    db = db or INGREDIENTS
+    when = when or date.today()
+    if ing_id in db and not use_by:
+        use_by = fresh_use_by(db[ing_id], when)
+    try:
+        items = pantry.validate(
+            [{"id": ing_id, "amount": amount, "use_by": use_by}], db
+        )
+    except ValueError as e:
+        raise PlanError(str(e)) from e
+    if not items:
+        raise PlanError("how much did you buy?")
+    record.setdefault("extras", []).append({**asdict(items[0]), "on": when.isoformat()})
+    return record, Pantry(pantry.give(stock.items, items, db), stock.dishes)
+
+
+def remove_extra(
+    record: dict[str, Any],
+    index: int,
+    stock: Pantry,
+    db: dict[str, Ingredient] | None = None,
+) -> tuple[dict[str, Any], Pantry]:
+    """Take an extra back out (bought by mistake, or added twice)."""
+    extras = record.get("extras") or []
+    if not 0 <= index < len(extras):
+        raise PlanError("no such extra")
+    item = _item(extras.pop(index))
+    return record, Pantry(
+        _remove_items(stock.items, [item], db or INGREDIENTS), stock.dishes
+    )

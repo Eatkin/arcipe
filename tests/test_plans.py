@@ -45,6 +45,16 @@ def _result():
     }
 
 
+def _shopping():
+    result = _result()
+    result["plan"]["shopping"] = [
+        {"id": "tofu", "name": "Tofu", "packs": 2, "grams": 560},
+        {"id": "carrot", "name": "Carrot", "packs": 1, "grams": 500},
+        {"id": "red_lentils", "name": "Red lentils", "packs": 1, "grams": 500},
+    ]
+    return result
+
+
 @pytest.fixture
 def root(tmp_path):
     return tmp_path / "plans"
@@ -86,6 +96,8 @@ def test_save_list_load_delete(root):
         "days": 2,
         "meals": 2,
         "cooked": 0,
+        "to_buy": 0,
+        "bought": 0,
     }
     plans.delete(saved["id"], root)
     assert plans.list_plans(root) == []
@@ -264,3 +276,73 @@ def test_pantry_leftovers_get_planned(tmp_path):
     (slot,) = result.plan.slots
     assert slot.recipe_id == "lentil_soup"
     assert slot.leftovers_from is not None
+
+
+# ---------------------------------------------------------------------------
+# Shopping
+# ---------------------------------------------------------------------------
+
+
+def test_bought_goes_in_the_pantry_with_its_shelf_life(root, stock):
+    record = plans.save(_shopping(), root=root)
+    record, after = plans.shop(record, "tofu", stock, when=COOK_DAY)
+    assert Item("tofu", "2", "2026-12-07") in after.items  # 7 days, today is the 1st
+    record, after = plans.shop(record, "red_lentils", after, when=COOK_DAY)
+    assert _grams(after, "red_lentils") == 1000  # onto the 500g already there
+    assert plans.summary(record)["bought"] == 2
+    assert plans.summary(record)["to_buy"] == 3
+
+
+def test_a_pack_that_isnt_whole_units_goes_in_as_grams(root, stock):
+    record = plans.save(_shopping(), root=root)
+    _, after = plans.shop(record, "carrot", Pantry(), when=COOK_DAY)
+    assert after.items == [Item("carrot", "500g", "2026-12-21")]
+
+
+def test_untick_bought_takes_it_back_out(root, stock):
+    record = plans.save(_shopping(), root=root)
+    record, after = plans.shop(record, "tofu", stock, when=COOK_DAY)
+    record, back = plans.shop(record, "tofu", after, bought=False)
+    assert back == stock
+    assert plans.summary(record)["bought"] == 0
+
+
+def test_shop_only_what_is_on_the_list(root, stock):
+    record = plans.save(_shopping(), root=root)
+    with pytest.raises(PlanError, match="isn't on the shopping list"):
+        plans.shop(record, "spinach", stock)
+
+
+def test_extras_go_in_and_come_back_out(root, stock):
+    record = plans.save(_result(), root=root)
+    record, after = plans.add_extra(record, "spinach", "1", stock, when=COOK_DAY)
+    assert Item("spinach", "1", "2026-12-04") in after.items
+    record, after = plans.add_extra(
+        record, "red_lentils", "250g", after, use_by="2027-06-01", when=COOK_DAY
+    )
+    assert [e["id"] for e in record["extras"]] == ["spinach", "red_lentils"]
+    record, back = plans.remove_extra(record, 0, after)
+    record, back = plans.remove_extra(record, 0, back)
+    assert back == stock
+    assert record["extras"] == []
+
+
+@pytest.mark.parametrize(
+    ("ing_id", "amount", "message"),
+    [
+        ("unicorn", "1", "unknown"),
+        ("red_lentils", "", "how much"),
+        ("red_lentils", "lots", "parse"),
+    ],
+)
+def test_bad_extras(root, stock, ing_id, amount, message):
+    record = plans.save(_result(), root=root)
+    with pytest.raises(PlanError, match=message):
+        plans.add_extra(record, ing_id, amount, stock)
+
+
+def test_bad_shopping_list_is_refused(root):
+    result = _shopping()
+    result["plan"]["shopping"][0]["packs"] = "two"
+    with pytest.raises(PlanError, match="packs"):
+        plans.save(result, root=root)

@@ -30,6 +30,11 @@ Endpoints:
     POST /api/plans/<id>/cook  {day, meal, cooked: true|false, date}
                            tick a meal off (or back on): takes its ingredients
                            out of the pantry -> {plan, pantry}
+    POST /api/plans/<id>/shop  {id, bought: true|false, date}: tick a shopping
+                           row off (into the pantry) or back on;
+                           {extra: {id, amount, use_by}, date}: something else
+                           bought; {extra_index}: take that back out
+                           -> {plan, pantry}
 """
 
 from __future__ import annotations
@@ -479,6 +484,40 @@ def plan_cook(plan_id: str, body: dict) -> dict[str, Any]:
     return {"plan": record, "pantry": stock.to_json()}
 
 
+def plan_shop(plan_id: str, body: dict) -> dict[str, Any]:
+    """Tick a shopping row (id, bought), add an extra (extra: {id, amount,
+    use_by}), or take one out (extra_index)."""
+    when = _date(body, "date")
+    extra = body.get("extra")
+    if isinstance(extra, dict):
+
+        def change(record: dict, stock: pantry.Pantry) -> tuple[dict, pantry.Pantry]:
+            return plans.add_extra(
+                record,
+                str(extra.get("id")),
+                str(extra.get("amount") or ""),
+                stock,
+                use_by=extra.get("use_by") or None,
+                when=when,
+            )
+
+    elif "extra_index" in body:
+        index = _int(body, "extra_index", 0, 0, 999)
+
+        def change(record: dict, stock: pantry.Pantry) -> tuple[dict, pantry.Pantry]:
+            return plans.remove_extra(record, index, stock)
+
+    else:
+        ing_id, bought = str(body.get("id")), bool(body.get("bought", True))
+
+        def change(record: dict, stock: pantry.Pantry) -> tuple[dict, pantry.Pantry]:
+            return plans.shop(record, ing_id, stock, bought, when)
+
+    with _KITCHEN_LOCK:
+        record, stock = plans.update(plan_id, change)
+    return {"plan": record, "pantry": stock.to_json()}
+
+
 ROUTES = {
     "POST /api/plan": plan_request,
     "POST /api/rate": rate_request,
@@ -486,13 +525,14 @@ ROUTES = {
     "POST /api/plans": plan_save,
     "GET /api/plans": plans_list,
 }
-# /api/plans/<id>[/cook], by method
+# /api/plans/<id>[/cook|/shop], by method
 PLAN_ROUTES = {
     ("GET", ""): plan_get,
     ("DELETE", ""): plan_delete,
     ("POST", "/cook"): plan_cook,
+    ("POST", "/shop"): plan_shop,
 }
-_PLAN_PATH = re.compile(r"^/api/plans/([^/]+)(/cook)?$")
+_PLAN_PATH = re.compile(r"^/api/plans/([^/]+)(/cook|/shop)?$")
 
 
 def _body(raw: bytes) -> dict:
