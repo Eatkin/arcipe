@@ -506,6 +506,7 @@ class MealPlan:
                     "grams": round(packs * ing.pack_grams),
                     "price": int(ing.price),
                     "price_word": ing.price.word,
+                    "aisle": ing.aisle,
                 }
             )
         return rows

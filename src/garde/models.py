@@ -139,6 +139,8 @@ Season = Literal["spring", "summer", "autumn", "winter", "all", "forage"]
 # loader works it out: freezer.yaml or frozen_* -> freezer, no shelf life ->
 # cupboard, otherwise fridge
 Storage = Literal["fridge", "freezer", "cupboard", "counter"]
+# Where it is in the shop, for grouping the shopping list
+Aisle = Literal["fruit_veg", "bakery", "chilled", "frozen", "cupboard"]
 
 
 class Price(IntEnum):
@@ -369,6 +371,7 @@ class Ingredient(DataModel):
     # serving of an aromatic base, not all 80g. None = no cap
     max_per_serving: float | None = None
     storage: Storage | None = None
+    aisle: Aisle | None = None  # worked out from the file and storage if not given
     unlimited: bool = (
         False  # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
     )

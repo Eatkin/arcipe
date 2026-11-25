@@ -133,8 +133,37 @@ def test_bin_what_went_off(server, page):
     page.wait_for_selector("#gone-off:not([style*='none'])")
     assert "Spinach" in page.inner_text("#gone-off-text")
     page.click("#gone-off-bin")
-    page.wait_for_function("document.getElementById('waste-month').textContent.includes('g.')")
+    page.wait_for_function(
+        "document.getElementById('waste-month').textContent.includes('g.')"
+    )
     assert page.locator("#gone-off").is_hidden()
     # A row's own bin button
     page.locator("#areas .prow:not(.head) button.bin").first.click()
-    page.wait_for_function("document.getElementById('status').textContent.startsWith('binned')")
+    page.wait_for_function(
+        "document.getElementById('status').textContent.startsWith('binned')"
+    )
+
+
+def test_shopping_list_by_aisle(server, page):
+    req = urllib.request.Request(
+        server + "/api/pantry",
+        data=json.dumps({"items": [], "dishes": []}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    urllib.request.urlopen(req).read()
+    page.reload()
+    page.fill("#days", "2")
+    page.dispatch_event("#days", "input")
+    page.check("#shopping")
+    page.click("#plan-btn")
+    page.wait_for_selector("#shop .aisle", timeout=60_000)
+    page.click("#save-btn")
+    page.wait_for_selector("#saved-shop .aisle")
+    page.click("#saved-shop button.copy")
+    page.wait_for_function(
+        "document.querySelector('#saved-shop button.copy').textContent.includes('Copied')"
+        " || document.querySelector('.copy-text')"
+    )
+    page.locator("#saved-shop input[type=checkbox]").first.check()
+    page.wait_for_selector("#saved-shop li.got")

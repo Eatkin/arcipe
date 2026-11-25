@@ -232,3 +232,9 @@ body.busy #saved-main { opacity: .6; pointer-events: none; }
 .prow button.bin:disabled { visibility: hidden; }
 .nudge { display: flex; gap: 10px; align-items: center; background: var(--warn-soft); border-color: var(--warn); }
 .nudge span { flex: 1; color: var(--warn); }
+.aisle { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  margin: 12px 0 2px; font-weight: 600; }
+.aisle:first-child { margin-top: 0; }
+.shop-total button.copy { margin-left: 8px; padding: 2px 8px; font-size: 12px; }
+.copy-text { display: block; width: 100%; margin-top: 8px; font: 12px ui-monospace, monospace;
+  background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; padding: 8px; }

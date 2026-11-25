@@ -673,16 +673,57 @@ async function rate(key, m, rating, el, onRate) {
 
 const PRICE_DOTS = (n) => "£".repeat(n) || "free";
 
+// Shop sections, in walking-round order
+const AISLES = [
+  ["fruit_veg", "Fruit & veg"], ["bakery", "Bakery"], ["chilled", "Chilled"],
+  ["frozen", "Frozen"], ["cupboard", "Tins, jars & dry goods"],
+];
+const aisleOf = (id) => (ingById(id) || {}).aisle || "cupboard";
+
+// Rows grouped by aisle: rowHtml(row) for each, under a heading per aisle
+function byAisle(rows, rowHtml) {
+  return AISLES.map(([aisle, title]) => {
+    const here = rows.filter((r) => aisleOf(r.id) === aisle);
+    return here.length ? `<div class="aisle">${title}</div><ul class="shop">${here.map(rowHtml).join("")}</ul>` : "";
+  }).join("");
+}
+
+function listText(title, rows) {
+  const lines = [title];
+  for (const [aisle, name] of AISLES) {
+    const here = rows.filter((r) => aisleOf(r.id) === aisle);
+    if (!here.length) continue;
+    lines.push("", name);
+    for (const r of here) lines.push(`- ${r.packs} × ${r.name} (${r.grams}g)`);
+  }
+  return lines.join("\n");
+}
+
+async function copyList(title, rows, btn) {
+  const text = listText(title, rows);
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "Copied ✓";
+  } catch (e) {  // no clipboard: show it to copy by hand
+    const area = document.createElement("textarea");
+    area.className = "copy-text"; area.value = text; area.rows = text.split("\n").length;
+    btn.after(area); area.select();
+  }
+  setTimeout(() => { btn.textContent = "Copy list"; }, 2000);
+}
+
 function renderShopping(items) {
   $("shop-panel").style.display = state.shopping ? "block" : "none";
   if (!state.shopping) return;
   if (!items.length) { $("shop").innerHTML = `<div class="empty">Nothing to buy. The pantry covers it.</div>`; return; }
   const total = items.reduce((t, i) => t + i.price * i.packs, 0);
-  $("shop").innerHTML = `<ul class="shop">${items.map((i) => `
+  $("shop").innerHTML = byAisle(items, (i) => `
     <li><span class="n">${i.packs}×</span>
       <span>${esc(i.name)} <span class="g">${i.grams}g</span></span>
-      <span class="price" title="${esc(i.price_word)}"><b>${PRICE_DOTS(i.price)}</b> ${esc(i.price_word)}</span></li>`).join("")}</ul>
-    <div class="shop-total">${items.length} things · ${total} price points</div>`;
+      <span class="price" title="${esc(i.price_word)}"><b>${PRICE_DOTS(i.price)}</b> ${esc(i.price_word)}</span></li>`)
+    + `<div class="shop-total">${items.length} things · ${total} price points <button class="copy">Copy list</button></div>`;
+  const btn = $("shop").querySelector("button.copy");
+  btn.addEventListener("click", () => copyList("Shopping", items, btn));
 }
 
 function renderStock(stock, plan) {
@@ -937,13 +978,17 @@ function renderSavedShopping() {
   const extras = savedPlan.extras || [];
   const got = rows.filter((r) => r.bought).length;
   $("shop-count").textContent = rows.length ? `${got} of ${rows.length} bought` : "";
-  $("saved-shop").innerHTML = rows.length ? `<ul class="shop">${rows.map((r) => `
+  const toBuy = rows.filter((r) => !r.bought);
+  $("saved-shop").innerHTML = rows.length ? byAisle(rows, (r) => `
     <li class="tickable ${r.bought ? "got" : ""}">
-      <input type="checkbox" data-id="${esc(r.id)}" ${r.bought ? "checked" : ""} aria-label="Bought ${esc(r.name)}">
+      <input type="checkbox" data-id="${esc(r.id)}" data-bought="${r.bought ? 1 : ""}" ${r.bought ? "checked" : ""} aria-label="Bought ${esc(r.name)}">
       <span class="n">${r.packs}×</span>
       <span>${esc(r.name)} <span class="g">${r.grams}g</span></span>
-      <span class="price">${r.bought ? `in the pantry, ${esc(useByText(r.bought.use_by))}` : esc(r.price_word || "")}</span></li>`).join("")}</ul>`
+      <span class="price">${r.bought ? `in the pantry, ${esc(useByText(r.bought.use_by))}` : `${r.listed ? "top-up · " : ""}${esc(r.price_word || "")}`}</span></li>`)
+      + (toBuy.length ? `<div class="shop-total"><button class="copy">Copy list</button> the ${plural(toBuy.length, "thing")} still to buy</div>` : "")
     : `<p class="hint">Nothing to buy on this plan.</p>`;
+  const copy = $("saved-shop").querySelector("button.copy");
+  if (copy) copy.addEventListener("click", () => copyList(`Shopping: ${savedPlan.name}`, toBuy, copy));
   $("saved-shop").querySelectorAll("input").forEach((box) => box.addEventListener("change", async () => {
     box.disabled = true;
     const name = ingName(box.dataset.id);

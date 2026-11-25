@@ -198,6 +198,7 @@ def meta() -> dict[str, Any]:
                 "price": int(ing.price),
                 "price_word": ing.price.word,
                 "storage": ing.storage,
+                "aisle": ing.aisle,
             }
             for ing in sorted(INGREDIENTS.values(), key=lambda i: i.name)
         ],

@@ -42,6 +42,7 @@ def load_ingredients(data_dir: Path = DATA_DIR) -> dict[str, Ingredient]:
         for ing_id, data in raw.items():
             data["id"] = ing_id
             data.setdefault("storage", default_storage(ing_id, path.stem, data))
+            data.setdefault("aisle", default_aisle(path.stem, data))
             ingredients[ing_id] = Ingredient(**data)
     return ingredients
 
@@ -53,6 +54,23 @@ def default_storage(ing_id: str, file_stem: str, data: dict) -> str:
     if data.get("shelf_life_days") is None:
         return "cupboard"
     return "fridge"
+
+
+PRODUCE_FILES = {"fruits", "greens", "herbs", "root_veg", "veg", "misc"}
+
+
+def default_aisle(file_stem: str, data: dict) -> str:
+    """Shop section when the YAML doesn't say (see models.Aisle)."""
+    fresh = data.get("shelf_life_days")
+    if data["storage"] == "freezer":
+        return "frozen"
+    if file_stem in PRODUCE_FILES and fresh is not None and fresh <= 30:
+        return "fruit_veg"
+    if file_stem == "bread" and fresh is not None and fresh <= 7:
+        return "bakery"
+    if data["storage"] == "fridge":
+        return "chilled"
+    return "cupboard"
 
 
 def load_prepared(data_dir: Path = DATA_DIR) -> dict[str, PreparedIngredient]:

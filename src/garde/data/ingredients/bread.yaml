@@ -1,6 +1,7 @@
 tortillas:
   name: Tortillas
   storage: counter
+  aisle: bakery
   classes: [bread]
   roles: [grain_base]
   flavour: [mild]

@@ -1,5 +1,6 @@
 ginger:
   name: Fresh Ginger
+  aisle: fruit_veg
   classes: [rhizome]
   roles: [aromatic]
   flavour: [spicy, fresh, floral]
@@ -12,6 +13,7 @@ ginger:
 
 turmeric_fresh:
   name: Fresh Turmeric
+  aisle: fruit_veg
   classes: [rhizome]
   roles: [aromatic]
   flavour: [earthy, spicy]
