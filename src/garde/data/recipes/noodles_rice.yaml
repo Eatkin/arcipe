@@ -10,7 +10,7 @@ noodle_stir_fry:
   slots: [noodle_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, sweet_note, heat, texture_top]
   slot_overrides:
     aromatic_base: {preferred_classes: [allium, rhizome]}
-    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, preferred_classes: [soy_product, legume]}  # holds its shape: no red lentils
     texture_top: {preferred_classes: [nut, seed]}
   edges:
     - {from: aromatic_base,      to: cooked_veg,  type: combine}
@@ -68,7 +68,7 @@ fried_rice:
   slots: [rice_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, heat, finish_herb]
   slot_overrides:
     aromatic_base: {preferred_classes: [allium, rhizome]}
-    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, preferred_classes: [soy_product, legume]}  # holds its shape: no red lentils
     rice_base: {time: {active: 3, passive: 0}}
   edges:
     - {from: aromatic_base,      to: cooked_veg, type: combine}
@@ -94,7 +94,7 @@ saucy_stir_fry:
   slots: [rice_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, sweet_note, acid_bright, slurry, heat]
   slot_overrides:
     aromatic_base: {preferred_classes: [allium, rhizome]}
-    protein_bulk: {max_ingredients: 1, optional: true, preferred_classes: [soy_product]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, optional: true, preferred_classes: [soy_product]}  # holds its shape: no red lentils
     sweet_note: {optional: false}
   edges:
     - {from: aromatic_base,      to: cooked_veg, type: combine}
@@ -131,7 +131,7 @@ sushi:
     acid_bright: {label: Rice Seasoning, preferred_classes: [vinegar]}
     raw_veg: {amount: {per_serving: 50}, time: {active: 15, passive: 0}}
     roast_veg: {optional: true, amount: {per_serving: 80}}
-    protein_bulk: {optional: true, max_ingredients: 1, preferred_classes: [soy_product]}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1, preferred_classes: [soy_product]}  # holds its shape: no red lentils
     stir_fry_seasoning: {label: Dipping Soy, max_ingredients: 1, amount: {per_serving: 10}}
   edges:
     - {from: acid_bright,        to: rice_base,   type: combine}

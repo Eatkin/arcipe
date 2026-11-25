@@ -114,14 +114,14 @@ crispy_bites:
   preferred_ingredients: [tofu, chickpeas, seitan, plain_flour, breadcrumbs, sesame_seeds, smoked_paprika, peanut_sauce, mayo, cucumber]
   slots: [protein_bulk, spice_bloom, batter_flour, texture_top, griddle, creamy_drizzle, raw_veg, hearty_base]
   slot_overrides:
-    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume], required_method: [raw, boil, fry, bake]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, preferred_classes: [soy_product, legume], required_method: [raw, boil, fry, bake]}  # holds its shape: no red lentils
     spice_bloom: {max_ingredients: 1}
     batter_flour: {label: Batter, amount: {per_serving: 25}, time: {active: 10, passive: 0}}
     texture_top: {label: Crumb Coat, optional: false, preferred_classes: [bread, seed], amount: {per_serving: 25}}
     griddle: {label: Fry or Bake, amount: {per_serving: 15}, time: {active: 15, passive: 10}}
     creamy_drizzle: {label: Dip}
     raw_veg: {optional: true}
-    hearty_base: {optional: true}
+    hearty_base: {optional: true, preferred_classes: [rice, root_veg]}  # crispy bits on rice or chips, not spaghetti
   edges:
     - {from: spice_bloom,    to: batter_flour, type: combine}
     - {from: batter_flour,   to: protein_bulk, type: coat}

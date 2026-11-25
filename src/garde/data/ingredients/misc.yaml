@@ -45,7 +45,6 @@ mushrooms:
   pack_weight: 250
   shelf_life_days: 5
   unit_weight: 250
-  cuisine_context: [chinese, japanese]
   nutrition: [high_fibre]
 
 tomato:
@@ -73,4 +72,5 @@ coriander_leaf:
   max_per_serving: 5
   shelf_life_days: 5
   unit_weight: 30
+  cuisine_context: [indian, thai, mexican, chinese, levantine]
 

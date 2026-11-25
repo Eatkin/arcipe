@@ -88,7 +88,7 @@ saag:
     tofu, or chickpeas (chana). Creamy fat optional but recommended.
   colour_dominant: green
   cuisine_context: [indian]
-  preferred_ingredients: [cumin, coriander_seed, turmeric_dried, fenugreek_seed]
+  preferred_ingredients: [cumin, coriander_seed, turmeric_dried, fenugreek_seed, potato, spinach]
   required_ingredients: []
   slots: [curry_grain_base, curry_aromatic, whole_spice_bloom, spice_bloom, saag_green, creamy_curry_fat, starchy_bulk, finish_herb]
   edges:

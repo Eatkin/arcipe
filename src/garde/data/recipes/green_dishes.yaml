@@ -6,7 +6,7 @@ green_pasta:
     Fat emulsifier (cashews, white beans) gives body.
   colour_dominant: green
   cuisine_context: [italian]
-  preferred_ingredients: []
+  preferred_ingredients: [garlic, lemon, nutritional_yeast, capers, olives, sun_dried_tomatoes, miso, cashews, basil, pine_nuts]
   required_ingredients: []
   slots: [grain_base, green_sauce, fat_emulsifier, aromatic_base, acid_bright, umami_boost, texture_top]
   slot_overrides:
@@ -94,7 +94,8 @@ creamy_tuscan_beans:
   meal_type: [lunch, dinner]
   serves: 3
   no_ingredient_reuse: true
-  
+  preferred_ingredients: [cannellini_beans, butter_beans, mushrooms, sun_dried_tomatoes, thickened_cashew_cream, cashew_cream, plant_cream, spinach, frozen_spinach, kale, vegan_parmesan, garlic, onion, parsley]
+
   slots:
     - stew_aromatic_base        # Onion, garlic, green onion
     - stew_bulk_umami           # Mushrooms, sun-dried tomatoes
@@ -104,13 +105,16 @@ creamy_tuscan_beans:
     - stew_wilted_greens        # Frozen spinach
     - finish_herb               # Parsley, red pepper flakes
 
+  # Edges run from what cooks first into what it goes into: soften the
+  # aromatics, fry the mushrooms in them, then pour in the cream and fold in
+  # the beans, greens and parm
   edges:
-    - {from: stew_bulk_umami, to: stew_aromatic_base, type: combine}
-    - {from: sauce_creamy_binder, to: stew_aromatic_base, type: deglaze}
+    - {from: stew_aromatic_base, to: stew_bulk_umami, type: combine}
+    - {from: stew_bulk_umami, to: sauce_creamy_binder, type: combine}
     - {from: stew_protein_legume, to: sauce_creamy_binder, type: fold_in}
-    - {from: stew_meltable_finisher, to: sauce_creamy_binder, type: emulsify}
     - {from: stew_wilted_greens, to: sauce_creamy_binder, type: fold_in}
-    - {from: finish_herb, to: stew_protein_legume, type: top}
+    - {from: stew_meltable_finisher, to: sauce_creamy_binder, type: emulsify}
+    - {from: finish_herb, to: sauce_creamy_binder, type: finish}
 
   notes: >
     Serve alongside good sourdough or garlic bread. If the sauce thickens 

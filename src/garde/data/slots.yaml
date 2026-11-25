@@ -51,6 +51,8 @@ aromatic_base:
 protein_bulk:
   label: Protein / Bulk
   required_roles: [protein]
+  # Bulk = holds its shape: beans, tofu. Red lentils (mush) and peanuts rank lower
+  preferred_roles: [bulk]
   preferred_classes: [legume]
   required_method: [boil, roast, raw]
   amount: {per_serving: 120}
@@ -143,7 +145,9 @@ tomato_enhancement:
 creamy_curry_fat:
   label: Creamy Fat
   required_roles: [fat_emulsifier]
-  preferred_classes: [plant_milk, nut, seed]
+  # Seeds score lower: a handful of raw sunflower seeds isn't a creamy fat
+  # (sunflower cream still is, it just ranks below coconut and cashew)
+  preferred_classes: [plant_milk, nut]
   required_method: [raw, blend]
   amount: {per_serving: 100}
   time: {active: 1, passive: 0}
@@ -153,6 +157,8 @@ creamy_curry_fat:
 curry_protein:
   label: Curry Protein / Bulk
   required_roles: [protein]
+  # Beans and tofu that hold their shape first; red lentils are for dals (prefer them per recipe)
+  preferred_roles: [bulk]
   preferred_classes: [legume, brassica, soy_product]
   required_method: [boil, roast, raw, fry]
   amount: {per_serving: 120}
@@ -334,6 +340,8 @@ stew_protein_legume:
 sauce_creamy_binder:
   label: "Creamy Sauce Emulsifier"
   required_roles: [fat_emulsifier, sauce_base]
+  # Simmered, so a cream (cashew, oat, soy) rather than a cold condiment like mayo
+  preferred_classes: [nut, plant_milk]
   required_method: [blend, boil]
   amount: {per_serving: 80}
   time: {active: 3, passive: 5}
@@ -348,7 +356,8 @@ stew_meltable_finisher:
 
 stew_wilted_greens:
   label: "Folded-in Greens"
-  required_roles: [bulk_blendable, sauce_base] 
+  required_roles: [sauce_base]
+  required_classes: [leafy_green]
   required_method: [wilt]
   amount: {per_serving: 80}
   time: {active: 2, passive: 3}

@@ -298,7 +298,7 @@ peanut_butter:
   price: moderate
   max_per_serving: 30
   unlimited: true
-  cuisine_context: [thai, chinese, american, indian]
+  cuisine_context: [thai, chinese, indian]
   nutrition: [high_protein, high_fat]
 
 tahini:
@@ -441,6 +441,7 @@ plant_yogurt:
   shelf_life_days: 10
   unit_weight: 500
   notes: Soy or coconut. Dolloped on curries, chilli, porridge.
+  cuisine_context: [indian, levantine, eastern_european, british]
 
 kimchi:
   name: Kimchi

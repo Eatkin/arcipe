@@ -41,6 +41,7 @@ fenugreek_seed:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [indian]
 
 cumin:
   name: Cumin
@@ -51,6 +52,7 @@ cumin:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [indian, mexican, levantine]
 
 coriander_seed:
   name: Coriander Seed
@@ -61,6 +63,7 @@ coriander_seed:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [indian, levantine]
 
 chilli_powder:
   name: Chilli Powder
@@ -71,6 +74,7 @@ chilli_powder:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [indian, mexican]
 
 smoked_paprika:
   name: Smoked Paprika
@@ -81,6 +85,7 @@ smoked_paprika:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [eastern_european, mexican, american]
 
 turmeric_dried:
   name: Turmeric (dried)
@@ -91,6 +96,7 @@ turmeric_dried:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [indian]
 
 curry_powder:
   name: Curry Powder
@@ -107,7 +113,7 @@ curry_powder:
 mixed_spice:
   name: Mixed Spice
   classes: [dried_spice]
-  roles: [spice_base, baking_spice]
+  roles: [baking_spice]
   flavour: [sweet, spicy, nutty]
   colour: brown
   season: [all]
@@ -133,6 +139,7 @@ paprika:
   season: [all]
   price: negligible
   unlimited: true
+  cuisine_context: [eastern_european]
 
 chilli_flakes:
   name: Chilli Flakes

@@ -66,7 +66,7 @@ turnip:
 celeriac:
   name: Celeriac (root celery)
   classes: [root_veg]
-  roles: [bulk, bulk_blendable, raw_crunch]
+  roles: [bulk, bulk_blendable]
   flavour: [earthy, fresh]
   colour: white
   season: [autumn, winter]

@@ -218,7 +218,7 @@ millet:
 gram_flour:
   name: Gram Flour (chickpea flour)
   classes: [legume]
-  roles: [binder, thickener, protein]
+  roles: [binder, thickener]
   flavour: [nutty, earthy]
   colour: yellow
   season: [all]

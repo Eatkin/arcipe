@@ -9,7 +9,7 @@ buddha_bowl:
   slots: [hearty_base, roast_veg, protein_bulk, raw_veg, creamy_drizzle, texture_top]
   slot_overrides:
     hearty_base: {preferred_classes: [rice, grain], excluded_classes: [pasta, bread]}
-    protein_bulk: {max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1}  # holds its shape: no red lentils
   edges:
     - {from: roast_veg,      to: hearty_base, type: top}
     - {from: protein_bulk,   to: hearty_base, type: top}
@@ -31,7 +31,7 @@ tray_bake:
   slots: [roast_veg, protein_bulk, spice_bloom, dressing_fat, creamy_drizzle, finish_herb]
   slot_overrides:
     roast_veg: {max_ingredients: 3, amount: {per_serving: 300}}
-    protein_bulk: {max_ingredients: 1, required_classes: [legume]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, required_classes: [legume]}  # holds its shape: no red lentils
     spice_bloom: {max_ingredients: 2}
     creamy_drizzle: {optional: true, preferred_classes: [seed]}
     dressing_fat: {required_classes: [fat]}
@@ -62,7 +62,7 @@ grain_salad:
   slots: [hearty_base, raw_veg, protein_bulk, dressing_fat, acid_bright, finish_herb, texture_top]
   slot_overrides:
     hearty_base: {required_classes: [grain, legume], excluded_classes: [pasta, noodle, bread], preferred_classes: [grain], amount: {per_serving: 150}}
-    protein_bulk: {max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1}  # holds its shape: no red lentils
     raw_veg: {amount: {per_serving: 100}}
   edges:
     - {from: raw_veg,      to: hearty_base, type: combine}
@@ -91,7 +91,7 @@ potato_salad:
   slots: [starchy_bulk, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
   slot_overrides:
     starchy_bulk: {label: Potatoes / Roots, optional: false, amount: {per_serving: 200}}
-    protein_bulk: {optional: true, max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
     creamy_drizzle: {label: Creamy Dressing, amount: {per_serving: 50}, preferred_classes: [condiment, plant_milk]}
     acid_bright: {preferred_classes: [vinegar, fermented]}
   edges:
@@ -122,7 +122,7 @@ raw_salad:
     grated_veg: {amount: {per_serving: 120}}
     raw_veg: {amount: {per_serving: 80}}
     fruit_topping: {optional: true, max_ingredients: 1, amount: {per_serving: 50}, required_method: [raw]}
-    protein_bulk: {optional: true, max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
     acid_bright: {optional: false}
   edges:
     - {from: raw_veg,       to: grated_veg, type: combine}
@@ -156,7 +156,7 @@ noodle_salad:
   slots: [noodle_base, raw_veg, cooked_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb, texture_top]
   slot_overrides:
     cooked_veg: {optional: true, amount: {per_serving: 80}}
-    protein_bulk: {optional: true, max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
     creamy_drizzle: {label: Dressing, amount: {per_serving: 40}}
   edges:
     - {from: raw_veg,        to: noodle_base, type: fold_in}

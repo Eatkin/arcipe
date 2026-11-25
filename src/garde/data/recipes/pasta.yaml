@@ -63,8 +63,8 @@ baked_pasta:
     Pasta folded through a creamy, cheesy sauce with greens or courgette, topped
     with breadcrumbs and baked until golden. Mac and cheese's grown-up cousin.
   colour_dominant: yellow
-  cuisine_context: [american, italian, eastern_european]
-  preferred_ingredients: [garlic, onion, cashew_cheese_sauce, spinach, courgette, broccoli, brussels_sprouts, breadcrumbs]
+  cuisine_context: [italian, eastern_european]
+  preferred_ingredients: [garlic, onion, cashew_cheese_sauce, spinach, courgette, broccoli, brussels_sprouts, breadcrumbs, tomato_puree, nutritional_yeast, olives, capers, sun_dried_tomatoes, miso]
   slots: [pasta_base, aromatic_base, cooked_veg, creamy_sauce, umami_boost, texture_top]
   slot_overrides:
     creamy_sauce: {required_colour: null, preferred_classes: [nut, plant_milk]}
@@ -95,7 +95,7 @@ pasta_salad:
   preferred_ingredients: [pesto, mayo, cucumber, bell_pepper, chickpeas, pickles, sun_dried_tomatoes]
   slots: [pasta_base, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
   slot_overrides:
-    protein_bulk: {max_ingredients: 1}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1}  # holds its shape: no red lentils
   edges:
     - {from: raw_veg,        to: pasta_base, type: combine}
     - {from: protein_bulk,   to: pasta_base, type: combine}

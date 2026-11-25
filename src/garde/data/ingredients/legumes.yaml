@@ -72,7 +72,7 @@ black_beans:
 red_lentils:
   name: Red Lentils
   classes: [legume]
-  roles: [bulk, protein, sauce_base]
+  roles: [bulk_blendable, protein, sauce_base]
   flavour: [earthy, umami]
   colour: orange
   season: [all]
