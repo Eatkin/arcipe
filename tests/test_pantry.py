@@ -168,3 +168,33 @@ def test_give_back_merges_or_adds():
         items, [Item("red_lentils", "120g"), Item("tofu", "1", "2026-12-02")]
     )
     assert back == [Item("red_lentils", "500g"), Item("tofu", "1", "2026-12-02")]
+
+
+def test_binning_logs_real_waste(tmp_path):
+    from garde.pantry import bin_things
+    from garde.pantry import load_waste
+    from garde.pantry import wasted_since
+
+    path = tmp_path / "waste.json"
+    stock = Pantry(
+        [Item("spinach", "2", "2026-11-20"), Item("carrot", "500g")],
+        [Dish("chilli", 3, "2026-11-24", "2026-11-21", 300)],
+    )
+    when = date(2026, 11, 25)
+    stock, log = bin_things(
+        stock,
+        [Item("spinach", "1", "2026-11-20")],
+        [Dish("chilli", 1, "2026-11-24", "2026-11-21")],
+        when,
+        path=path,
+    )
+    assert [i.amount for i in stock.items if i.id == "spinach"] == ["1"]
+    assert stock.dishes[0].portions == 2
+    assert [e["grams"] for e in load_waste(path)] == [
+        round(pantry.grams(Item("spinach", "1"))),
+        300,
+    ]
+    assert wasted_since(date(2026, 11, 1), path) == sum(e["grams"] for e in log)
+    assert wasted_since(date(2026, 11, 26), path) == 0
+    with pytest.raises(ValueError, match="isn't in the pantry"):
+        bin_things(stock, [Item("tofu", "1")], [], when, path=path)

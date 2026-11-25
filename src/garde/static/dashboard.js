@@ -102,7 +102,7 @@ function renderPantry() {
     panel.className = "panel";
     panel.innerHTML = `
       <div class="area-head"><h2>${title}</h2><span class="count">${plural(rows.filter((r) => r.id).length, "thing")}</span></div>
-      <div class="prow head"><span>Ingredient</span><span>Amount</span><span>Use by</span><span></span><span></span></div>
+      <div class="prow head"><span>Ingredient</span><span>Amount</span><span>Use by</span><span></span><span></span><span></span></div>
       <div class="rows"></div>
       <datalist id="dl-${area}">${areaOptions(area)}</datalist>
       <button class="add">+ Add</button>`;
@@ -117,9 +117,56 @@ function renderPantry() {
     box.appendChild(panel);
   }
   renderDishes();
+  renderGoneOff();
   $("staples").innerHTML = META.ingredients.filter((i) => i.unlimited)
     .map((i) => `<span class="chip">${esc(i.name)}</span>`).join("");
 }
+
+const goneOff = (useBy) => useBy && daysBetween(today(), useBy) < 0;
+const asItem = (r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null });
+
+function renderGoneOff() {
+  const items = pantry.filter((r) => r.id && String(r.amount).trim() && goneOff(r.use_by));
+  const old = dishes.filter((d) => goneOff(d.use_by));
+  $("gone-off").style.display = items.length || old.length ? "" : "none";
+  if (!items.length && !old.length) return;
+  const names = [...items.map((r) => ingName(r.id)), ...old.map((d) => recipeName(d.recipe_id))];
+  $("gone-off-text").textContent = `${names.join(", ")} ${names.length === 1 ? "is" : "are"} past ${names.length === 1 ? "its" : "their"} use-by. The planner ignores ${names.length === 1 ? "it" : "them"}.`;
+  $("gone-off-bin").onclick = () => binThings(items, old);
+  $("gone-off-keep").onclick = () => {  // still fine: give it a couple more days
+    for (const r of items) r.use_by = addDays(today(), 1);
+    for (const d of old) d.use_by = addDays(today(), 1);
+    renderPantry(); pantryChanged();
+  };
+}
+
+async function binThings(items, gone) {
+  try {
+    await flushPantry();
+    const data = await api("/api/pantry/bin", {
+      method: "POST",
+      body: { items: items.map(asItem), dishes: gone, date: today() },
+    });
+    setPantry(data.pantry);
+    renderPantry();
+    renderWaste(data.waste);
+    markStale();
+    const g = data.waste.recent.slice(0, items.length + gone.length).reduce((t, e) => t + e.grams, 0);
+    $("status").textContent = `binned ${g}g`;
+  } catch (e) { showError(e.message); }
+}
+
+let waste = { month_g: 0 };
+
+function renderWaste(w) {
+  waste = w;
+  renderPantrySummary();
+  $("waste-month").textContent = w.month_g
+    ? `Binned this month: ${w.month_g >= 1000 ? (w.month_g / 1000).toFixed(1) + "kg" : w.month_g + "g"}.`
+    : "Nothing binned this month.";
+}
+
+async function loadWaste() { renderWaste(await api("/api/waste")); }
 
 function renderDishes() {
   $("dishes-count").textContent = plural(dishes.length, "dish").replace("dishs", "dishes");
@@ -127,7 +174,7 @@ function renderDishes() {
     $("dishes").innerHTML = `<div class="hint">Nothing cooked waiting. Tick a meal off on a saved plan and spare portions land here.</div>`;
     return;
   }
-  $("dishes").innerHTML = `<div class="drow prow head"><span>Dish</span><span>Portions</span><span>Use by</span><span></span><span></span></div>`;
+  $("dishes").innerHTML = `<div class="drow prow head"><span>Dish</span><span>Portions</span><span>Use by</span><span></span><span></span><span></span></div>`;
   for (const dish of dishes) {
     const el = document.createElement("div");
     el.className = "drow";
@@ -136,16 +183,18 @@ function renderDishes() {
       <input type="number" min="0" step="0.5" value="${esc(dish.portions)}" aria-label="Portions">
       <input type="date" value="${esc(dish.use_by)}" aria-label="Use by">
       ${badge(dish.use_by)}
-      <button class="x" title="Eaten or binned">×</button>`;
+      <button class="x bin" title="Binned it: counts as waste">🗑</button>
+      <button class="x eat" title="Eaten: take it off the list">×</button>`;
     const [portions, useBy] = el.querySelectorAll("input");
     portions.addEventListener("input", () => { dish.portions = Number(portions.value) || 0; pantryChanged(); });
     useBy.addEventListener("change", () => {
       if (!useBy.value) return;
       dish.use_by = useBy.value; renderPantry(); pantryChanged();
     });
-    el.querySelector("button").addEventListener("click", () => {
+    el.querySelector("button.eat").addEventListener("click", () => {
       dishes.splice(dishes.indexOf(dish), 1); renderPantry(); pantryChanged();
     });
+    el.querySelector("button.bin").addEventListener("click", () => binThings([], [dish]));
     $("dishes").appendChild(el);
   }
 }
@@ -168,7 +217,8 @@ function pantryRow(row, area) {
       placeholder="${ing && ing.unit_weight ? "count" : "grams"}">
     <input type="date" value="${esc(row.use_by)}" aria-label="Use by">
     ${badge(row.use_by)}
-    <button class="x" title="Remove">×</button>`;
+    <button class="x bin" title="Binned it: counts as waste">🗑</button>
+    <button class="x eat" title="Used up or gone: take it off the list">×</button>`;
   const [name, amount, useBy] = el.querySelectorAll("input");
   name.addEventListener("change", () => {
     const found = ingByName(name.value);
@@ -181,9 +231,12 @@ function pantryRow(row, area) {
   });
   amount.addEventListener("input", () => { row.amount = amount.value; pantryChanged(); });
   useBy.addEventListener("change", () => { row.use_by = useBy.value; renderPantry(); pantryChanged(); });
-  el.querySelector("button").addEventListener("click", () => {
+  el.querySelector("button.eat").addEventListener("click", () => {
     pantry.splice(pantry.indexOf(row), 1); renderPantry(); pantryChanged();
   });
+  const binBtn = el.querySelector("button.bin");
+  binBtn.disabled = !(row.id && String(row.amount).trim());
+  binBtn.addEventListener("click", () => binThings([row], []));
   return el;
 }
 
@@ -246,6 +299,7 @@ function renderPantrySummary() {
   const cooked = dishes.length ? `, ${dishes.length} cooked dish${dishes.length === 1 ? "" : "es"}` : "";
   $("pantry-summary").innerHTML = `
     <div class="summary-count">${plural(have.length, "thing")} in${cooked}${soon.length ? `, <b>${soon.length}</b> to use soon` : ""}</div>
+    ${waste.month_g ? `<div class="hint">${waste.month_g}g binned this month.</div>` : ""}
     <ul class="summary-list">${dishes.map((d) => `
       <li><span>${esc(recipeName(d.recipe_id))} × ${d.portions}</span>${badge(d.use_by)}</li>`).join("")}
     ${soon.map((r) => `
@@ -961,6 +1015,7 @@ async function boot() {
   META = await (await fetch("/api/meta")).json();
   state = load();
   await loadPantry();
+  await loadWaste();
   renderKnobs();
   renderPantry();
   route();

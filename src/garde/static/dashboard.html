@@ -147,7 +147,13 @@
 <div class="view" id="view-pantry">
   <p class="intro">What's in. Amount is a count (“3” carrots) or a weight (“500g”).
     Use-by is the last good day; leave it blank for things that keep.
-    Changes save as you go.</p>
+    Changes save as you go. 🗑 means it went in the bin (counted as waste); × means it's used up.
+    <b id="waste-month"></b></p>
+  <section class="panel nudge" id="gone-off" style="display:none">
+    <span id="gone-off-text"></span>
+    <button id="gone-off-bin">Bin them</button>
+    <button id="gone-off-keep" title="Still fine: good until tomorrow">Still fine</button>
+  </section>
   <section class="panel" id="dishes-panel">
     <div class="area-head"><h2>Cooked, in the fridge</h2><span class="count" id="dishes-count"></span></div>
     <p class="hint">Leftovers from meals you've ticked off. The plan serves them before cooking something new.</p>

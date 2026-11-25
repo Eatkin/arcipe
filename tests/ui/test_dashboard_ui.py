@@ -117,3 +117,24 @@ def test_plan_save_tick_skip_replan(page):
     page.wait_for_function(
         "document.querySelector('#plans-list').textContent.includes('Advent week')"
     )
+
+
+def test_bin_what_went_off(server, page):
+    stale = {"id": "spinach", "amount": "1", "use_by": "2020-01-01"}
+    req = urllib.request.Request(
+        server + "/api/pantry",
+        data=json.dumps({"items": [*PANTRY["items"], stale]}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    urllib.request.urlopen(req).read()
+    page.goto(server + "/#pantry")
+    page.reload()  # only the hash changed, so load the new pantry
+    page.wait_for_selector("#gone-off:not([style*='none'])")
+    assert "Spinach" in page.inner_text("#gone-off-text")
+    page.click("#gone-off-bin")
+    page.wait_for_function("document.getElementById('waste-month').textContent.includes('g.')")
+    assert page.locator("#gone-off").is_hidden()
+    # A row's own bin button
+    page.locator("#areas .prow:not(.head) button.bin").first.click()
+    page.wait_for_function("document.getElementById('status').textContent.startsWith('binned')")

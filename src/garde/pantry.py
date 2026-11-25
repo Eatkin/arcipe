@@ -19,6 +19,10 @@ planner can serve them as leftovers meals (see to_leftovers).
 
 take() and give() move grams out of and back into the items, for ticking off a
 cooked meal (garde.plans).
+
+Binning: bin() takes items or dishes out and logs them as real waste in
+$GARDE_HOME/waste.json, [{"on": "2026-11-25", "id": "spinach", "grams": 200}, ...]
+(dishes log `recipe_id` and portions). wasted_since() totals it.
 """
 
 from __future__ import annotations
@@ -351,3 +355,92 @@ def store(dishes: list[Dish], dish: Dish) -> list[Dish]:
                 *dishes[i + 1 :],
             ]
     return [*dishes, dish]
+
+
+# ---------------------------------------------------------------------------
+# Binning: real waste
+# ---------------------------------------------------------------------------
+
+
+def waste_path() -> Path:
+    return garde_home() / "waste.json"
+
+
+def load_waste(path: Path | None = None) -> list[dict[str, Any]]:
+    path = path or waste_path()
+    return json.loads(path.read_text()) if path.exists() else []
+
+
+def _log_waste(entries: list[dict[str, Any]], path: Path | None = None) -> None:
+    path = path or waste_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(load_waste(path) + entries, indent=1))
+    tmp.replace(path)
+
+
+def _take_lot(items: list[Item], lot: Item, db: dict[str, Ingredient]) -> list[Item]:
+    """Take one lot out (same id and use-by), up to its grams."""
+    out = list(items)
+    for i, item in enumerate(out):
+        if (item.id, item.use_by) == (lot.id, lot.use_by):
+            left = grams(item, db) - grams(lot, db)
+            if left >= EMPTY_GRAMS:
+                out[i] = with_grams(item, left, db)
+            else:
+                del out[i]
+            return out
+    raise ValueError(f"{lot.id} isn't in the pantry")
+
+
+def _take_dish(dishes: list[Dish], gone: Dish) -> list[Dish]:
+    for i, d in enumerate(dishes):
+        if (d.recipe_id, d.use_by, d.cooked) == (
+            gone.recipe_id,
+            gone.use_by,
+            gone.cooked,
+        ):
+            left = d.portions - gone.portions
+            rest = [replace(d, portions=left)] if left > 1e-9 else []
+            return dishes[:i] + rest + dishes[i + 1 :]
+    raise ValueError(f"{gone.recipe_id} isn't in the fridge")
+
+
+def bin_things(
+    stock: Pantry,
+    items: list[Item],
+    dishes: list[Dish],
+    when: date,
+    db: dict[str, Ingredient] | None = None,
+    path: Path | None = None,
+) -> tuple[Pantry, list[dict[str, Any]]]:
+    """Throw these out: take them out of the pantry and log them as waste."""
+    db = db or INGREDIENTS
+    log: list[dict[str, Any]] = []
+    left = list(stock.items)
+    for item in items:
+        left = _take_lot(left, item, db)
+        log.append(
+            {"on": when.isoformat(), "id": item.id, "grams": round(grams(item, db))}
+        )
+    kept = list(stock.dishes)
+    for dish in dishes:
+        kept = _take_dish(kept, dish)
+        per = dish.grams_per_portion or PORTION_GRAMS
+        log.append(
+            {
+                "on": when.isoformat(),
+                "recipe_id": dish.recipe_id,
+                "portions": dish.portions,
+                "grams": round(dish.portions * per),
+            }
+        )
+    _log_waste(log, path)
+    return Pantry(left, kept), log
+
+
+def wasted_since(since: date, path: Path | None = None) -> float:
+    """Grams binned on or after `since`."""
+    return sum(
+        e["grams"] for e in load_waste(path) if date.fromisoformat(e["on"]) >= since
+    )

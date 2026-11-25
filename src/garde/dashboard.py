@@ -14,6 +14,9 @@ Endpoints:
                             dishes: [{recipe_id, portions, use_by, cooked, ...}]}
     PUT  /api/pantry       same shape; saved to $GARDE_HOME/pantry.json. Without
                            `dishes` the saved dishes are kept.
+    POST /api/pantry/bin   {items: [...], dishes: [...], date}: thrown out; logged
+                           in $GARDE_HOME/waste.json -> the pantry + waste
+    GET  /api/waste        {month_g, week_g, recent: [...]}: what's been binned
     POST /api/plan         {days, meals, people, start_date, weeknight_minutes,
                             weekend_minutes, max_minutes, weights, effort, seed,
                             shopping, inventory}  -> the plan
@@ -534,6 +537,29 @@ def pantry_put(body: dict, feedback: Feedback) -> dict[str, Any]:
     return stock.to_json()
 
 
+def waste_get(body: dict, feedback: Feedback) -> dict[str, Any]:
+    today = date.today()
+    entries = pantry.load_waste()
+    return {
+        "month_g": round(pantry.wasted_since(today.replace(day=1))),
+        "week_g": round(pantry.wasted_since(today - timedelta(days=6))),
+        "recent": entries[-20:][::-1],
+    }
+
+
+def pantry_bin(body: dict, feedback: Feedback) -> dict[str, Any]:
+    when = _date(body, "date")
+    with _KITCHEN_LOCK:
+        try:
+            items = pantry.validate(body.get("items") or [])
+            dishes = pantry.validate_dishes(body.get("dishes") or [])
+            stock, _ = pantry.bin_things(pantry.load(), items, dishes, when)
+        except ValueError as e:
+            raise BadRequestError(str(e)) from e
+        pantry.save(stock)
+    return {"pantry": stock.to_json(), "waste": waste_get({}, feedback)}
+
+
 def plans_list(body: dict, feedback: Feedback) -> dict[str, Any]:
     return {"plans": plans.list_plans()}
 
@@ -750,6 +776,8 @@ ROUTES = {
     "POST /api/plan/options": options_request,
     "POST /api/rate": rate_request,
     "PUT /api/pantry": pantry_put,
+    "POST /api/pantry/bin": pantry_bin,
+    "GET /api/waste": waste_get,
     "POST /api/plans": plan_save,
     "GET /api/plans": plans_list,
 }
