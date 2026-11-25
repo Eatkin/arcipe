@@ -41,8 +41,18 @@ def load_ingredients(data_dir: Path = DATA_DIR) -> dict[str, Ingredient]:
         raw = _load_yaml(path)
         for ing_id, data in raw.items():
             data["id"] = ing_id
+            data.setdefault("storage", default_storage(ing_id, path.stem, data))
             ingredients[ing_id] = Ingredient(**data)
     return ingredients
+
+
+def default_storage(ing_id: str, file_stem: str, data: dict) -> str:
+    """Where something lives when its YAML doesn't say (see models.Storage)."""
+    if file_stem == "freezer" or ing_id.startswith("frozen_"):
+        return "freezer"
+    if data.get("shelf_life_days") is None:
+        return "cupboard"
+    return "fridge"
 
 
 def load_prepared(data_dir: Path = DATA_DIR) -> dict[str, PreparedIngredient]:

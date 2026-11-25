@@ -1,5 +1,6 @@
 potato:
   name: Potato
+  storage: counter
   classes: [root_veg]
   roles: [bulk, bulk_blendable]
   flavour: [earthy, mild]
@@ -39,6 +40,7 @@ parsnip:
 
 sweet_potato:
   name: Sweet Potato
+  storage: counter
   classes: [root_veg]
   roles: [bulk, bulk_blendable, sweetener]
   flavour: [sweet, earthy]

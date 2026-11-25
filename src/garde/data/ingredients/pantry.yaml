@@ -36,6 +36,7 @@ apple_cider_vinegar:
 
 miso:
   name: White Miso
+  storage: fridge
   classes: [fermented]
   roles: [umami_boost, fat_emulsifier]
   flavour: [umami, rich]
@@ -74,6 +75,7 @@ olive_oil:
 
 butter:
   name: Butter
+  storage: fridge
   classes: [fat]
   roles: [fat_emulsifier]
   flavour: [rich, nutty]
@@ -179,6 +181,7 @@ sun_dried_tomatoes:
 
 vegan_parmesan:
   name: Vegan Parmesan
+  storage: fridge
   classes: [fat]
   roles: [umami_boost, flavour_enhancer, meltable]
   flavour: [umami, rich, sharp]
@@ -427,6 +430,7 @@ sweet_chilli_sauce:
 
 plant_yogurt:
   name: Plant Yoghurt
+  storage: fridge
   classes: [plant_milk, fermented]
   roles: [fat_emulsifier, sauce_base, acid_bright]
   flavour: [sharp, mild]
@@ -440,6 +444,7 @@ plant_yogurt:
 
 kimchi:
   name: Kimchi
+  storage: fridge
   classes: [fermented, brassica]
   roles: [acid_bright, heat, raw_crunch]
   flavour: [sharp, spicy, umami]

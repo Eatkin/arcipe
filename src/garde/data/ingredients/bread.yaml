@@ -1,5 +1,6 @@
 tortillas:
   name: Tortillas
+  storage: counter
   classes: [bread]
   roles: [grain_base]
   flavour: [mild]
@@ -13,6 +14,7 @@ tortillas:
 
 bread:
   name: Bread
+  storage: counter
   classes: [bread]
   roles: [grain_base]
   flavour: [mild]

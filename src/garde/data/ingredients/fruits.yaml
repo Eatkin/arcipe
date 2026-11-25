@@ -12,6 +12,7 @@ frozen_fruit:
 
 apple:
   name: Apple
+  storage: counter
   classes: [stone_fruit]
   roles: [sweetener, bulk_blendable]
   flavour: [sweet, sharp]
@@ -25,6 +26,7 @@ apple:
 
 banana:
   name: Banana
+  storage: counter
   classes: [stone_fruit]
   roles: [sweetener, bulk_blendable, binder]
   flavour: [sweet]
@@ -53,6 +55,7 @@ lemon:
 
 lime:
   name: Lime
+  storage: counter
   classes: [citrus]
   roles: [acid_bright, garnish]
   flavour: [sharp, fresh]
@@ -89,6 +92,7 @@ dates:
 
 orange:
   name: Orange
+  storage: counter
   classes: [citrus, fruit]
   roles: [sweetener, bulk_blendable]
   flavour: [sweet, sharp, floral]

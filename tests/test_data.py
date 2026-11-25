@@ -73,3 +73,9 @@ def test_sources_are_unique_https_links():
         assert len(recipe.sources) == len(set(recipe.sources)), recipe.id
         for url in recipe.sources:
             assert url.startswith("https://") and " " not in url, (recipe.id, url)
+
+
+def test_every_ingredient_has_a_storage_area():
+    from garde.loader import INGREDIENTS
+
+    assert all(ing.storage for ing in INGREDIENTS.values())

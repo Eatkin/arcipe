@@ -47,6 +47,7 @@ sweetcorn:
 
 squash:
   name: Squash / Pumpkin
+  storage: counter
   classes: [squash]
   roles: [bulk, bulk_blendable, sauce_base, sweetener]
   flavour: [sweet, earthy, nutty]
@@ -70,6 +71,7 @@ cucumber:
 
 avocado:
   name: Avocado
+  storage: counter
   classes: [fruit_veg]
   roles: [fat_emulsifier, garnish, sauce_base]
   flavour: [rich, mild]
@@ -237,6 +239,7 @@ pickles:
 
 sauerkraut:
   name: Sauerkraut
+  storage: fridge
   classes: [fermented, brassica]
   roles: [acid_bright, bulk, raw_crunch]
   flavour: [sharp]

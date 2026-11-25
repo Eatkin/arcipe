@@ -19,7 +19,6 @@ Stored as YAML at $GARDE_HOME/feedback.yaml (default ~/.garde).
 
 from __future__ import annotations
 
-import os
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
@@ -30,6 +29,7 @@ import yaml
 
 from garde.models import CUISINE_FAMILY
 from garde.models import Recipe
+from garde.utils import garde_home
 
 
 # Pseudo-count of neutral ratings every score starts with
@@ -39,9 +39,7 @@ FAMILY_WEIGHT = 0.5
 
 
 def default_path() -> Path:
-    home = os.environ.get("GARDE_HOME")
-    base = Path(home) if home else Path.home() / ".garde"
-    return base / "feedback.yaml"
+    return garde_home() / "feedback.yaml"
 
 
 @dataclass

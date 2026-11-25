@@ -50,6 +50,7 @@ cauliflower:
 
 peas:
   name: Peas
+  storage: freezer
   classes: [legume]
   roles: [sauce_base, bulk, protein, garnish]
   flavour: [sweet, fresh, grassy]

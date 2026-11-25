@@ -50,6 +50,7 @@ mushrooms:
 
 tomato:
   name: Tomato
+  storage: counter
   classes: [nightshade]
   roles: [sauce_base, bulk, acid_bright]
   flavour: [umami, sweet, sharp]

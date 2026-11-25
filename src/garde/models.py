@@ -135,6 +135,11 @@ NutritionFlag = Literal[
 
 Season = Literal["spring", "summer", "autumn", "winter", "all", "forage"]
 
+# Where it lives in the kitchen (the dashboard's pantry tabs). Left unset, the
+# loader works it out: freezer.yaml or frozen_* -> freezer, no shelf life ->
+# cupboard, otherwise fridge
+Storage = Literal["fridge", "freezer", "cupboard", "counter"]
+
 
 class Price(IntEnum):
     """What it costs to buy one pack, roughly. Not money — a feel for it."""
@@ -363,6 +368,7 @@ class Ingredient(DataModel):
     # Strong flavours can only make up so much of a slot: garlic fills 8g per
     # serving of an aromatic base, not all 80g. None = no cap
     max_per_serving: float | None = None
+    storage: Storage | None = None
     unlimited: bool = (
         False  # Is a cupboard staple I won't run out of, e.g. flour, nuts, spices
     )
