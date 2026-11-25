@@ -33,7 +33,8 @@ for the core package.
 | `resolver.py` | fills one recipe's slots from stock: gram ledger, reuse rule, made ingredients, scrap sweep |
 | `planner.py` | lots with expiry, greedy planner, batch pots (`cook_batches`), leftover dishes |
 | `solver.py` | simulated annealing over the week; scores by simulating with the real resolver |
-| `timing.py`, `vibes.py`, `dashboard.py` + `static/dashboard.html` | DAG timing, learned taste from 👍/👎, stdlib web UI |
+| `timing.py`, `vibes.py`, `method.py` | DAG timing, learned taste from 👍/👎, cooking outline from the slot graph |
+| `pantry.py`, `dashboard.py` + `static/dashboard.{html,css,js}` | saved pantry (`$GARDE_HOME/pantry.json`), stdlib web UI with SSE search progress |
 | `tools/corpus/` | scraping real recipes: `fetch.py` → `parse.py` → `analyse.py` |
 | `corpus/` | scraped pages and `recipes.json`: **gitignored**, local only |
 | `.scratch.md` | the user's running notes: ideas, follow-ups, done list. Keep it current |

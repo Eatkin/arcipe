@@ -28,7 +28,9 @@ uv run --extra dev pytest             # tests
 | `planner.py` | Stock as lots with expiry dates; greedy day-by-day planning; waste |
 | `solver.py` | Whole-week search, scoring each candidate week by simulating it |
 | `vibes.py` | Learns taste from 👍/👎 ratings |
-| `dashboard.py` | Local web UI: fridge, knobs, plan, ratings |
+| `method.py` | A rough cooking outline from a recipe's slot graph |
+| `pantry.py` | What's in the kitchen, saved between visits |
+| `dashboard.py` + `static/` | Local web UI: pantry, settings, live search progress, plan, how to cook, ratings |
 
 ### Data model
 
@@ -36,7 +38,8 @@ uv run --extra dev pytest             # tests
   season, cost, cuisine. Quantities: `unit_weight` (one carrot = 80g),
   `stock_ratio` (dried lentils swell: 0.4g dried per 1g cooked),
   `shelf_life_days`, `max_per_serving` (garlic caps at 8g a head),
-  `unlimited` (pantry staple, assumed in stock), `staple` (may appear in several
+  `storage` (fridge / freezer / cupboard / counter; worked out from the file and
+  shelf life if not given), `unlimited` (pantry staple, assumed in stock), `staple` (may appear in several
   slots of one dish, e.g. flour), `made_from` (see below), `portion` (smallest
   amount worth keeping).
 - **Prepared ingredient** — ingredient + method = new roles: cashews → cashew cream.
@@ -101,3 +104,19 @@ Ratings live in `~/.garde/feedback.yaml` (or `$GARDE_HOME`). They nudge
 ingredient choice within a recipe (and, at half weight, within the same cuisine
 family) and recipe choice in the solver. Scores are shrunk towards neutral, so one
 bad night doesn't ban anything.
+
+### Dashboard
+
+`uv run python -m garde.dashboard`, then http://127.0.0.1:8765.
+
+- **Pantry** tab: what's in, by fridge / freezer / cupboard / counter. Each item
+  has an amount and a use-by date (the last good day). It's saved to
+  `~/.garde/pantry.json` (or `$GARDE_HOME`) and plans start from it. Days left are
+  counted from the plan's start date, and anything past its date is ignored.
+- **Plan** tab: settings on the left, with the solver weights as plain sliders
+  ("Use up food: don't mind binning a bit ↔ use every last scrap"). Weeknights and
+  weekends have separate time limits. Nothing runs until you press **Plan the
+  week**. The search streams its progress (Server-Sent Events on
+  `/api/plan/stream`), and **Stop** cancels it.
+- Each meal has **How to make it**: the description, a rough outline built from
+  the slot graph (`method.py`), the notes, and the source recipes to cook from.
