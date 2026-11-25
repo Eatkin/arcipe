@@ -76,7 +76,7 @@ nut_roast:
     cooked_veg: {label: Mushrooms, preferred_classes: [fungus], max_ingredients: 1, amount: {per_serving: 60}}
     grated_veg: {amount: {per_serving: 40}}
     stir_fry_seasoning: {label: Soy / Savoury, amount: {per_serving: 8}}
-    roast_veg: {label: Roast Potatoes & Veg, excluded_classes: [pulse], amount: {per_serving: 250}}
+    roast_veg: {label: Roast Potatoes & Veg, preferred_classes: [root_veg], excluded_classes: [pulse, leafy_green], amount: {per_serving: 250}}
   edges:
     - {from: aromatic_base,      to: cooked_veg, type: combine}
     - {from: cooked_veg,         to: patty_body, type: combine}
@@ -233,7 +233,9 @@ dal:
     - {from: curry_protein,      to: curry_grain_base, type: coat}
     - {from: acid_bright,        to: curry_grain_base, type: finish}
     - {from: finish_herb,        to: curry_grain_base, type: finish}
-  notes: Drafted from general cooking, no source yet (Pinch of Nom's dhals are members-only).
+  sources:
+    - https://www.veganricha.com/masoor-dal-tadka-indian-red-lentil-dal/
+  notes: Cook the lentils separately until soft, then pour the tarka over. Coconut cream in place of yogurt.
 
 biryani:
   name: Veg Biryani
@@ -260,4 +262,6 @@ biryani:
     - {from: texture_top,       to: rice_base,      type: top}
     - {from: acid_bright,       to: rice_base,      type: finish}
     - {from: finish_herb,       to: rice_base,      type: finish}
-  notes: Drafted from general cooking, no source yet (Pinch of Nom's biryanis are members-only). Not the same as pilaf, which is unspiced and cooked in stock.
+  sources:
+    - https://veganheaven.org/recipe/vegetable-biryani/
+  notes: Not the same as pilaf, which is barely spiced. The quick way cooks the rice in stock with the veg; the slow way layers part-cooked rice over the curry and steams it.

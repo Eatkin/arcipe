@@ -310,3 +310,17 @@ pickled_red_cabbage:
   pack_weight: 450
   max_per_serving: 50
   cuisine_context: [british, eastern_european]
+
+okra:
+  name: Okra
+  opened_days: 2  # once cut (drafted)
+  classes: [fruit_veg]
+  roles: [bulk, thickener]
+  flavour: [grassy, mild]
+  colour: green
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 4  # drafted
+  pack_weight: 200
+  cuisine_context: [american, indian, caribbean]
+  notes: Thickens a gumbo as it cooks. Frozen is fine; add it for the last 10 minutes.

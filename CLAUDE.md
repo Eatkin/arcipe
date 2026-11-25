@@ -95,6 +95,8 @@ backlog of vegansandra.com (Blogger, sitemap at `/sitemap.xml`, 259 posts).
   at 9 s apart. About half the recipes are members-only (empty `pon-void` recipe
   block): don't try to get around that, and don't cite them as sources. Pick for
   new dish families and gaps, not volume.
+- One-off pages from any site go in `tools/corpus/extra_urls.txt` (`fetch.py extra`).
+  Some sites 403 plain fetches; plenty of others don't, so just pick another.
 - `undetected-chromedriver` is pinned to 3.5.5 (the original author's last release).
 - Salt and water aren't ingredients: every kitchen has them (`ASSUMED` in analyse.py).
 - Turning a scraped recipe into an archetype: pick or define its slots, map its

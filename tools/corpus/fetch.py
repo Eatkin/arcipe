@@ -4,6 +4,7 @@ Fetch recipe pages into a local cache (corpus/pages/), politely.
     uv run python tools/corpus/fetch.py sandra       # every post in vegansandra.com's sitemap
     uv run python tools/corpus/fetch.py bookmarks    # vegan-ish bookmarks from ../recipe-viewer
     uv run python tools/corpus/fetch.py pinchofnom   # picks from pinchofnom.com's index
+    uv run python tools/corpus/fetch.py extra        # tools/corpus/extra_urls.txt
     uv run --extra scrape python tools/corpus/fetch.py sandra --browser
 
 Pages already cached are never re-fetched. One request every DELAY seconds.
@@ -40,6 +41,7 @@ PON_CATEGORIES = (
 )
 PON_URLS = CORPUS / "pinchofnom-urls.json"  # the crawled listing, so it's done once
 PON_PICKS = Path(__file__).with_name("pinchofnom_picks.txt")  # what to fetch
+EXTRA = Path(__file__).with_name("extra_urls.txt")  # one-off pages, any site
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
 DELAY = float(os.environ.get("FETCH_DELAY", "4"))
 MAX_BACKOFF = 300
@@ -327,6 +329,11 @@ def pinchofnom_picks() -> list[str]:
     return urls
 
 
+def extra_urls() -> list[str]:
+    lines = (ln.split("#")[0].strip() for ln in EXTRA.read_text().splitlines())
+    return [ln for ln in lines if ln]
+
+
 def bookmark_urls() -> list[str]:
     entries = yaml.safe_load(BOOKMARKS.read_text())
     urls = []
@@ -344,6 +351,8 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     fetch = fetch_browser if "--browser" in args else fetch_all
     which = [a for a in args if not a.startswith("--")] or ["sandra", "bookmarks"]
+    if "extra" in which:
+        fetch(extra_urls(), "extra")
     if "pinchofnom" in which:
         fetch(pinchofnom_picks(), "pinchofnom")
     if "bookmarks" in which:

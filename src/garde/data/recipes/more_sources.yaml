@@ -1,0 +1,129 @@
+# Archetypes for gaps the Pinch of Nom import left (its versions are members-only),
+# from free recipes on other sites (tools/corpus/extra_urls.txt), 2026-11-25.
+# Slot grams, times and keeps_days are drafted guesses.
+
+gumbo:
+  name: Veggie Gumbo
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Louisiana-style stew: the holy trinity of onion, celery and pepper, an optional
+    roux of flour and oil, smoked paprika, cayenne, thyme and bay, tomatoes,
+    okra, and beans or lentils, simmered in stock. Over rice.
+  colour_dominant: brown
+  cuisine_context: [american]
+  preferred_ingredients: [onion, celery, bell_pepper, garlic, gram_flour, plain_flour, smoked_paprika, cumin, chilli_flakes, thyme, oregano, bay_leaf, canned_tomato, okra, mushrooms, sweet_potato, green_lentils, cannellini_beans, kidney_beans, soy_sauce, parsley, brown_rice]
+  slots: [rice_base, stew_aromatic_base, katsu_sauce_body, spice_bloom, dried_herbs, tomato_sauce_body, cooked_veg, protein_bulk, stock_liquid, finish_herb]
+  slot_overrides:
+    stew_aromatic_base: {label: Onion / Celery / Pepper, preferred_classes: [allium, fruit_veg]}
+    katsu_sauce_body: {label: Roux, optional: true, time: {active: 10, passive: 0}}
+    spice_bloom: {max_ingredients: 3}
+    tomato_sauce_body: {amount: {per_serving: 100}}
+    cooked_veg: {label: Okra & Veg, preferred_classes: [fruit_veg, fungus, root_veg]}
+    protein_bulk: {max_ingredients: 1}
+    stock_liquid: {amount: {per_serving: 250}, time: {active: 1, passive: 35}}
+  edges:
+    - {from: katsu_sauce_body,   to: stew_aromatic_base, type: combine}
+    - {from: stew_aromatic_base, to: spice_bloom,        type: combine}
+    - {from: spice_bloom,        to: stock_liquid,       type: combine}
+    - {from: dried_herbs,        to: stock_liquid,       type: combine}
+    - {from: tomato_sauce_body,  to: stock_liquid,       type: combine}
+    - {from: cooked_veg,         to: stock_liquid,       type: combine}
+    - {from: protein_bulk,       to: stock_liquid,       type: combine}
+    - {from: stock_liquid,       to: rice_base,          type: coat}
+    - {from: finish_herb,        to: rice_base,          type: finish}
+  sources:
+    - https://elavegan.com/vegan-gumbo-gluten-free/
+    - https://www.olivemagazine.com/recipes/vegetarian/vegan-gumbo
+  notes: The roux wants stirring until it's the colour of peanut butter. Without one, lentils and okra thicken it.
+
+hot_and_sour_soup:
+  name: Hot and Sour Soup
+  description: >
+    Chinese takeaway classic: ginger in a little oil, stock with soaked dried
+    mushrooms (shiitake, wood ear), cabbage or bamboo, cubes of tofu, soy,
+    thickened with cornflour, then black vinegar and white pepper for the hot and
+    the sour. Sesame oil and coriander to finish.
+  colour_dominant: brown
+  cuisine_context: [chinese]
+  preferred_ingredients: [ginger, garlic, vegetable_stock, mushrooms, cabbage, tofu, soy_sauce, rice_vinegar, black_pepper, chilli_flakes, cornflour, sesame_oil, coriander_leaf, green_onion]
+  slots: [aromatic_base, stock_liquid, cooked_veg, protein_bulk, stir_fry_seasoning, slurry, acid_bright, heat, finish_herb]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [rhizome], amount: {per_serving: 15}}
+    stock_liquid: {amount: {per_serving: 350}, time: {active: 1, passive: 10}}
+    cooked_veg: {preferred_classes: [fungus, brassica], amount: {per_serving: 100}}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, preferred_classes: [soy_product], amount: {per_serving: 80}}
+    slurry: {optional: false}
+    acid_bright: {label: Vinegar, optional: false, preferred_classes: [vinegar], amount: {per_serving: 15}}
+    heat: {optional: false}
+  edges:
+    - {from: aromatic_base,      to: stock_liquid, type: combine}
+    - {from: cooked_veg,         to: stock_liquid, type: combine}
+    - {from: protein_bulk,       to: stock_liquid, type: fold_in}
+    - {from: stir_fry_seasoning, to: stock_liquid, type: combine}
+    - {from: slurry,             to: stock_liquid, type: combine}
+    - {from: acid_bright,        to: stock_liquid, type: finish}
+    - {from: heat,               to: stock_liquid, type: finish}
+    - {from: finish_herb,        to: stock_liquid, type: finish}
+  sources:
+    - https://omnivorescookbook.com/vegetarian-hot-and-sour-soup/
+  notes: Keep the mushroom soaking water for the stock. Vinegar and pepper go in off the heat. The egg in the original is optional; leave it out.
+
+keema:
+  name: Mushroom Keema
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Mince curry without the mince: mushrooms chopped fine (or soy mince or
+    lentils) fried hard with onion, garlic, ginger and chilli, cumin, turmeric and
+    garam masala, chopped tomatoes, peas stirred in at the end, lots of coriander.
+    Rice or chapatis.
+  colour_dominant: brown
+  cuisine_context: [indian]
+  preferred_ingredients: [mushrooms, soy_chunks, green_lentils, peas, onion, garlic, ginger, fresh_chilli, garam_masala, cumin, turmeric_dried, canned_tomato, coriander_leaf, basmati_rice]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, curry_bulk, curry_protein, tomato_sauce_body, heat, finish_herb]
+  slot_overrides:
+    curry_bulk: {label: Mushrooms (chopped fine) & Peas, preferred_classes: [fungus, leafy_green], amount: {per_serving: 170}}
+    curry_protein: {label: Soy Mince / Lentils, optional: true, max_ingredients: 1, preferred_roles: [], amount: {per_serving: 80}}
+    spice_bloom: {max_ingredients: 3}
+    tomato_sauce_body: {amount: {per_serving: 100}}
+  edges:
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: spice_bloom,       to: curry_bulk,        type: combine}
+    - {from: heat,              to: curry_bulk,        type: combine}
+    - {from: curry_protein,     to: curry_bulk,        type: combine}
+    - {from: curry_bulk,        to: tomato_sauce_body, type: combine}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  sources:
+    - https://bosh.tv/recipes/mushroom-keema-rice-bowl
+  notes: Blitz the mushrooms in a food processor and fry until the water's gone and they brown; that's the mince texture.
+
+caribbean_stew:
+  name: Caribbean Sweet Potato Stew
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Sweet potato, pumpkin or squash with cabbage or carrot and beans, simmered in
+    coconut milk with onion, garlic, ginger, spring onion, thyme and a whole
+    chilli. Ital stew is the no-salt Rastafarian version. Rice and peas alongside.
+  colour_dominant: orange
+  cuisine_context: [caribbean]
+  preferred_ingredients: [sweet_potato, squash, cabbage, carrot, kidney_beans, cannellini_beans, coconut_milk, canned_tomato, onion, garlic, ginger, green_onion, thyme, bay_leaf, fresh_chilli, coriander_leaf, barbecue_sauce]
+  slots: [aromatic_base, starchy_bulk, soup_veg, protein_bulk, creamy_liquid, stock_liquid, dried_herbs, heat, finish_herb]
+  slot_overrides:
+    aromatic_base: {preferred_classes: [allium, rhizome], max_ingredients: 3}
+    starchy_bulk: {optional: false, preferred_classes: [root_veg, squash]}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 2, preferred_classes: [pulse]}
+    creamy_liquid: {label: Coconut Milk, amount: {per_serving: 100}}
+    stock_liquid: {amount: {per_serving: 120}, time: {active: 1, passive: 30}}
+  edges:
+    - {from: aromatic_base, to: stock_liquid, type: combine}
+    - {from: starchy_bulk,  to: stock_liquid, type: combine}
+    - {from: soup_veg,      to: stock_liquid, type: combine}
+    - {from: protein_bulk,  to: stock_liquid, type: combine}
+    - {from: creamy_liquid, to: stock_liquid, type: combine}
+    - {from: dried_herbs,   to: stock_liquid, type: combine}
+    - {from: heat,          to: stock_liquid, type: combine}
+    - {from: finish_herb,   to: stock_liquid, type: finish}
+  sources:
+    - https://www.easycheesyvegetarian.com/caribbean-style-sweet-potato-stew/
+    - https://thatgirlcookshealthy.com/ital-stew
+  notes: Drop the chilli in whole and fish it out for gentle heat. A spoon of jerk BBQ sauce is the shortcut seasoning.
