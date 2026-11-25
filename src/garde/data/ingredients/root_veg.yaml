@@ -60,3 +60,16 @@ turnip:
   shelf_life_days: 21
   unit_weight: 300
   cuisine_context: [eastern_european, british]
+
+celeriac:
+  name: Celeriac (root celery)
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, raw_crunch]
+  flavour: [earthy, fresh]
+  colour: white
+  season: [autumn, winter]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 600
+  cuisine_context: [eastern_european, french]
+  notes: Grated raw in salads, cubed in soups and pies.

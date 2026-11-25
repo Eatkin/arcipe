@@ -66,3 +66,10 @@ def test_recipe_graphs_are_acyclic():
     from garde.timing import has_cycle
 
     assert [r for r in RECIPES.values() if has_cycle(r)] == []
+
+
+def test_sources_are_unique_https_links():
+    for recipe in RECIPES.values():
+        assert len(recipe.sources) == len(set(recipe.sources)), recipe.id
+        for url in recipe.sources:
+            assert url.startswith("https://") and " " not in url, (recipe.id, url)

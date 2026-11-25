@@ -36,6 +36,8 @@ pancakes:
     - {from: sweet_note,       to: batter_flour, type: combine}
     - {from: batter_flour,     to: griddle,      type: combine}
     - {from: fruit_topping,    to: griddle,      type: top}
+  sources:
+    - https://www.vegansandra.com/2013/05/fluffy-little-pancakes.html
 
 smoothie:
   name: Smoothie
@@ -54,4 +56,9 @@ smoothie:
     - {from: breakfast_liquid, to: blend_fruit, type: blend}
     - {from: porridge_base,    to: blend_fruit, type: blend}
   sources:
-    - https://www.vegansandra.com/2014/06/cherry-and-date-smoothie.html
+    - https://www.vegansandra.com/2015/01/cherry-and-date-smoothie.html
+    - https://www.vegansandra.com/2013/05/refreshing-tropical-smoothie.html
+    - https://www.vegansandra.com/2015/04/my-everyday-smoothie-with-orange-banana.html
+    - https://www.vegansandra.com/2017/02/creamy-citrus-smoothie.html
+    - https://www.vegansandra.com/2015/11/my-favorite-health-boosters-during.html
+    - https://www.vegansandra.com/2014/02/refreshing-green-kiwi-smoothie.html

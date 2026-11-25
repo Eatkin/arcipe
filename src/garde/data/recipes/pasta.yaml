@@ -21,7 +21,10 @@ one_pot_pasta:
     - {from: finish_herb,   to: creamy_liquid, type: finish}
   sources:
     - https://www.vegansandra.com/2018/06/delicious-one-pot-veggie-pasta-with.html
-    - https://www.vegansandra.com/2017/04/coconut-and-lemon-pasta-with-chickpeas.html
+    - https://www.vegansandra.com/2015/01/coconut-and-lemon-pasta-with-chickpeas.html
+    - https://www.vegansandra.com/2014/04/creamy-lemon-and-mushroom-pasta.html
+    - https://www.vegansandra.com/2013/06/creamy-pasta-with-sunflower-seed-cream.html
+    - https://www.vegansandra.com/2014/01/roasted-pumpkin-pasta.html
   notes: Water ~2.5x the dry pasta weight. Coconut milk + lemon zest is the other classic.
 
 tomato_pasta:
@@ -44,10 +47,14 @@ tomato_pasta:
     - {from: umami_boost,       to: pasta_base,        type: finish}
     - {from: finish_herb,       to: pasta_base,        type: finish}
   sources:
-    - https://www.vegansandra.com/2016/07/tagliatelle-pasta-with-tomatoes-and.html
-    - https://www.vegansandra.com/2016/10/lentil-bolognese-with-black-bean.html
-    - https://www.vegansandra.com/2017/02/lemony-tomato-and-cauliflower-pasta.html
-    - https://www.vegansandra.com/2018/01/easy-spaghetti-marinara-with-cashew.html
+    - https://www.vegansandra.com/2016/07/tagliatelle-pasta-with-tomato-and.html
+    - https://www.vegansandra.com/2015/11/lentil-bolognese-with-black-bean.html
+    - https://www.vegansandra.com/2015/09/lemony-tomato-and-cauliflower-pasta.html
+    - https://www.vegansandra.com/2016/03/easy-spaghetti-marinara-with-cashew.html
+    - https://www.vegansandra.com/2018/08/marinara-pasta-sauce-with-whole.html
+    - https://www.vegansandra.com/2013/05/seaweed-pasta-in-tomato-sauce.html
+    - https://www.vegansandra.com/2012/12/vegan-bolognese-sauce_27.html
+    - https://www.vegansandra.com/2016/11/vegan-bolognese-with-almonds.html
 
 baked_pasta:
   name: Creamy Baked Pasta / Mac
@@ -72,6 +79,8 @@ baked_pasta:
     - https://www.vegansandra.com/2014/08/cheesy-baked-mac-and-zucchini.html
     - https://www.vegansandra.com/2014/01/baked-pasta-with-creamy-spinach-and.html
     - https://thefirstmess.com/2018/02/07/creamy-vegan-truffle-mac-crunchy-kale-recipe/
+    - https://www.vegansandra.com/2013/07/juicy-lentil-and-carrot-lasagna.html
+    - https://www.vegansandra.com/2016/05/moussaka-lasagne-with-wild-garlic-pesto.html
   notes: Bake 20 min at 200°C — it's on the texture_top step.
 
 pasta_salad:
@@ -83,7 +92,7 @@ pasta_salad:
   colour_dominant: green
   cuisine_context: [mediterranean, eastern_european, italian]
   meal_type: [lunch, dinner]
-  preferred_ingredients: [pesto, vegan_mayo, cucumber, bell_pepper, chickpeas, pickles, sun_dried_tomatoes]
+  preferred_ingredients: [pesto, mayo, cucumber, bell_pepper, chickpeas, pickles, sun_dried_tomatoes]
   slots: [pasta_base, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
   slot_overrides:
     protein_bulk: {max_ingredients: 1}
@@ -96,4 +105,5 @@ pasta_salad:
   sources:
     - https://www.vegansandra.com/2018/09/vegan-pasta-salad-with-sun-dried-tomato.html
     - https://www.vegansandra.com/2015/04/rich-and-juicy-pasta-salad-with-veggies.html
-    - https://www.vegansandra.com/2017/07/creamy-pasta-salad-with-crunchy-carrots.html
+    - https://www.vegansandra.com/2015/06/creamy-pasta-salad-with-crunchy-carrots.html
+    - https://www.vegansandra.com/2014/12/pasta-salad-with-homemade-vegan-sour.html

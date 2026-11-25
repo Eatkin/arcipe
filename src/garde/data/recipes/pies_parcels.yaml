@@ -1,0 +1,136 @@
+# Dough-wrapped and dough-based things: pies, pizza, dumplings, crispy coated bites.
+# Drafted from the vegansandra.com backlog (2026-11-25); slot grams and times are guesses.
+
+savoury_pie:
+  name: Savoury Pie / Pasties
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    A simple oil or yeast dough (or a sheet of puff pastry) around a filling of
+    onion, whatever veg is about and lentils or beans, with dried herbs. One big
+    pie or a tray of hand pies; good cold for lunch the next day.
+  colour_dominant: beige
+  cuisine_context: [eastern_european, british]
+  preferred_ingredients: [plain_flour, puff_pastry, onion, cabbage, courgette, carrot, green_lentils, red_lentils, peas, thyme, dill]
+  slots: [batter_flour, baking_fat, baking_leavener, aromatic_base, cooked_veg, protein_bulk, dried_herbs, creamy_drizzle]
+  slot_overrides:
+    batter_flour: {label: Pastry, required_roles: [gluten], required_method: [raw, bake], amount: {per_serving: 70}, time: {active: 15, passive: 40}}
+    baking_fat: {required_classes: [fat], amount: {per_serving: 15}}
+    baking_leavener: {optional: true}
+    cooked_veg: {label: Filling Veg}
+    protein_bulk: {optional: true, max_ingredients: 1}
+    creamy_drizzle: {optional: true, label: Sauce on the side}
+  edges:
+    - {from: aromatic_base,   to: cooked_veg,   type: combine}
+    - {from: protein_bulk,    to: cooked_veg,   type: fold_in}
+    - {from: dried_herbs,     to: cooked_veg,   type: combine}
+    - {from: baking_fat,      to: batter_flour, type: combine}
+    - {from: baking_leavener, to: batter_flour, type: combine}
+    - {from: cooked_veg,      to: batter_flour, type: fold_in}
+    - {from: creamy_drizzle,  to: batter_flour, type: finish}
+  sources:
+    - https://www.vegansandra.com/2012/12/lentil-and-vegetable-pie.html
+    - https://www.vegansandra.com/2014/05/turnip-and-red-lentil-pies.html
+    - https://www.vegansandra.com/2014/10/root-vegetable-pie-with-parsley-cream.html
+    - https://www.vegansandra.com/2014/03/creamy-cabbage-and-tomato-pie.html
+    - https://www.vegansandra.com/2018/04/green-pea-and-onion-pie-gluten-free.html
+    - https://www.vegansandra.com/2014/12/easy-eggplant-and-tomato-pocket-pies.html
+    - https://www.vegansandra.com/2013/10/carrots-in-blanket.html
+    - https://www.vegansandra.com/2015/01/watch-how-i-make-carrots-in-blanket.html
+  notes: Pastry time includes the bake (about 40 min at 200°C).
+
+pizza:
+  name: Pizza
+  keeps_days: 1  # leftovers keep this long in the fridge
+  description: >
+    A quick no-yeast or yeasted base, thin tomato sauce, whatever veg needs using
+    (mushrooms, courgette, peppers, olives), vegan cheese if there is some, oregano.
+  colour_dominant: red
+  cuisine_context: [italian]
+  preferred_ingredients: [plain_flour, baking_powder, yeast, passata, mushrooms, courgette, bell_pepper, olives, vegan_parmesan, oregano, basil]
+  slots: [batter_flour, baking_leavener, baking_fat, tomato_sauce_body, cooked_veg, stew_meltable_finisher, dried_herbs, finish_herb]
+  slot_overrides:
+    batter_flour: {label: Pizza Dough, required_method: [raw, bake], amount: {per_serving: 125}, time: {active: 15, passive: 15}}
+    baking_fat: {required_classes: [fat], amount: {per_serving: 10}}
+    tomato_sauce_body: {label: Tomato Sauce, amount: {per_serving: 80}, time: {active: 2, passive: 0}}
+    cooked_veg: {label: Toppings, required_method: [raw, fry, roast], preferred_classes: [fungus, fruit_veg, nightshade], amount: {per_serving: 100}}
+    stew_meltable_finisher: {label: Cheese}
+  edges:
+    - {from: baking_leavener,        to: batter_flour, type: combine}
+    - {from: baking_fat,             to: batter_flour, type: combine}
+    - {from: tomato_sauce_body,      to: batter_flour, type: coat}
+    - {from: cooked_veg,             to: batter_flour, type: top}
+    - {from: stew_meltable_finisher, to: batter_flour, type: top}
+    - {from: dried_herbs,            to: batter_flour, type: top}
+    - {from: finish_herb,            to: batter_flour, type: finish}
+  sources:
+    - https://www.vegansandra.com/2013/11/vegan-pizza-margherita.html
+    - https://www.vegansandra.com/2016/08/vegan-four-seasons-pizza-aka-quattro.html
+    - https://www.vegansandra.com/2013/07/chanterelle-and-zucchini-pizza.html
+    - https://www.vegansandra.com/2015/02/cheesy-root-celery-and-chickpea-deep.html
+    - https://www.vegansandra.com/2012/12/thin-and-crispy-yeastless-pizza-crust.html
+
+filled_dumplings:
+  name: Filled Dumplings & Parcels
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Flour-and-water dough wrapped round a savoury filling (mushrooms and spinach,
+    cabbage, soy mince), then pan-fried, baked or boiled. Pot stickers, pierogi,
+    spring rolls, filled pancakes. A weekend project; freeze half.
+  colour_dominant: beige
+  cuisine_context: [chinese, eastern_european]
+  preferred_ingredients: [plain_flour, mushrooms, spinach, cabbage, soy_chunks, onion, garlic, soy_sauce, green_onion, fresh_chilli]
+  slots: [batter_flour, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, heat, creamy_drizzle]
+  slot_overrides:
+    batter_flour: {label: Dough, amount: {per_serving: 80}, time: {active: 30, passive: 15}}
+    aromatic_base: {amount: {per_serving: 40}}
+    cooked_veg: {label: Filling, preferred_classes: [fungus, leafy_green, brassica]}
+    protein_bulk: {optional: true, max_ingredients: 1, preferred_classes: [soy_product, legume]}
+    stir_fry_seasoning: {label: Seasoning, max_ingredients: 1, amount: {per_serving: 8}}
+    creamy_drizzle: {optional: true, label: Dip}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg,   type: combine}
+    - {from: protein_bulk,       to: cooked_veg,   type: combine}
+    - {from: stir_fry_seasoning, to: cooked_veg,   type: combine}
+    - {from: heat,               to: cooked_veg,   type: combine}
+    - {from: cooked_veg,         to: batter_flour, type: fold_in}
+    - {from: creamy_drizzle,     to: batter_flour, type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/02/crispy-pot-stickers-chinese-dumplings.html
+    - https://www.vegansandra.com/2012/12/crispy-oven-baked-spring-rolls.html
+    - https://www.vegansandra.com/2013/05/filled-savory-pancakes.html
+    - https://www.vegansandra.com/2018/02/vegan-pierogi-casserole.html
+    - https://www.vegansandra.com/2014/11/easy-cabbage-rolls-with-spinach-and.html
+    - https://www.vegansandra.com/2013/04/crispy-and-simple-pierogi.html
+
+crispy_bites:
+  name: Crispy Coated Bites
+  keeps_days: 1  # leftovers keep this long in the fridge
+  description: >
+    Tofu, chickpeas, seitan or aubergine dipped in a flour batter, rolled in
+    crumbs or sesame and fried or baked until crisp. A dip (peanut sauce, mayo),
+    something raw on the side, rice or potatoes if it's dinner.
+  colour_dominant: brown
+  cuisine_context: [american, eastern_european, chinese]
+  preferred_ingredients: [tofu, chickpeas, seitan, plain_flour, breadcrumbs, sesame_seeds, smoked_paprika, peanut_sauce, mayo, cucumber]
+  slots: [protein_bulk, spice_bloom, batter_flour, texture_top, griddle, creamy_drizzle, raw_veg, hearty_base]
+  slot_overrides:
+    protein_bulk: {max_ingredients: 1, preferred_classes: [soy_product, legume], required_method: [raw, boil, fry, bake]}
+    spice_bloom: {max_ingredients: 1}
+    batter_flour: {label: Batter, amount: {per_serving: 25}, time: {active: 10, passive: 0}}
+    texture_top: {label: Crumb Coat, optional: false, preferred_classes: [bread, seed], amount: {per_serving: 25}}
+    griddle: {label: Fry or Bake, amount: {per_serving: 15}, time: {active: 15, passive: 10}}
+    creamy_drizzle: {label: Dip}
+    raw_veg: {optional: true}
+    hearty_base: {optional: true}
+  edges:
+    - {from: spice_bloom,    to: batter_flour, type: combine}
+    - {from: batter_flour,   to: protein_bulk, type: coat}
+    - {from: texture_top,    to: protein_bulk, type: coat}
+    - {from: protein_bulk,   to: griddle,      type: combine}
+    - {from: griddle,        to: hearty_base,  type: top}
+    - {from: raw_veg,        to: hearty_base,  type: top}
+    - {from: creamy_drizzle, to: hearty_base,  type: finish}
+  sources:
+    - https://www.vegansandra.com/2017/01/breaded-chickpeas-gf.html
+    - https://www.vegansandra.com/2016/09/breaded-and-marinated-seitan-old-school.html
+    - https://www.vegansandra.com/2018/04/easy-crispy-eggplant-gluten-free.html

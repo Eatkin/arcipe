@@ -36,6 +36,8 @@ butter_chickpeas:
     - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
     - {from: finish_herb,       to: curry_grain_base,  type: finish}
   notes: Blitz half the sauce before adding chickpeas for texture.
+  sources:
+    - https://www.vegansandra.com/2014/09/tomato-and-chickpea-curry-with-coconut.html
 
 cauliflower_madras:
   name: Cauliflower Madras
@@ -140,3 +142,35 @@ carrot_curry_gravy:
     - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
     - {from: finish_herb,       to: curry_grain_base,  type: finish}
   notes: Roast carrot at 200°C until edges are dark. Blend with stock before combining with tomato.
+
+coconut_veg_curry:
+  name: Everyday Coconut / Peanut Veg Curry
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Sandra's weeknight curry: onion, garlic and ginger, curry powder, whatever veg
+    (sweet potato, beetroot, courgette, cauliflower), tofu or lentils, coconut
+    milk or a spoon of peanut butter, over rice. Milder and quicker than the
+    restaurant ones.
+  colour_dominant: yellow
+  cuisine_context: [indian, thai]
+  preferred_ingredients: [basmati_rice, tomato_puree, onion, garlic, ginger, curry_powder, coconut_milk, peanut_butter, tofu, red_lentils, sweet_potato, beetroot, courgette, cauliflower, coriander_leaf]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, curry_bulk, curry_protein, creamy_curry_fat, tomato_enhancement, finish_herb]
+  slot_overrides:
+    curry_grain_base: {preferred_classes: [rice]}
+    curry_protein: {max_ingredients: 1}
+    spice_bloom: {max_ingredients: 2}
+    tomato_enhancement: {optional: true}
+  edges:
+    - {from: curry_aromatic,     to: spice_bloom,      type: combine}
+    - {from: spice_bloom,        to: curry_bulk,       type: combine}
+    - {from: curry_bulk,         to: creamy_curry_fat, type: combine}
+    - {from: curry_protein,      to: creamy_curry_fat, type: fold_in}
+    - {from: tomato_enhancement, to: creamy_curry_fat, type: combine}
+    - {from: creamy_curry_fat,   to: curry_grain_base, type: coat}
+    - {from: finish_herb,        to: curry_grain_base, type: finish}
+  sources:
+    - https://www.vegansandra.com/2014/08/peanut-butter-and-vegetable-curry.html
+    - https://www.vegansandra.com/2016/05/tofu-and-peanut-butter-curry-video.html
+    - https://www.vegansandra.com/2015/08/groovy-summer-curry.html
+    - https://www.vegansandra.com/2012/12/beet-curry.html
+    - https://www.vegansandra.com/2015/01/creamy-lentil-and-root-vegetable-curry.html

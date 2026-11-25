@@ -1,0 +1,129 @@
+# Everyday Estonian-style home cooking from the vegansandra.com backlog (2026-11-25):
+# potatoes and gravy, thick veg stews, pilafs, chickpea omelettes.
+# Slot grams and times are drafted guesses.
+
+mash_and_gravy:
+  name: Potatoes & Gravy
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Mash (or boiled potatoes, or mash with barley) under a brown onion gravy:
+    onions fried slowly, a spoon of flour, stock, soy sauce, sometimes mushrooms
+    or prunes, beans if you want it heartier. Dill on top.
+  colour_dominant: brown
+  cuisine_context: [eastern_european, british]
+  preferred_ingredients: [potato, pearl_barley, onion, mushrooms, prunes, soy_sauce, kidney_beans, peas, spinach, dill]
+  slots: [mash_base, aromatic_base, katsu_sauce_body, stock_liquid, cooked_veg, protein_bulk, stir_fry_seasoning, finish_herb]
+  slot_overrides:
+    aromatic_base: {amount: {per_serving: 80}, time: {active: 5, passive: 15}}
+    katsu_sauce_body: {label: Gravy Roux, amount: {per_serving: 15}, time: {active: 3, passive: 0}, notes: Flour cooked in the onion fat.}
+    stock_liquid: {amount: {per_serving: 150}, time: {active: 1, passive: 10}}
+    cooked_veg: {optional: true, preferred_classes: [fungus, leafy_green], max_ingredients: 1}
+    protein_bulk: {optional: true, max_ingredients: 1}
+    stir_fry_seasoning: {label: Seasoning, required_classes: [condiment], max_ingredients: 1, amount: {per_serving: 8}}
+  edges:
+    - {from: aromatic_base,      to: katsu_sauce_body, type: combine}
+    - {from: katsu_sauce_body,   to: stock_liquid,     type: combine}
+    - {from: cooked_veg,         to: stock_liquid,     type: fold_in}
+    - {from: stir_fry_seasoning, to: stock_liquid,     type: combine}
+    - {from: stock_liquid,       to: mash_base,        type: coat}
+    - {from: protein_bulk,       to: mash_base,        type: top}
+    - {from: finish_herb,        to: mash_base,        type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/11/easy-and-delicious-vegan-gravy-with.html
+    - https://www.vegansandra.com/2014/09/chunky-mushroom-and-plum-gravy.html
+    - https://www.vegansandra.com/2018/08/estonian-mashed-potatoes-with-barley.html
+    - https://www.vegansandra.com/2012/12/potato-boats-with-mashed-peas-and-fried.html
+    - https://www.vegansandra.com/2014/10/mashed-potatoes-with-creamed-spinach.html
+    - https://www.vegansandra.com/2012/12/creamy-garlicky-potatoes-with-kidney_14.html
+
+veg_stew:
+  name: Thick Veg & Bean Stew
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Onion and carrot, chunks of potato and a root or a green (turnip, chard,
+    cabbage), beans, lentils or soy mince, not much liquid, bay and thyme, a
+    splash of cream at the end if you like. Thicker than soup, eaten with bread.
+  colour_dominant: yellow
+  cuisine_context: [eastern_european, british]
+  preferred_ingredients: [onion, carrot, potato, turnip, swiss_chard, cabbage, chickpeas, red_lentils, soy_chunks, prunes, bay_leaf, thyme, plant_cream]
+  slots: [aromatic_base, soup_veg, starchy_bulk, protein_bulk, stock_liquid, dried_herbs, creamy_liquid, finish_herb]
+  slot_overrides:
+    starchy_bulk: {optional: false}
+    protein_bulk: {optional: true, max_ingredients: 1}
+    stock_liquid: {amount: {per_serving: 150}, time: {active: 1, passive: 30}}
+    creamy_liquid: {optional: true, amount: {per_serving: 50}}
+  edges:
+    - {from: aromatic_base, to: soup_veg,     type: combine}
+    - {from: soup_veg,      to: stock_liquid, type: combine}
+    - {from: starchy_bulk,  to: stock_liquid, type: combine}
+    - {from: protein_bulk,  to: stock_liquid, type: combine}
+    - {from: dried_herbs,   to: stock_liquid, type: combine}
+    - {from: creamy_liquid, to: stock_liquid, type: fold_in}
+    - {from: finish_herb,   to: stock_liquid, type: finish}
+  sources:
+    - https://www.vegansandra.com/2014/09/chard-and-potato-stew-with-chickpeas.html
+    - https://www.vegansandra.com/2013/01/creamy-turnip-stew.html
+    - https://www.vegansandra.com/2015/02/bean-and-plum-ragout.html
+    - https://www.vegansandra.com/2014/10/potato-and-rice-stew-with-red-lentils.html
+    - https://www.vegansandra.com/2012/12/cauliflower-stew-with-white-beans.html
+
+pilaf:
+  name: Pilaf / One-Pot Grain
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Onion and grated carrot fried soft, a little spice, rice (or buckwheat or
+    barley) toasted in and cooked in stock with beans or mushrooms until the
+    liquid's gone. One pot, keeps well.
+  colour_dominant: orange
+  cuisine_context: [eastern_european, levantine]
+  preferred_ingredients: [onion, garlic, carrot, basmati_rice, buckwheat, pearl_barley, kidney_beans, mushrooms, tomato_puree, cumin, paprika, parsley]
+  slots: [aromatic_base, grated_veg, spice_bloom, hearty_base, protein_bulk, tomato_enhancement, finish_herb]
+  slot_overrides:
+    grated_veg: {label: Grated Carrot / Veg, required_method: [fry, raw], amount: {per_serving: 60}}
+    spice_bloom: {max_ingredients: 2}
+    hearty_base: {label: Grain, required_classes: [grain, rice], excluded_classes: [pasta, noodle, bread], time: {active: 5, passive: 25}}
+    protein_bulk: {max_ingredients: 1, optional: true}
+    tomato_enhancement: {optional: true}
+  edges:
+    - {from: aromatic_base,      to: grated_veg,  type: combine}
+    - {from: spice_bloom,        to: grated_veg,  type: combine}
+    - {from: grated_veg,         to: hearty_base, type: combine}
+    - {from: tomato_enhancement, to: hearty_base, type: combine}
+    - {from: protein_bulk,       to: hearty_base, type: fold_in}
+    - {from: finish_herb,        to: hearty_base, type: finish}
+  sources:
+    - https://www.vegansandra.com/2012/12/pilaf-with-kidney-beans_27.html
+    - https://www.vegansandra.com/2013/01/juicy-one-pot-rice-dish-with-mushrooms.html
+    - https://www.vegansandra.com/2013/01/protein-rich-buckwheat-casserole-with.html
+    - https://www.vegansandra.com/2014/09/savory-pumpkin-and-oat-casserole.html
+    - https://www.vegansandra.com/2012/12/barley-porridge-with-fried-onions.html
+    - https://www.vegansandra.com/2015/02/watch-how-i-make-savory-pumpkin-and-oat.html
+
+chickpea_omelette:
+  name: Chickpea Omelette
+  description: >
+    Gram flour whisked with water and a pinch of turmeric and black salt, poured
+    over fried onion and veg (or yesterday's boiled potatoes) and cooked like an
+    omelette. Breakfast, or lunch with bread.
+  colour_dominant: yellow
+  cuisine_context: [universal, indian]
+  meal_type: [breakfast, lunch]
+  required_ingredients: [gram_flour]
+  preferred_ingredients: [gram_flour, onion, potato, spinach, tomato, mushrooms, chives, bread]
+  slots: [batter_flour, aromatic_base, cooked_veg, starchy_bulk, griddle, finish_herb, bread_base]
+  slot_overrides:
+    batter_flour: {label: Chickpea Batter, required_roles: [binder, thickener], amount: {per_serving: 50}, time: {active: 3, passive: 0}}
+    aromatic_base: {optional: true, amount: {per_serving: 30}}
+    cooked_veg: {optional: true, amount: {per_serving: 80}}
+    griddle: {time: {active: 10, passive: 0}}
+    bread_base: {optional: true}
+  edges:
+    - {from: aromatic_base, to: cooked_veg,   type: combine}
+    - {from: cooked_veg,    to: griddle,      type: combine}
+    - {from: starchy_bulk,  to: griddle,      type: combine}
+    - {from: batter_flour,  to: griddle,      type: combine}
+    - {from: finish_herb,   to: griddle,      type: finish}
+    - {from: griddle,       to: bread_base,   type: top}
+  sources:
+    - https://www.vegansandra.com/2014/06/chickpea-and-onion-omelette.html
+    - https://www.vegansandra.com/2018/06/vegan-potatoes-and-eggs.html

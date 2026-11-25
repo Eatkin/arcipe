@@ -20,9 +20,11 @@ lentil_soup:
     - {from: acid_bright,   to: stock_liquid, type: finish}
     - {from: finish_herb,   to: stock_liquid, type: finish}
   sources:
-    - https://www.vegansandra.com/2016/03/lentil-and-turnip-soup-with-lemon.html
+    - https://www.vegansandra.com/2015/01/lentil-and-turnip-soup-with-lemon.html
     - https://www.vegansandra.com/2022/05/cozy-red-lentil-soup-with-cauliflower.html
     - https://www.gimmesomeoven.com/peanut-curry-lentil-soup/
+    - https://www.vegansandra.com/2014/08/beet-and-lentil-soup.html
+    - https://www.vegansandra.com/2017/12/easy-red-lentil-and-vegetable-soup.html
 
 veg_soup:
   name: Chunky Vegetable Soup
@@ -45,8 +47,13 @@ veg_soup:
     - {from: dried_herbs,   to: stock_liquid, type: combine}
     - {from: finish_herb,   to: stock_liquid, type: finish}
   sources:
-    - https://www.vegansandra.com/2017/10/easy-vegetable-and-dumpling-soup-video.html
+    - https://www.vegansandra.com/2015/01/easy-vegetable-and-dumpling-soup.html
     - https://www.thevegspace.co.uk/recipe-vegan-dumplings/
+    - https://www.vegansandra.com/2014/12/sauerkraut-and-tomato-soup-with-potatoes.html
+    - https://www.vegansandra.com/2016/01/vegan-mushroom-solyanka.html
+    - https://www.vegansandra.com/2013/01/simple-tomato-noodle-soup-with-potatoes.html
+    - https://www.vegansandra.com/2018/01/vegan-salmon-soup.html
+    - https://www.vegansandra.com/2016/06/watch-how-i-cook-vegetable-and-dumpling.html
 
 blended_soup:
   name: Creamy Blended Soup
@@ -70,6 +77,12 @@ blended_soup:
     - {from: finish_herb,   to: creamy_liquid, type: finish}
   sources:
     - https://thefirstmess.com/2017/09/06/smoky-vegan-corn-chowder-potatoes-recipe/
+    - https://www.vegansandra.com/2014/09/pumpkin-soup-with-hint-of-ginger.html
+    - https://www.vegansandra.com/2018/03/silky-cream-of-mushroom-soup.html
+    - https://www.vegansandra.com/2015/03/the-easiest-cream-of-broccoli-and.html
+    - https://www.vegansandra.com/2017/06/sweet-potato-and-green-pea-soup-with.html
+    - https://www.vegansandra.com/2013/01/super-fast-and-simple-pea-soup.html
+    - https://www.vegansandra.com/2013/04/creamy-onion-and-plum-soup_28.html
 
 bean_chilli:
   name: Bean Chilli
@@ -97,6 +110,8 @@ bean_chilli:
   sources:
     - https://www.vegansandra.com/2016/03/watch-how-i-cook-spicy-vegan-tex-mex.html
     - https://www.connoisseurusveg.com/vegan-chorizo-tacos/
+    - https://www.vegansandra.com/2013/02/chili-sin-carne.html
+    - https://www.vegansandra.com/2014/09/creamy-chili-bean-and-zucchini-stew.html
 
 stroganoff:
   name: Mushroom Stroganoff
@@ -122,8 +137,9 @@ stroganoff:
     - {from: creamy_liquid,      to: hearty_base,   type: coat}
     - {from: finish_herb,        to: hearty_base,   type: finish}
   sources:
-    - https://www.vegansandra.com/2017/11/vegan-stroganoff.html
+    - https://www.vegansandra.com/2016/01/vegan-stroganoff.html
     - https://www.vegansandra.com/2016/08/easy-creamy-chanterelle-sauce-gluten.html
+    - https://www.vegansandra.com/2012/12/lentil-stroganoff.html
 
 goulash:
   name: Paprika Goulash
@@ -148,6 +164,9 @@ goulash:
     - {from: protein_bulk,  to: tomato_sauce_body, type: fold_in}
     - {from: dried_herbs,   to: tomato_sauce_body, type: combine}
     - {from: finish_herb,   to: tomato_sauce_body, type: finish}
+  sources:
+    - https://www.vegansandra.com/2013/02/eggplant-and-potatoes-in-tomato-sauce.html
+    - https://www.vegansandra.com/2013/06/soy-slices-in-extra-hot-tomato-sauce.html
 
 shepherds_pie:
   name: Shepherd's Pie
@@ -173,8 +192,10 @@ shepherds_pie:
     - {from: dried_herbs,        to: protein_bulk,       type: combine}
     - {from: protein_bulk,       to: mash_base,          type: combine}
   sources:
-    - https://www.vegansandra.com/2016/11/shepherds-pie-with-buckwheat-veggies.html
+    - https://www.vegansandra.com/2015/04/shepherds-pie-with-buckwheat-veggies.html
     - https://www.vegansandra.com/2017/03/vegan-lentil-loaf-with-cabbage-gluten.html
+    - https://www.vegansandra.com/2015/03/creamy-baked-sweet-potato-with-mashed.html
+    - https://www.vegansandra.com/2017/01/easy-and-creamy-vegan-potato-cassarole.html
   notes: Mash time includes 25 min in the oven once assembled.
 
 sauce_over_grain:
@@ -199,5 +220,8 @@ sauce_over_grain:
     - {from: finish_herb,        to: hearty_base,   type: finish}
   sources:
     - https://www.vegansandra.com/2024/05/green-bean-and-mushroom-sauce-with.html
-    - https://www.vegansandra.com/2018/05/creamy-coconut-buckwheat-with-mushrooms.html
-    - https://www.vegansandra.com/2017/04/simple-rice-and-veggies-with-peanut-and.html
+    - https://www.vegansandra.com/2017/10/creamy-coconut-buckwheat-with-mushrooms.html
+    - https://www.vegansandra.com/2015/03/simple-rice-and-veggies-with-peanut-and.html
+    - https://www.vegansandra.com/2015/01/peanut-and-tomato-sauce-only-4.html
+    - https://www.vegansandra.com/2017/03/easy-tomato-cream-sauce-gluten-free.html
+    - https://www.vegansandra.com/2015/05/potato-steaks-with-satay-sauce.html

@@ -214,3 +214,16 @@ millet:
   pack_weight: 500
   stock_ratio: 0.3
   cuisine_context: [eastern_european]
+
+gram_flour:
+  name: Gram Flour (chickpea flour)
+  classes: [legume]
+  roles: [binder, thickener, protein]
+  flavour: [nutty, earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 1000
+  nutrition: [high_protein]
+  cuisine_context: [indian]
+  notes: Chickpea omelettes, bhajias, binding patties.

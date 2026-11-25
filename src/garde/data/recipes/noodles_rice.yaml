@@ -21,10 +21,13 @@ noodle_stir_fry:
     - {from: heat,               to: noodle_base, type: combine}
     - {from: texture_top,        to: noodle_base, type: top}
   sources:
-    - https://www.vegansandra.com/2017/10/quick-and-easy-vegan-noodle-stir-fry.html
-    - https://www.vegansandra.com/2017/11/rice-noodles-with-broccoli-and.html
+    - https://www.vegansandra.com/2017/02/quick-and-easy-vegan-noodle-stir-fry.html
+    - https://www.vegansandra.com/2016/01/rice-noodles-with-broccoli-and.html
     - https://www.jamieoliver.com/recipes/vegetables-recipes/veggie-pad-thai/
     - https://www.pinchofnom.com/recipes/singapore-style-noodles/
+    - https://www.vegansandra.com/2013/02/oriental-rice-noodles.html
+    - https://www.vegansandra.com/2015/01/bean-vermicelli-with-garlic-sauce-and.html
+    - https://www.vegansandra.com/2016/04/creamy-cauliflower-rice-noodles-with.html
 
 noodle_soup:
   name: Noodle Soup
@@ -49,9 +52,9 @@ noodle_soup:
     - {from: finish_herb,        to: noodle_base,  type: finish}
     - {from: acid_bright,        to: noodle_base,  type: finish}
   sources:
-    - https://www.vegansandra.com/2016/02/spicy-vegan-noodle-soup-with-mushrooms.html
-    - https://www.vegansandra.com/2017/09/tomato-and-rice-noodle-soup-with-satay.html
-    - https://www.vegansandra.com/2017/12/sweet-potato-and-rice-noodle-soup-with.html
+    - https://www.vegansandra.com/2017/01/spicy-vegan-noodle-soup-with-mushrooms.html
+    - https://www.vegansandra.com/2015/07/tomato-and-rice-noodle-soup-with-satay.html
+    - https://www.vegansandra.com/2015/12/sweet-potato-and-rice-noodle-soup-with.html
 
 fried_rice:
   name: Fried Rice
@@ -75,7 +78,7 @@ fried_rice:
     - {from: heat,               to: rice_base,  type: combine}
     - {from: finish_herb,        to: rice_base,  type: finish}
   sources:
-    - https://www.vegansandra.com/2018/04/garlic-fried-rice-with-crispy-tofu-and.html
+    - https://www.vegansandra.com/2015/09/garlic-fried-rice-with-crispy-tofu-and.html
     - https://www.veganricha.com/peanut-gochujang-rice/
   notes: Rice time assumes it's already cooked (leftovers are better). Add 15 min if not.
 
@@ -103,8 +106,40 @@ saucy_stir_fry:
     - {from: heat,               to: cooked_veg, type: combine}
     - {from: cooked_veg,         to: rice_base,  type: coat}
   sources:
-    - https://www.vegansandra.com/2017/05/sweet-and-sour-cauliflower.html
-    - https://www.vegansandra.com/2018/02/vegan-chinese-eggplant-with-spicy-garlic.html
-    - https://www.vegansandra.com/2016/11/sweet-and-sour-chinese-cabbage.html
+    - https://www.vegansandra.com/2015/03/sweet-and-sour-cauliflower.html
+    - https://www.vegansandra.com/2016/04/vegan-chinese-eggplant-with-spicy.html
+    - https://www.vegansandra.com/2017/05/sweet-and-sour-chinese-cabbage.html
     - https://www.connoisseurusveg.com/sweet-chili-tofu/
     - https://www.veganricha.com/tofu-pepper-fry/
+    - https://www.vegansandra.com/2013/05/smoky-tofu-skewers.html
+
+sushi:
+  name: Sushi Rolls
+  description: >
+    Sushi rice (or millet) seasoned with vinegar, rolled in nori with strips of
+    raw or roasted veg and tofu or a chickpea omelette, soy for dipping. Fiddly
+    the first time, then a fun lunch.
+  colour_dominant: green
+  cuisine_context: [japanese]
+  meal_type: [lunch, dinner]
+  required_ingredients: [nori]
+  preferred_ingredients: [sushi_rice, millet, nori, rice_vinegar, cucumber, avocado, carrot, aubergine, tofu, soy_sauce]
+  slots: [rice_base, umami_boost, acid_bright, raw_veg, roast_veg, protein_bulk, stir_fry_seasoning]
+  slot_overrides:
+    rice_base: {required_classes: [rice, grain], excluded_classes: [pasta, noodle, bread], time: {active: 5, passive: 20}}
+    umami_boost: {label: Nori, optional: false, required_classes: [sea_veg], amount: {per_serving: 5}}
+    acid_bright: {label: Rice Seasoning, preferred_classes: [vinegar]}
+    raw_veg: {amount: {per_serving: 50}, time: {active: 15, passive: 0}}
+    roast_veg: {optional: true, amount: {per_serving: 80}}
+    protein_bulk: {optional: true, max_ingredients: 1, preferred_classes: [soy_product]}
+    stir_fry_seasoning: {label: Dipping Soy, max_ingredients: 1, amount: {per_serving: 10}}
+  edges:
+    - {from: acid_bright,        to: rice_base,   type: combine}
+    - {from: rice_base,          to: umami_boost, type: coat}
+    - {from: raw_veg,            to: umami_boost, type: fold_in}
+    - {from: roast_veg,          to: umami_boost, type: fold_in}
+    - {from: protein_bulk,       to: umami_boost, type: fold_in}
+    - {from: stir_fry_seasoning, to: umami_boost, type: finish}
+  sources:
+    - https://www.vegansandra.com/2018/07/amazing-vegan-sushi-with-omelette-and.html
+    - https://www.vegansandra.com/2016/04/vegan-millet-sushi-with-roasted-root.html

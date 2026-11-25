@@ -202,3 +202,16 @@ dried_kidney_beans:
   season: [all]
   price: cheap
   pack_weight: 500
+
+seitan:
+  name: Seitan
+  classes: []
+  roles: [protein, bulk]
+  flavour: [umami, mild]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  shelf_life_days: 7
+  nutrition: [high_protein]
+  notes: "Wheat gluten. Bought, or Sandra's homemade steaks. Not gluten free. Recipe: https://www.vegansandra.com/2015/11/perfect-homemade-seitan-steaks.html"

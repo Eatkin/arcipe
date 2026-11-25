@@ -462,3 +462,41 @@ nori:
   max_per_serving: 5
   cuisine_context: [japanese, korean]
   nutrition: [b12_source]
+
+mayo:
+  name: Mayo
+  classes: [condiment]
+  roles: [sauce_base, fat_emulsifier]
+  flavour: [rich, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  made_from: {ingredient: vegetable_oil, ratio: 0.6, keeps_days: 5, time: {active: 4}}
+  notes: >
+    Vegan mayo; in this house mayo is mayo. A jar, or blend plant milk, oil,
+    mustard and lemon until it catches (made_from counts only the oil).
+    Recipe: https://www.vegansandra.com/2015/02/my-favorite-vegan-mayonnaise.html
+
+cocoa:
+  name: Cocoa Powder
+  classes: [sweetener]
+  roles: [baking_spice]
+  flavour: [bitter, rich]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  notes: Chocolate cakes, brownies, cookies.
+
+barbecue_sauce:
+  name: Barbecue Sauce
+  classes: [condiment]
+  roles: [umami_boost, sweetener, flavour_enhancer]
+  flavour: [smoky, sweet, umami]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  cuisine_context: [american]
+  notes: Sandra's barbecue patties, roasted veg and filled pancakes.

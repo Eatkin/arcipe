@@ -34,3 +34,16 @@ breadcrumbs:
   price: cheap
   unlimited: true
   staple: true
+
+puff_pastry:
+  name: Puff Pastry
+  classes: [bread]
+  roles: [gluten]
+  flavour: [rich, mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 320
+  shelf_life_days: 14
+  unit_weight: 320
+  notes: Ready-rolled sheet (most supermarket ones are accidentally vegan). Pies, carrots in a blanket.

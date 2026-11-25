@@ -18,6 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from garde.loader import INGREDIENTS
+from garde.loader import PREPARED_INGREDIENTS
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -316,9 +317,9 @@ ALIASES: dict[str, str] = {
     "beans": "kidney_beans",
     "canned beans": "kidney_beans",
     "brown beans": "kidney_beans",
-    "mayo": "vegan_mayo",
-    "mayonnaise": "vegan_mayo",
-    "vegan mayo": "vegan_mayo",
+    "mayo": "mayo",
+    "mayonnaise": "mayo",
+    "vegan mayo": "mayo",
     "milk": "plant_milk",
     "dairy free milk of choice": "plant_milk",
     "parmesan": "vegan_parmesan",
@@ -354,7 +355,50 @@ ALIASES: dict[str, str] = {
     "salad leaves": "lettuce",
     "vegetables": "?skip",
     "eggs": "?skip",
+    "people": "?skip",
+    "sandra": "?skip",
+    "div class": "?skip",
+    "sauce": "?skip",
+    # added with the full Sandra corpus
+    "soy mince": "soy_chunks",
+    "soy flakes": "soy_chunks",
+    "chanterelles": "mushrooms",
+    "white mushrooms": "mushrooms",
+    "dark chocolate": "cocoa",
+    "orange juice": "orange",
+    "oranges": "orange",
+    "plums": "prunes",
+    "dried plums": "prunes",
+    "rhubarb": "rhubarb",
+    "root celery": "celeriac",
+    "celery root": "celeriac",
+    "celeriac": "celeriac",
+    "rutabaga": "turnip",
+    "swede": "turnip",
+    "tomato juice": "passata",
+    "vegetable stock powder": "vegetable_stock",
+    "chickpea flour": "gram_flour",
+    "gram flour": "gram_flour",
+    "besan": "gram_flour",
+    "buckwheat flour": "buckwheat",
+    "tempura flour": "plain_flour",
+    "seaweed": "nori",
+    "barbecue sauce": "barbecue_sauce",
+    "bbq sauce": "barbecue_sauce",
+    "your favorite barbecue sauce": "barbecue_sauce",
+    "sour cream": "plant_yogurt",
+    "sunflower sour cream": "sunflower_cream",
+    "raspberries": "frozen_fruit",
+    "blueberries": "frozen_fruit",
+    "balsamic vinegar": "white_wine_vinegar",
+    "soy": "soy_sauce",
+    "black": "?skip",
+    "brown": "?skip",
+    "green": "green_lentils",
 }
+
+# Things every kitchen has: not worth an ingredient, never counted as missing
+ASSUMED = {"salt", "water", "ice", "?skip"}
 
 
 def normalise(line: str) -> str:
@@ -411,7 +455,9 @@ def main() -> None:
             if not name or len(name) > 40:
                 continue
             hit = match(name, table)
-            if hit and hit in INGREDIENTS:
+            if hit in ASSUMED:
+                continue
+            if hit and (hit in INGREDIENTS or hit in PREPARED_INGREDIENTS):
                 seen_known.add(hit)
             elif hit:
                 seen_unknown.add(hit)

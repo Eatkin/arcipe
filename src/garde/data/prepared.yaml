@@ -5,7 +5,7 @@ sunflower_cream:
   time: {active: 5, passive: 240}
   make_ahead: true
   unlocked_roles: [fat_emulsifier, sauce_base]
-  notes: Soak 4hrs, drain, blend with water. Cheaper cashew cream substitute.
+  notes: "Soak 4hrs, drain, blend with water. Cheaper cashew cream substitute. Recipe: https://www.vegansandra.com/2014/11/sunflower-sour-cream.html"
 
 cashew_cream:
   base_ingredients: [cashews]
@@ -117,15 +117,6 @@ guacamole:
   unlocked_roles: [sauce_base, fat_emulsifier, garnish]
   cuisine_context: [mexican, american]
   colour: green
-
-vegan_mayo:
-  base_ingredients: [plant_milk, vegetable_oil]
-  base_ratio: {plant_milk: 0.35, vegetable_oil: 0.6}
-  method: blend
-  time: {active: 4, passive: 0}
-  unlocked_roles: [sauce_base, fat_emulsifier]
-  colour: white
-  notes: Soy milk + oil + mustard + lemon, blended until it catches.
 
 cashew_cheese_sauce:
   base_ingredients: [cashews, nutritional_yeast]

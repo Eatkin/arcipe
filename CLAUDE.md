@@ -79,6 +79,11 @@ backlog of vegansandra.com (Blogger, sitemap at `/sitemap.xml`, 259 posts).
   1. `uv run python tools/corpus/parse.py` writes `corpus/recipes.json`.
   2. `uv run python tools/corpus/analyse.py [--families]` shows which ingredients are
      missing and how recipes group into dish families.
+- **Sandra is imported (2026-11-25)**: 196 posts are `sources` on archetypes; the rest
+  are desserts, menus, news and components. Never type a Sandra URL from a title (the
+  year in the path is the post date, and earlier guesses were wrong): take it from
+  `corpus/index.json`.
+- Salt and water aren't ingredients: every kitchen has them (`ASSUMED` in analyse.py).
 - Turning a scraped recipe into an archetype: pick or define its slots, map its
   ingredients to ids, add any missing ingredients (roles, classes, amounts, shelf
   life, price), and record the URL in the recipe's `sources`. Prefer one archetype
