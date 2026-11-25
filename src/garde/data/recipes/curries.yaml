@@ -15,6 +15,8 @@ rajma:
     - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
     - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
     - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  sources:
+    - https://www.veganricha.com/beans-do-pyaza/
 
 butter_chickpeas:
   name: Butter Chickpeas

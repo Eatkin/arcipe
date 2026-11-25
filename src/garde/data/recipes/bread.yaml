@@ -10,6 +10,8 @@ crumpet_meal:
   edges:
     - {from: grain_base, to: fat_emulsifier,  type: combine}
     - {from: grain_base, to: texture_top,  type: combine}
+  sources:
+    - https://www.recipetineats.com/crumpet-recipe/
 
 
 bread_rolls:
