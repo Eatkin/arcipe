@@ -19,7 +19,8 @@ cooked (cook) changes the pantry:
                      first. A pot of beans cooked a whole batch at a time puts the
                      rest of the pot in as cooked beans. Portions beyond `people`
                      go in as a dish if the recipe keeps.
-    a leftovers meal eats `people` portions of that recipe's dish.
+    a leftovers meal eats `people` portions of that recipe's dish (or, for a
+                     mix, `leftover_portions` of each recipe).
 
 What changed is kept on the meal under `cooked`, so untick puts it back.
 
@@ -371,7 +372,11 @@ def _cook_meal(
 ) -> tuple[Pantry, Cooked]:
     done = Cooked(on=when.isoformat())
     if m.get("leftovers_from") is not None:
-        dishes, done.eaten = pantry.eat(stock.dishes, m["recipe_id"], people)
+        dishes = stock.dishes
+        mix = m.get("leftover_portions") or {m["recipe_id"]: people}
+        for recipe_id, portions in mix.items():
+            dishes, eaten = pantry.eat(dishes, recipe_id, portions)
+            done.eaten += eaten
         return Pantry(stock.items, dishes), done
     items, done.taken = pantry.take(stock.items, m.get("consumed") or {}, db)
     items, more, done.added = _batch_rest(items, m.get("made") or {}, when, db)

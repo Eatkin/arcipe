@@ -422,3 +422,24 @@ def test_made_something_else(root):
     assert record["plan"]["days"][0]["meals"][1]["cooked"] is None
     with pytest.raises(PlanError, match="unknown recipe"):
         plans.cook(record, 2, "dinner", stock, instead={"recipe_id": "nope"})
+
+
+def test_eating_a_mix_of_leftovers(root):
+    result = _result()
+    leftovers = result["plan"]["days"][1]["meals"][0]
+    leftovers["leftover_portions"] = {"lentil_soup": 1, "rajma": 1}
+    record = plans.save(result, {"people": 2}, root=root)
+    stock = Pantry(
+        [],
+        [
+            Dish("lentil_soup", 1, "2026-12-04", "2026-12-01"),
+            Dish("rajma", 3, "2026-12-05", "2026-12-01"),
+        ],
+    )
+    record, after = plans.cook(record, 2, "dinner", stock, when=COOK_DAY)
+    assert [(d.recipe_id, d.portions) for d in after.dishes] == [("rajma", 2)]
+    record, back = plans.cook(record, 2, "dinner", after, cooked=False)
+    assert sorted((d.recipe_id, d.portions) for d in back.dishes) == [
+        ("lentil_soup", 1),
+        ("rajma", 3),
+    ]

@@ -183,13 +183,28 @@ def test_eat_leftovers_takes_the_soonest_and_respects_meal_type():
     chilli = RECIPES["bean_chilli"]
     dishes, _ = stash([], bread, _cooked(bread.id, 10), 2, day=1)
     dishes, _ = stash(dishes, chilli, _cooked(chilli.id, 4), 2, day=2)
-    _, dish = eat_leftovers(dishes, "dinner", 2)
+    _, dish, _ = eat_leftovers(dishes, "dinner", 2)
     assert dish is not None and dish.recipe_id == "bean_chilli"
-    dishes, dish = eat_leftovers(dishes, "breakfast", 2)
+    dishes, dish, _ = eat_leftovers(dishes, "breakfast", 2)
     assert dish is not None and dish.recipe_id == "vegan_banana_bread"
     assert next(d for d in dishes if d.recipe_id == bread.id).portions == 6
-    dishes, dish = eat_leftovers(dishes, "dinner", 3)  # only 2 portions of chilli
+    dishes, dish, _ = eat_leftovers(dishes, "dinner", 3)  # only 2 portions of chilli
     assert dish is None
+
+
+def test_two_dishes_can_make_one_leftovers_meal():
+    chilli = RECIPES["bean_chilli"]
+    rajma = RECIPES["rajma"]
+    dishes, _ = stash([], chilli, _cooked(chilli.id, 3), 2, day=1)  # 1 spare
+    dishes, _ = stash(dishes, rajma, _cooked(rajma.id, 4), 2, day=2)  # 2 spare
+    left, dish, mix = eat_leftovers(dishes, "dinner", 3)
+    assert dish is not None
+    assert mix == {"bean_chilli": 1, "rajma": 2}
+    assert left == []
+    # One dish that stretches to everyone is still preferred to a mix
+    _, dish, mix = eat_leftovers(dishes, "dinner", 2)
+    assert dish.recipe_id == "bean_chilli" or mix == {"rajma": 2}
+    assert len(mix) == 1
 
 
 def test_old_leftovers_go_off():

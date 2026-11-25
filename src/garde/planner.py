@@ -287,20 +287,35 @@ def expire_dishes(
 
 def eat_leftovers(
     dishes: list[Leftover], meal: str, people: int
-) -> tuple[list[Leftover], Leftover | None]:
-    """Serve the soonest-expiring leftovers that suit this meal and stretch to everyone."""
-    fits = [
-        i
-        for i, d in enumerate(dishes)
-        if meal in d.meal_types and d.portions >= people - 1e-9
-    ]
-    if not fits:
-        return dishes, None
-    i = min(fits, key=lambda i: dishes[i].expires_day)
-    dish = dishes[i]
-    rest = replace(dish, portions=dish.portions - people)
-    out = dishes[:i] + ([rest] if rest.portions > 1e-9 else []) + dishes[i + 1 :]
-    return out, dish
+) -> tuple[list[Leftover], Leftover | None, dict[str, float]]:
+    """
+    Serve leftovers that suit this meal: the soonest-expiring dish that stretches
+    to everyone, else a mix of dishes that do between them (a portion of chilli
+    and one of curry), soonest first. Returns (dishes left, the main dish served,
+    portions eaten of each recipe); (dishes, None, {}) if there aren't enough.
+    """
+    suits = sorted(
+        (i for i, d in enumerate(dishes) if meal in d.meal_types),
+        key=lambda i: dishes[i].expires_day,
+    )
+    whole = [i for i in suits if dishes[i].portions >= people - 1e-9]
+    chosen = whole[:1] or suits
+    if sum(dishes[i].portions for i in chosen) < people - 1e-9:
+        return dishes, None, {}
+    out = list(dishes)
+    mix: dict[str, float] = {}
+    need = float(people)
+    main = None
+    for i in chosen:
+        if need <= 1e-9:
+            break
+        bite = min(need, out[i].portions)
+        need -= bite
+        mix[out[i].recipe_id] = mix.get(out[i].recipe_id, 0.0) + bite
+        if main is None or bite > mix.get(main.recipe_id, 0.0):
+            main = dishes[i]
+        out[i] = replace(out[i], portions=out[i].portions - bite)
+    return [d for d in out if d.portions > 1e-9], main, mix
 
 
 # ---------------------------------------------------------------------------
@@ -384,6 +399,8 @@ class MealSlot:
     resolution: Resolution | None = None
     leftovers_from: int | None = None  # day it was cooked, if this is leftovers
     skipped: bool = False  # nobody eating in (out for dinner): not cooked, not missed
+    # Leftovers of several dishes at once: portions of each recipe
+    leftover_mix: dict[str, float] = field(default_factory=dict)
 
     @property
     def filled(self) -> bool:
@@ -411,7 +428,11 @@ def _slot_lines(slot: MealSlot, c: _Colours) -> list[str]:
         return [f"{tag} {c.red}✗ unplanned{c.reset}"]
     name = f"{tag} {c.bold}{c.green}{r.recipe_name}{c.reset}"
     if slot.leftovers_from is not None:
-        return [f"{name}  (leftovers from day {slot.leftovers_from})"]
+        also = " + ".join(r for r in slot.leftover_mix if r != slot.recipe_id)
+        return [
+            f"{name}{' + ' + also if also else ''}"
+            f"  (leftovers from day {slot.leftovers_from})"
+        ]
     lines = [
         f"{name}  (serves {r.servings}, {r.timing.total} min,"
         f" {r.timing.active} hands-on)"
@@ -643,7 +664,7 @@ def plan_week(
         dishes, gone = expire_dishes(dishes, day)
         wasted += gone
         for meal in meals:
-            dishes, dish = eat_leftovers(dishes, meal, people)
+            dishes, dish, mix = eat_leftovers(dishes, meal, people)
             if dish is not None:
                 planned.append(
                     MealSlot(
@@ -652,6 +673,7 @@ def plan_week(
                         recipe_id=dish.recipe_id,
                         resolution=dish.resolution,
                         leftovers_from=dish.cooked_day,
+                        leftover_mix=mix if len(mix) > 1 else {},
                     )
                 )
                 continue

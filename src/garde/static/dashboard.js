@@ -603,9 +603,13 @@ function mealEl(day, m, opts = {}) {
       <div class="why">${esc(m.why || "Add something to the pantry or turn on shopping.")}</div>`;
   } else if (m.leftovers_from != null) {
     const from = m.leftovers_from_date ? prettyDay(m.leftovers_from_date) : `day ${m.leftovers_from}`;
+    const mix = Object.entries(m.leftover_portions || {});
+    const name = mix.length > 1
+      ? mix.map(([id, n]) => `${recipeName(id)} ×${n}`).join(" + ")
+      : m.recipe_name;
     el.innerHTML = `<div class="kind">${m.meal}</div>
-      <div class="title"><span class="name">${esc(m.recipe_name)}</span>
-      <span class="chip">leftovers from ${esc(from)}</span></div>`;
+      <div class="title"><span class="name">${esc(name)}</span>
+      <span class="chip">${mix.length > 1 ? "leftovers, a bit of each" : `leftovers from ${esc(from)}`}</span></div>`;
   } else {
     const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
       <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${Math.round(i.grams)}g</span>` : ""}`).join(", ")}</span></li>`).join("");

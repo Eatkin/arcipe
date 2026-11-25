@@ -286,6 +286,10 @@ def _plan(
                     "pick": (picks or {}).get((day, slot.meal)),
                     "skipped": slot.skipped,
                     "leftovers_from": slot.leftovers_from,
+                    # Leftovers of several dishes: portions of each, else {}
+                    "leftover_portions": {
+                        r: round(n, 2) for r, n in slot.leftover_mix.items()
+                    },
                     "leftovers_from_date": None
                     if slot.leftovers_from is None
                     else (
