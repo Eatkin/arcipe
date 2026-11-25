@@ -155,16 +155,24 @@ def from_blogger(page: str) -> dict | None:  # noqa: C901 — heuristic scraper
         ):
             minutes = int(m.group(1) or 0) * 60 + int(m.group(2) or 0)
             start = start or i + 1
+    for i, ln in enumerate(lines):
+        if re.fullmatch(r"(?i)\s*ingredients\s*:?\s*", ln):
+            start = i + 1  # an explicit header beats "Serves: ..." and notes
+            break
     if start is None:
         # No header: take the longest run of ingredient-like lines
         best, run_start = (0, 0, 0), None
+        # (a run starts on a quantity, can carry "salt to taste" lines, and
+        # needs a few quantities in it to count)
+        measured = 0
         for i, ln in enumerate([*lines, "x" * 200]):
-            if _ingredient_like(ln) and QUANTITY.search(ln):
+            if _ingredient_like(ln) and (run_start is not None or QUANTITY.search(ln)):
                 run_start = i if run_start is None else run_start
+                measured += bool(QUANTITY.search(ln))
             elif run_start is not None:
-                if i - run_start > best[0]:
+                if i - run_start > best[0] and measured >= 3:
                     best = (i - run_start, run_start, i)
-                run_start = None
+                run_start, measured = None, 0
         if best[0] < 4:
             return None
         start = best[1]
@@ -197,7 +205,10 @@ def from_blogger(page: str) -> dict | None:  # noqa: C901 — heuristic scraper
             continue
         ingredients.append(ln)
     method = " ".join(ln for ln in lines[end:] if len(ln) > 40)
-    labels = re.findall(r"rel='tag'>([^<]+)</a>", page)
+    labels = [
+        html.unescape(x).strip()
+        for x in re.findall(r"rel=[\"']tag[\"']>([^<]+)</a>", page)
+    ]
     if len(ingredients) < 3:
         return None
     return {
