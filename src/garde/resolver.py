@@ -535,6 +535,15 @@ class _Assigner:
     def needs_buying(self, ing_id: str) -> bool:
         return any(raw in self.to_buy for raw in consumes(ing_id, self.prepared_db))
 
+    def needs_making(self, ing_id: str) -> bool:
+        """None on hand of something made_from another: it would be cooked fresh."""
+        return any(
+            self.ingredient_db[raw].made_from is not None
+            and self.stock.get(raw, 0.0) <= 0
+            for raw in consumes(ing_id, self.prepared_db)
+            if raw in self.ingredient_db
+        )
+
     def keys(self, ing_id: str) -> set[str]:
         if not self.recipe.no_ingredient_reuse:
             return set()
@@ -648,8 +657,10 @@ class _Assigner:
             # Beans can be the veg if there's nothing else, but not as well,
             # and an optional slot is better left empty
             return True
-        # Nobody goes shopping for a garnish
-        return slot.optional and self.needs_buying(ing.id)
+        # Nobody goes shopping for a garnish, or makes gravy just for the side
+        return slot.optional and (
+            self.needs_buying(ing.id) or self.needs_making(ing.id)
+        )
 
     def _contribution(
         self,

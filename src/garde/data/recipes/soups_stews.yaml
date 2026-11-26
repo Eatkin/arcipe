@@ -178,13 +178,14 @@ shepherds_pie:
   colour_dominant: brown
   cuisine_context: [british, eastern_european]
   preferred_ingredients: [onion, garlic, green_lentils, carrot, frozen_peas, fresh_peas, potato, thyme, soy_sauce, tomato_puree]
-  slots: [aromatic_base, soup_veg, protein_bulk, tomato_enhancement, stir_fry_seasoning, dried_herbs, mash_base]
+  slots: [aromatic_base, soup_veg, protein_bulk, tomato_enhancement, stir_fry_seasoning, dried_herbs, mash_base, gravy]
   slot_overrides:
     soup_veg: {label: Veg, required_method: [boil, fry]}
     protein_bulk: {max_ingredients: 1, preferred_classes: [legume, soy_product, grain]}
     tomato_enhancement: {required_roles: [thickener], required_colour: null, label: Gravy Thickener}
     stir_fry_seasoning: {label: Savoury Seasoning, max_ingredients: 1, amount: {per_serving: 10}}
     mash_base: {time: {active: 10, passive: 45}}
+    gravy: {optional: true, label: Gravy on the side, amount: {per_serving: 80}}
   edges:
     - {from: aromatic_base,      to: soup_veg,           type: combine}
     - {from: soup_veg,           to: protein_bulk,       type: combine}
@@ -192,6 +193,7 @@ shepherds_pie:
     - {from: stir_fry_seasoning, to: protein_bulk,       type: fold_in}
     - {from: dried_herbs,        to: protein_bulk,       type: combine}
     - {from: protein_bulk,       to: mash_base,          type: combine}
+    - {from: gravy,              to: mash_base,          type: finish}
   sources:
     - https://www.vegansandra.com/2015/04/shepherds-pie-with-buckwheat-veggies.html
     - https://www.vegansandra.com/2017/03/vegan-lentil-loaf-with-cabbage-gluten.html

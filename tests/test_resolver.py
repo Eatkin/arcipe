@@ -242,3 +242,13 @@ def test_fresh_gravy_is_made_from_butter():
     assert r.success
     assert r.made["gravy"] > 0
     assert r.consumed["butter"] == pytest.approx(r.made["gravy"] * 0.06)
+
+
+@pytest.mark.parametrize("recipe_id", ["savoury_pie", "shepherds_pie"])
+def test_pies_get_gravy_only_when_some_is_left(recipe_id):
+    def gravy(stock):
+        r = resolve(RECIPES[recipe_id], stock, rng=random.Random(0))
+        return {i for a in r.assignments if a.slot_id == "gravy" for i in a.assigned}
+
+    assert gravy({"butter": 250}) == set()  # not made fresh just for the side
+    assert gravy({"gravy": 300, "butter": 250}) == {"gravy"}
