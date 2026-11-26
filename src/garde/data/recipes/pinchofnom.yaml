@@ -10,7 +10,7 @@ risotto:
     Finished with something savoury, a splash of vinegar or lemon, and herbs.
   colour_dominant: beige
   cuisine_context: [italian]
-  preferred_ingredients: [arborio_rice, pearl_barley, onion, garlic, leek, mushrooms, squash, sweetcorn, frozen_sweetcorn, frozen_peas, peas, vegetable_stock, nutritional_yeast, vegan_parmesan, worcestershire_sauce, white_wine_vinegar, lemon, parsley, nutmeg]
+  preferred_ingredients: [arborio_rice, pearl_barley, onion, garlic, leek, mushrooms, squash, sweetcorn, frozen_sweetcorn, frozen_peas, fresh_peas, vegetable_stock, nutritional_yeast, vegan_parmesan, worcestershire_sauce, white_wine_vinegar, lemon, parsley, nutmeg]
   slots: [aromatic_base, cooked_veg, risotto_rice, stock_liquid, umami_boost, acid_bright, finish_herb]
   slot_overrides:
     cooked_veg: {preferred_classes: [fungus, squash, allium, leafy_green]}
@@ -246,7 +246,7 @@ biryani:
     and steamed with the lid on. Nuts or crispy onions on top, mint or coriander.
   colour_dominant: yellow
   cuisine_context: [indian]
-  preferred_ingredients: [basmati_rice, cardamom, cloves, cinnamon_ground, bay_leaf, onion, garlic, ginger, garam_masala, turmeric_dried, chilli_powder, cauliflower, carrot, frozen_peas, peas, potato, chickpeas, cashews, mint, coriander_leaf, lemon]
+  preferred_ingredients: [basmati_rice, cardamom, cloves, cinnamon_ground, bay_leaf, onion, garlic, ginger, garam_masala, turmeric_dried, chilli_powder, cauliflower, carrot, frozen_peas, fresh_peas, potato, chickpeas, cashews, mint, coriander_leaf, lemon]
   slots: [rice_base, whole_spice_bloom, curry_aromatic, spice_bloom, curry_bulk, curry_protein, texture_top, acid_bright, finish_herb]
   slot_overrides:
     rice_base: {time: {active: 5, passive: 25}}

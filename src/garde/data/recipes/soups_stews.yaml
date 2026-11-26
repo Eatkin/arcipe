@@ -177,7 +177,7 @@ shepherds_pie:
     with mash and baked. Sunday dinner that uses up the root veg.
   colour_dominant: brown
   cuisine_context: [british, eastern_european]
-  preferred_ingredients: [onion, garlic, green_lentils, carrot, frozen_peas, peas, potato, thyme, soy_sauce, tomato_puree]
+  preferred_ingredients: [onion, garlic, green_lentils, carrot, frozen_peas, fresh_peas, potato, thyme, soy_sauce, tomato_puree]
   slots: [aromatic_base, soup_veg, protein_bulk, tomato_enhancement, stir_fry_seasoning, dried_herbs, mash_base]
   slot_overrides:
     soup_veg: {label: Veg, required_method: [boil, fry]}

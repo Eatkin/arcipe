@@ -66,7 +66,7 @@ fried_rice:
     Vegan Richa's peanut gochujang rice.
   colour_dominant: brown
   cuisine_context: [chinese, korean]
-  preferred_ingredients: [garlic, ginger, crispy_tofu, frozen_peas, peas, carrot, sweetcorn, frozen_sweetcorn, cabbage, soy_sauce, gochujang, green_onion]
+  preferred_ingredients: [garlic, ginger, crispy_tofu, frozen_peas, fresh_peas, carrot, sweetcorn, frozen_sweetcorn, cabbage, soy_sauce, gochujang, green_onion]
   slots: [rice_base, aromatic_base, cooked_veg, protein_bulk, stir_fry_seasoning, heat, finish_herb]
   slot_overrides:
     aromatic_base: {preferred_classes: [allium, rhizome]}

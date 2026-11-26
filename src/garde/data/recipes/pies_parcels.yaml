@@ -10,7 +10,7 @@ savoury_pie:
     pie or a tray of hand pies; good cold for lunch the next day.
   colour_dominant: beige
   cuisine_context: [eastern_european, british]
-  preferred_ingredients: [plain_flour, puff_pastry, onion, cabbage, courgette, carrot, green_lentils, red_lentils, frozen_peas, peas, thyme, dill]
+  preferred_ingredients: [plain_flour, puff_pastry, onion, cabbage, courgette, carrot, green_lentils, red_lentils, frozen_peas, fresh_peas, thyme, dill]
   slots: [batter_flour, baking_fat, baking_leavener, aromatic_base, cooked_veg, protein_bulk, dried_herbs, creamy_drizzle]
   slot_overrides:
     batter_flour: {label: Pastry, required_roles: [gluten], required_method: [raw, bake], amount: {per_serving: 70}, time: {active: 15, passive: 40}}

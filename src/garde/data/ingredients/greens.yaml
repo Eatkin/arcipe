@@ -63,7 +63,7 @@ cauliflower:
   nutrition: [high_fibre]
   notes: Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.
 
-peas:
+fresh_peas:
   name: Peas (fresh, in the pod)
   classes: [legume]
   roles: [sauce_base, bulk, protein, garnish, raw_crunch]
