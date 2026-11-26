@@ -50,6 +50,7 @@ Role = Literal[
     "raw_crunch",  # eaten raw for crunch and freshness: cucumber, radish, lettuce
     "porridge_base",  # cooks into a breakfast porridge: oats, buckwheat
     "risotto_base",  # starchy grain stirred creamy in stock: arborio, pearl barley
+    "gravy",  # a ready brown gravy you pour on: made fresh or leftover from the fridge
 ]
 
 # Broad flavour contribution

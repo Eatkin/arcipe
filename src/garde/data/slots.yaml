@@ -485,6 +485,15 @@ mash_base:
   amount: {per_serving: 250}
   time: {active: 8, passive: 20}
 
+gravy:
+  label: Gravy
+  required_roles: [gravy]
+  required_method: [boil]
+  amount: {per_serving: 120}
+  time: {active: 2, passive: 5}
+  max_ingredients: 1
+  notes: Made fresh, or leftover gravy heated through.
+
 stock_liquid:
   label: Stock
   required_roles: [liquid]

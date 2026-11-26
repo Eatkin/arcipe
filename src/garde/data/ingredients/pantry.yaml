@@ -493,6 +493,26 @@ mayo:
     mustard and lemon until it catches (made_from counts only the oil).
     Recipe: https://www.vegansandra.com/2015/02/my-favorite-vegan-mayonnaise.html
 
+gravy:
+  name: Gravy
+  storage: fridge
+  classes: [condiment]
+  roles: [gravy]
+  flavour: [umami, rich]
+  colour: brown
+  season: [all]
+  price: cheap
+  shelf_life_days: 4  # in the fridge (drafted)
+  cuisine_context: [british, eastern_european]
+  # Drafted: ~550g from 30g butter, 2 tbsp flour, an onion and/or a few mushrooms,
+  # 500ml stock and a spoon of dark soy for colour
+  made_from: {ingredient: butter, ratio: 0.06, keeps_days: 4, time: {active: 10, passive: 15}}
+  notes: >
+    Brown gravy: onions and/or mushrooms softened in butter, flour cooked out,
+    stock whisked in, dark soy for colour (made_from counts only the butter;
+    flour, onion, stock and soy are staples). Leftover gravy goes in the pantry
+    and gets used first.
+
 cocoa:
   name: Cocoa Powder
   classes: [sweetener]

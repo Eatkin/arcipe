@@ -226,3 +226,19 @@ def test_urad_scramble_soaks_ahead_and_finishes_with_kala_namak():
     assert "mushrooms" not in picked["stir_fry_seasoning"]
     assert res.timing.make_ahead == ["urad_batter"]
     assert res.consumed["urad_dal"] == pytest.approx(96)  # 2 x 120g batter at 0.4
+
+
+def test_leftover_gravy_goes_on_the_mash():
+    stock = {"potato": 1000, "gravy": 300, "butter": 250}
+    r = resolve(RECIPES["mash_and_gravy"], stock, rng=random.Random(0))
+    assert r.success
+    assert r.consumed["gravy"] > 0
+    assert "butter" not in r.consumed  # no fresh gravy while there's some left
+
+
+def test_fresh_gravy_is_made_from_butter():
+    stock = {"potato": 1000, "butter": 250}
+    r = resolve(RECIPES["mash_and_gravy"], stock, rng=random.Random(0))
+    assert r.success
+    assert r.made["gravy"] > 0
+    assert r.consumed["butter"] == pytest.approx(r.made["gravy"] * 0.06)
