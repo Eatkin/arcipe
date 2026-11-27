@@ -3,6 +3,8 @@ from collections import Counter
 import pytest
 
 from garde import pantry
+from garde.dashboard import _slot_item
+from garde.dashboard import meta
 from garde.loader import INGREDIENTS
 from garde.pantry import Item
 from garde.planner import MealPlan
@@ -96,3 +98,36 @@ def test_shopping_items_show_ml_for_liquids():
     assert rows["carrot"]["unit"] == "g"
     assert rows["carrot"]["amount"].endswith("g")
     assert "(300ml)" in plan.shopping_list(DB)
+
+
+# Against the real data: the things that prompted this
+
+
+@pytest.mark.parametrize(
+    "ing_id", ["soy_sauce", "olive_oil", "plant_milk", "vegetable_stock"]
+)
+def test_everyday_liquids_are_tagged(ing_id):
+    assert INGREDIENTS[ing_id].liquid
+
+
+@pytest.mark.parametrize("ing_id", ["tahini", "peanut_butter", "miso", "carrot"])
+def test_thick_things_stay_in_grams(ing_id):
+    assert not INGREDIENTS[ing_id].liquid
+
+
+def test_dashboard_slot_items_carry_a_display_amount():
+    soy = INGREDIENTS["soy_sauce"]
+    item = _slot_item("soy_sauce", 12 * soy.density)
+    assert item["amount"] == "12ml"
+    assert item["unit"] == "ml"
+    assert item["grams"] == pytest.approx(12 * soy.density)
+    assert _slot_item("carrot", 80)["amount"] == "80g"
+    assert _slot_item("carrot", None)["amount"] is None
+
+
+def test_dashboard_meta_gives_unit_and_density():
+    rows = {r["id"]: r for r in meta()["ingredients"]}
+    assert rows["soy_sauce"]["unit"] == "ml"
+    assert rows["soy_sauce"]["density"] == INGREDIENTS["soy_sauce"].density
+    assert rows["carrot"]["unit"] == "g"
+    assert rows["carrot"]["density"] is None
