@@ -231,7 +231,7 @@ body.busy #saved-main { opacity: .6; pointer-events: none; }
 .differently { font-size: 13px; margin: 4px 0 6px; }
 .differently summary { margin: 0 0 6px; }
 .differently select { width: 100%; padding: 5px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); }
-.differently .grow { display: grid; grid-template-columns: 1fr 90px; gap: 6px; align-items: center; margin-bottom: 4px; }
+.differently .grow { display: grid; grid-template-columns: 1fr 90px 24px; gap: 6px; align-items: center; margin-bottom: 4px; }
 .differently .add-extra { grid-template-columns: 1fr 70px 0 auto; }
 .differently .tick-instead { margin-top: 6px; }
 .prow button.bin { font-size: 13px; filter: grayscale(1); opacity: .7; }

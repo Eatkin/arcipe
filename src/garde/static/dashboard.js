@@ -27,6 +27,18 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const ingById = (id) => META.ingredients.find((i) => i.id === id);
 const recipeName = (id) => (META.recipes.find((r) => r.id === id) || { name: id }).name;
+// Liquids (with a density) show in ml, everything else in grams; the server
+// always counts grams
+const unitOf = (id) => ((ingById(id) || {}).density ? "ml" : "g");
+const toShown = (id, g) => g / ((ingById(id) || {}).density || 1);
+const fromShown = (id, v) => v * ((ingById(id) || {}).density || 1);
+function amountText(id, g) {
+  const unit = unitOf(id);
+  const v = toShown(id, g);
+  if (v >= 1000) return `${+(v / 1000).toFixed(2)}${unit === "ml" ? "l" : "kg"}`;
+  return `${Math.round(v)}${unit}`;
+}
+const amountHint = (ing) => (ing && ing.unit_weight ? "count" : ing && ing.density ? "ml" : "grams");
 const ingByName = (name) => {
   const n = name.trim().toLowerCase();
   return META.ingredients.find((i) => i.name.toLowerCase() === n || i.id === n);
@@ -190,7 +202,7 @@ function renderBulk() {
     const head = first !== letter ? `<div class="aisle">${esc((letter = first))}</div>` : "";
     return `${head}<label class="bulk-row ${have(i.id) ? "have" : ""}">
       <span>${esc(i.name)}${have(i.id) ? ` <span class="chip">in</span>` : ""}</span>
-      <input type="text" data-id="${esc(i.id)}" placeholder="${i.unit_weight ? "count" : "grams"}" aria-label="${esc(i.name)} amount">
+      <input type="text" data-id="${esc(i.id)}" placeholder="${amountHint(i)}" aria-label="${esc(i.name)} amount">
     </label>`;
   }).join("");
   $("bulk-list").querySelectorAll("input").forEach((el) => el.addEventListener("input", bulkCount));
@@ -326,7 +338,7 @@ function pantryRow(row, area) {
   el.innerHTML = `
     <input type="text" list="dl-${area}" value="${esc(ing ? ing.name : row.id)}" aria-label="Ingredient">
     <input type="text" value="${esc(row.amount)}" aria-label="Amount"
-      placeholder="${ing && ing.unit_weight ? "count" : "grams"}">
+      placeholder="${amountHint(ing)}">
     <input type="date" value="${esc(row.use_by)}" aria-label="Use by">
     ${row.frozen ? `<span class="badge frozen">frozen</span>` : badge(row.use_by)}
     <button class="x freeze" title="${row.frozen ? "Take it out to defrost: good for 2 more days" : "Put it in the freezer"}">${row.frozen ? "☀" : "❄"}</button>
@@ -820,7 +832,7 @@ function mealEl(day, m, opts = {}) {
       ${m.defrost ? `<div class="ahead">❄ From the freezer: defrost it the night before.</div>` : ""}`;
   } else {
     const slots = m.slots.map((s) => `<li><span class="slot" title="${esc(s.label)}">${esc(s.label)}</span>
-      <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${Math.round(i.grams)}g</span>` : ""}`).join(", ")}</span></li>`).join("");
+      <span>${s.items.map((i) => `${esc(i.name)}${i.grams ? ` <span class="grams">${esc(i.amount || amountText(i.id, i.grams))}</span>` : ""}`).join(", ")}</span></li>`).join("");
     el.innerHTML = `
       <div class="kind">${m.meal}</div>
       <div class="title"><span class="name">${esc(m.recipe_name)}</span>
@@ -932,7 +944,7 @@ function listText(title, rows) {
     const here = rows.filter((r) => aisleOf(r.id) === aisle);
     if (!here.length) continue;
     lines.push("", name);
-    for (const r of here) lines.push(`- ${r.packs} × ${r.name} (${r.grams}g)`);
+    for (const r of here) lines.push(`- ${r.packs} × ${r.name} (${r.amount || `${r.grams}g`})`);
   }
   return lines.join("\n");
 }
@@ -985,7 +997,7 @@ function renderShopping(items) {
   const total = items.reduce((t, i) => t + i.price * i.packs, 0);
   $("shop").innerHTML = byAisle(items, (i) => `
     <li><span class="n">${i.packs}×</span>
-      <span>${esc(i.name)} <span class="g">${i.grams}g</span></span>
+      <span>${esc(i.name)} <span class="g">${esc(i.amount || `${i.grams}g`)}</span></span>
       <span class="price" title="${esc(i.price_word)}"><b>${PRICE_DOTS(i.price)}</b> ${esc(i.price_word)}</span></li>`)
     + `<div class="shop-total">${items.length} things · ${total} price points <button class="copy">Copy list</button></div>`;
   const btn = $("shop").querySelector("button.copy");
@@ -997,8 +1009,8 @@ function renderStock(stock, plan) {
   $("stock").innerHTML = `<table>
     <tr><th>Ingredient</th><th>Had</th><th>Bought / made</th><th>Used</th><th>Left</th><th>Wasted</th><th></th></tr>
     ${stock.map((s) => `<tr>
-      <td>${esc(s.name)}</td><td>${s.start}g</td><td>${s.bought ? s.bought + "g" : s.made ? s.made + "g made" : "–"}</td><td>${s.used}g</td><td>${s.left}g</td>
-      <td class="${s.wasted ? "waste" : ""}">${s.wasted ? s.wasted + "g" : "–"}</td>
+      <td>${esc(s.name)}</td><td>${amountText(s.id, s.start)}</td><td>${s.bought ? amountText(s.id, s.bought) : s.made ? amountText(s.id, s.made) + " made" : "–"}</td><td>${amountText(s.id, s.used)}</td><td>${amountText(s.id, s.left)}</td>
+      <td class="${s.wasted ? "waste" : ""}">${s.wasted ? amountText(s.id, s.wasted) : "–"}</td>
       <td><div class="bar">
         <span class="used" style="width:${pct(s.used, s.start + s.bought + s.made)}%"></span>
         <span class="wasted" style="width:${pct(s.wasted, s.start + s.bought + s.made)}%"></span></div></td>
@@ -1202,10 +1214,10 @@ function cookedDifferently(day, m) {
       ${META.recipes.filter((r) => r.meal_type.includes(m.meal) && r.id !== m.recipe_id)
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("")}</select></label>
-    <div class="hint">What came out of the pantry, in grams:</div>
+    <div class="hint">What came out of the pantry (grams, or ml for liquids):</div>
     <div class="grams-list"></div>
     <div class="prow add-extra"><input type="text" list="all-ingredients" placeholder="something else used" class="more-name">
-      <input type="text" placeholder="grams" class="more-g"><span></span><button class="more-add">Add</button></div>
+      <input type="text" placeholder="g or ml" class="more-g"><span></span><button class="more-add">Add</button></div>
     <button class="primary tick-instead">Tick off with these</button>`;
   // Staples you don't keep track of aren't worth listing
   const tracked = (grams) => Object.fromEntries(Object.entries(grams || {})
@@ -1214,10 +1226,10 @@ function cookedDifferently(day, m) {
   const list = box.querySelector(".grams-list");
   const draw = () => {
     list.innerHTML = Object.entries(instead.consumed).map(([id, g]) => `
-      <div class="grow"><span>${esc(ingName(id))}</span><input type="number" min="0" step="10" data-id="${esc(id)}" value="${Math.round(g)}"></div>`).join("")
+      <div class="grow"><span>${esc(ingName(id))}</span><input type="number" min="0" step="${unitOf(id) === "ml" ? 5 : 10}" data-id="${esc(id)}" value="${Math.round(toShown(id, g))}" aria-label="${unitOf(id)}"><span class="unit">${unitOf(id)}</span></div>`).join("")
       || `<div class="hint">Nothing from the pantry.</div>`;
     list.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", () => {
-      instead.consumed[inp.dataset.id] = Math.max(0, Number(inp.value) || 0);
+      instead.consumed[inp.dataset.id] = fromShown(inp.dataset.id, Math.max(0, Number(inp.value) || 0));
     }));
   };
   draw();
@@ -1233,7 +1245,7 @@ function cookedDifferently(day, m) {
   box.querySelector(".more-add").addEventListener("click", () => {
     const found = ingByName(box.querySelector(".more-name").value);
     if (!found) { showError("Pick an ingredient from the list."); return; }
-    instead.consumed[found.id] = Number(box.querySelector(".more-g").value) || 0;
+    instead.consumed[found.id] = fromShown(found.id, parseFloat(box.querySelector(".more-g").value) || 0);
     box.querySelector(".more-name").value = ""; box.querySelector(".more-g").value = "";
     draw();
   });
@@ -1306,7 +1318,7 @@ function renderSavedShopping() {
     <li class="tickable ${r.bought ? "got" : ""}">
       <input type="checkbox" data-id="${esc(r.id)}" data-bought="${r.bought ? 1 : ""}" ${r.bought ? "checked" : ""} aria-label="Bought ${esc(r.name)}">
       <span class="n">${r.packs}×</span>
-      <span>${esc(r.name)} <span class="g">${r.grams}g</span></span>
+      <span>${esc(r.name)} <span class="g">${esc(r.amount || `${r.grams}g`)}</span></span>
       <span class="price">${r.bought ? `in the pantry, ${esc(useByText(r.bought.use_by))}` : `${r.listed ? "top-up · " : ""}${esc(r.price_word || "")}`}</span></li>`)
       + (toBuy.length ? `<div class="shop-total"><button class="copy">Copy list</button> the ${plural(toBuy.length, "thing")} still to buy</div>` : "")
     : `<p class="hint">Nothing to buy on this plan.</p>`;
