@@ -19,6 +19,7 @@ uv run --extra dev ty check src                  # types
 uv run python -m garde.loader                    # load the YAML and list dangling references
 uv run python -m garde.solver                    # demo week
 uv run python -m garde.dashboard                 # http://127.0.0.1:8765
+uv run python -m garde.dashboard --host 0.0.0.0  # let a phone on the home wifi in (no login)
 ```
 
 Run lint, ty and pytest before every commit. Dependencies are pydantic and pyyaml
@@ -36,7 +37,8 @@ for the core package.
 | `solver.py` | simulated annealing over the week; scores by simulating with the real resolver |
 | `timing.py`, `vibes.py`, `method.py` | DAG timing, learned taste from 👍/👎, cooking outline from the slot graph |
 | `pantry.py`, `plans.py` | saved pantry with cooked and frozen dishes (`$GARDE_HOME/pantry.json`), binned waste (`waste.json`), staples not kept (`household.json`); saved plans, ticking off, re-planning the rest of the week (`$GARDE_HOME/plans/`) |
-| `dashboard.py` + `static/dashboard.{html,css,js}` | stdlib web UI with SSE search progress. `tests/ui/` drives it with Playwright (`ui` extra, skipped without it) |
+| `dashboard.py` + `static/dashboard.{html,css,js}` | stdlib web UI with SSE search progress. Pantry saves carry a `version` (409 from a stale tab or device). `tests/ui/` drives it with Playwright (`ui` extra, skipped without it) |
+| `units.py` | display amounts: liquids (an ingredient with a `density`, g per ml) show in ml / l, the ledger stays grams |
 | `tools/corpus/` | scraping real recipes: `fetch.py` → `parse.py` → `analyse.py` |
 | `corpus/` | scraped pages and `recipes.json`: **gitignored**, local only |
 | `.scratch.md` | the user's running notes: ideas, follow-ups, done list. Keep it current |
@@ -58,6 +60,9 @@ for the core package.
 - `discouraged_classes` on a slot is the soft way to keep things out (beans in
   "Veg"); `excluded_classes` is the hard way. `opened_days` sets how long a tin
   or a cut vegetable keeps once broken into.
+- `density` on an ingredient makes it a liquid (shown and typed in ml). Thick sauces,
+  passata and nut butters stay in grams. Pantry amounts also take words ("2 tins",
+  "half a bag", "2 x 400g"): see `pantry._measured`.
 - Beans are not `unlimited`: tins, dried beans (`dried_*`, cooked via `made_from`)
   or shopping must provide them.
 
