@@ -46,8 +46,8 @@ quorn_pieces:
     range has egg white (vegetarian, not vegan); Quorn's vegan pieces are a
     different pack.
 
-quorn_sausages:
-  name: Quorn Sausages (frozen)
+veggie_sausages:
+  name: Veggie Sausages (frozen)
   classes: [meat_alternative]
   roles: [protein, bulk]
   flavour: [umami, mild]
@@ -59,11 +59,11 @@ quorn_sausages:
   cuisine_context: [british]
   nutrition: [high_protein]
   notes: >-
-    Bangers and mash, toad in the hole, sausage casserole. Contains egg
-    (vegetarian, not vegan).
+    Quorn, or any vegan banger. Bangers and mash, toad in the hole, sausage
+    casserole. Quorn's standard ones have egg (vegetarian, not vegan).
 
-quorn_meatballs:
-  name: Quorn Swedish-Style Balls (frozen)
+veggie_meatballs:
+  name: Veggie Meatballs (frozen)
   classes: [meat_alternative]
   roles: [protein, bulk]
   flavour: [umami, mild]
@@ -74,5 +74,5 @@ quorn_meatballs:
   unit_weight: 15  # drafted: about 20 in a pack
   nutrition: [high_protein]
   notes: >-
-    Meatballs in tomato sauce, or Swedish style with gravy and mash. Contains egg
-    (vegetarian, not vegan).
+    Quorn Swedish-style balls or any vegan meatballs. In tomato sauce, or Swedish
+    style with gravy and mash. Quorn's standard ones have egg (vegetarian, not vegan).

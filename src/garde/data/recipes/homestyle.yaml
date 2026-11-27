@@ -123,3 +123,35 @@ chickpea_omelette:
   sources:
     - https://www.vegansandra.com/2014/06/chickpea-and-onion-omelette.html
     - https://www.vegansandra.com/2018/06/vegan-potatoes-and-eggs.html
+
+
+sausage_casserole:
+  name: Sausage and Bean Casserole
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Veggie sausages browned and cut into chunks, then simmered with onion,
+    carrot, a tin of beans and tomatoes, smoked paprika and thyme until thick.
+    Mash, jacket potatoes or crusty bread alongside.
+  colour_dominant: red
+  cuisine_context: [british]
+  required_ingredients: [veggie_sausages]
+  preferred_ingredients: [veggie_sausages, onion, garlic, carrot, celery, butter_beans, cannellini_beans, canned_tomato, smoked_paprika, thyme, potato]
+  slots: [protein_bulk, aromatic_base, spice_bloom, soup_veg, stew_protein_legume, tomato_sauce_body, tomato_enhancement, dried_herbs, mash_base, finish_herb]
+  slot_overrides:
+    protein_bulk: {label: Sausages, required_method: [fry, roast], max_ingredients: 1, preferred_classes: [meat_alternative], amount: {per_serving: 90}, time: {active: 5, passive: 10}}
+    spice_bloom: {optional: true, max_ingredients: 1}
+    soup_veg: {label: Veg, required_method: [boil, fry], preferred_classes: [root_veg, allium, fruit_veg], max_ingredients: 1, amount: {per_serving: 100}}
+    stew_protein_legume: {label: Beans, optional: true, preferred_classes: [pulse], excluded_classes: [meat_alternative, soy_product], amount: {per_serving: 100}}
+    tomato_sauce_body: {amount: {per_serving: 150}, time: {active: 3, passive: 30}}
+    tomato_enhancement: {optional: true}
+    mash_base: {label: Mash on the side, optional: true, preferred_classes: [root_veg], amount: {per_serving: 200}}
+  edges:
+    - {from: aromatic_base,       to: spice_bloom,       type: combine}
+    - {from: spice_bloom,         to: soup_veg,          type: combine}
+    - {from: soup_veg,            to: tomato_sauce_body, type: combine}
+    - {from: tomato_enhancement,  to: tomato_sauce_body, type: fold_in}
+    - {from: protein_bulk,        to: tomato_sauce_body, type: combine}
+    - {from: stew_protein_legume, to: tomato_sauce_body, type: combine}
+    - {from: dried_herbs,         to: tomato_sauce_body, type: combine}
+    - {from: finish_herb,         to: tomato_sauce_body, type: finish}
+    - {from: tomato_sauce_body,   to: mash_base,         type: top}
