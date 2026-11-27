@@ -112,7 +112,7 @@ backlog of vegansandra.com (Blogger, sitemap at `/sitemap.xml`, 259 posts).
 ## The user
 
 - Happy to hand over big chunks of work ("plough through").
-- Wants work on a branch (currently `resolver-fixes`, not merged or pushed), with
+- Wants work on a branch (`resolver-fixes` went to master via PR #1, 2026-11-27; start a new branch for new work), with
   tested commits and a short plain-English summary at the end.
 - Finds the ingredient granularity and tagging work tedious, so do it for them, but
   flag any judgement calls.
