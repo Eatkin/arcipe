@@ -1,0 +1,339 @@
+courgette:
+  name: Courgette
+  opened_days: 3  # once cut (drafted)
+  classes: [fruit_veg]
+  roles: [bulk, bulk_blendable, sauce_base]
+  flavour: [mild, fresh]
+  colour: green
+  season: [summer]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 200
+  nutrition: [high_fibre]
+  notes: Grated into one-pot pasta it melts into the sauce.
+
+aubergine:
+  name: Aubergine
+  opened_days: 2  # once cut (drafted)
+  classes: [nightshade, fruit_veg]
+  roles: [bulk, umami_boost]
+  flavour: [mild, rich, smoky]
+  colour: purple
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 300
+  nutrition: [high_fibre]
+
+bell_pepper:
+  name: Bell Pepper
+  opened_days: 3  # once cut (drafted)
+  classes: [nightshade, fruit_veg]
+  roles: [bulk, raw_crunch]
+  flavour: [sweet, fresh]
+  colour: red
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 10
+  unit_weight: 160
+
+sweetcorn:
+  name: Sweetcorn (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [fruit_veg]
+  roles: [bulk, sweetener, texture_top]
+  flavour: [sweet]
+  colour: yellow
+  season: [all]
+  price: cheap
+  unit_weight: 200
+  notes: Drained weight.
+
+corn_on_the_cob:
+  name: Corn on the Cob
+  classes: [fruit_veg]
+  roles: [bulk, sweetener, texture_top]
+  flavour: [sweet, fresh]
+  colour: yellow
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 4  # drafted
+  unit_weight: 250
+  stock_ratio: 2.0  # a cob is about half kernels by weight (drafted)
+  notes: Grill or boil whole, or slice the kernels off. Sweetest the day it's bought.
+
+squash:
+  name: Squash / Pumpkin
+  opened_days: 4  # once cut (drafted)
+  storage: counter
+  classes: [squash]
+  roles: [bulk, bulk_blendable, sauce_base, sweetener]
+  flavour: [sweet, earthy, nutty]
+  colour: orange
+  season: [autumn, winter]
+  price: moderate
+  shelf_life_days: 30
+  unit_weight: 1000
+  nutrition: [high_fibre]
+
+cucumber:
+  name: Cucumber
+  opened_days: 3  # once cut (drafted)
+  classes: [fruit_veg]
+  roles: [raw_crunch, garnish]
+  flavour: [fresh, mild]
+  colour: green
+  season: [summer]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 300
+
+avocado:
+  name: Avocado
+  opened_days: 1  # once cut (drafted)
+  storage: counter
+  classes: [fruit_veg]
+  roles: [fat_emulsifier, garnish, sauce_base]
+  flavour: [rich, mild]
+  colour: green
+  season: [all]
+  price: pricey
+  shelf_life_days: 4
+  unit_weight: 150
+  cuisine_context: [mexican, american]
+  nutrition: [high_fat]
+
+fresh_chilli:
+  name: Fresh Chilli
+  classes: [nightshade]
+  roles: [heat, aromatic, garnish]
+  flavour: [spicy, fresh]
+  colour: red
+  season: [all]
+  price: moderate
+  shelf_life_days: 10
+  unit_weight: 15
+  max_per_serving: 8
+
+celery:
+  name: Celery
+  classes: [fruit_veg]
+  roles: [aromatic, raw_crunch, bulk]
+  flavour: [fresh, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 400
+  shelf_life_days: 14
+  unit_weight: 40
+  max_per_serving: 40
+  notes: unit = one stick. Onion + carrot + celery is the soup/stew trinity.
+
+leek:
+  name: Leek
+  opened_days: 4  # once cut (drafted)
+  classes: [allium]
+  roles: [aromatic, bulk, sauce_base]
+  flavour: [sweet, mild]
+  colour: green
+  season: [autumn, winter, spring]
+  price: moderate
+  shelf_life_days: 10
+  unit_weight: 250
+
+green_beans:
+  name: Green Beans
+  classes: [legume]
+  roles: [bulk, garnish]
+  flavour: [fresh, grassy]
+  colour: green
+  season: [summer]
+  price: moderate
+  pack_weight: 400
+  shelf_life_days: 5
+  nutrition: [high_fibre]
+
+broccoli:
+  name: Broccoli
+  opened_days: 3  # once cut (drafted)
+  classes: [brassica]
+  roles: [bulk, bulk_blendable, sauce_base]
+  flavour: [earthy, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 6
+  unit_weight: 350
+  nutrition: [high_fibre, high_calcium]
+
+cabbage:
+  name: Cabbage
+  opened_days: 7  # once cut (drafted)
+  classes: [brassica, leafy_green]
+  roles: [bulk, raw_crunch]
+  flavour: [mild, sweet, earthy]
+  colour: green
+  season: [all]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 900
+  nutrition: [high_fibre]
+  notes: Keeps for weeks. A whole one is a lot of meals — the solver's favourite problem.
+
+brussels_sprouts:
+  name: Brussels Sprouts
+  classes: [brassica]
+  roles: [bulk]
+  flavour: [bitter, nutty, earthy]
+  colour: green
+  season: [winter]
+  price: moderate
+  shelf_life_days: 7
+  nutrition: [high_fibre]
+
+asparagus:
+  name: Asparagus
+  classes: [fruit_veg]
+  roles: [bulk, garnish]
+  flavour: [grassy, fresh]
+  colour: green
+  season: [spring]
+  price: pricey
+  shelf_life_days: 3
+  unit_weight: 250
+
+lettuce:
+  name: Lettuce / Salad Leaves
+  classes: [leafy_green]
+  roles: [raw_crunch, garnish]
+  flavour: [fresh, mild]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 5
+  unit_weight: 250
+
+radish:
+  name: Radish
+  classes: [root_veg]
+  roles: [raw_crunch, garnish]
+  flavour: [sharp, fresh, spicy]
+  colour: red
+  season: [spring, summer]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 200
+  notes: unit = a bunch.
+
+beetroot:
+  name: Beetroot
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener, sauce_base]
+  flavour: [sweet, earthy]
+  colour: purple
+  season: [autumn, winter]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 150
+  cuisine_context: [eastern_european]
+
+olives:
+  name: Olives
+  classes: [fermented]
+  roles: [umami_boost, garnish]
+  flavour: [sharp, umami, rich]
+  colour: black
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  max_per_serving: 30
+  cuisine_context: [mediterranean, italian]
+
+pickles:
+  name: Pickled Cucumbers
+  classes: [fermented]
+  roles: [acid_bright, raw_crunch, garnish]
+  flavour: [sharp]
+  colour: green
+  season: [all]
+  price: moderate
+  max_per_serving: 40
+  cuisine_context: [eastern_european]
+
+sauerkraut:
+  name: Sauerkraut
+  storage: fridge
+  classes: [fermented, brassica]
+  roles: [acid_bright, bulk, raw_crunch]
+  flavour: [sharp]
+  colour: white
+  season: [all]
+  price: moderate
+  max_per_serving: 80
+  cuisine_context: [eastern_european]
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+green_olives:
+  name: Green Olives
+  opened_days: 14  # in the fridge once opened (drafted)
+  classes: [fermented]
+  roles: [umami_boost, acid_bright, garnish]
+  flavour: [sharp, umami]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  max_per_serving: 30
+  cuisine_context: [mediterranean, levantine, italian]
+
+water_chestnuts:
+  name: Water Chestnuts (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [root_veg]
+  roles: [raw_crunch, texture_top]
+  flavour: [sweet, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  unit_weight: 140  # drained
+  max_per_serving: 60
+  cuisine_context: [chinese, thai]
+  notes: Stay crunchy however long they cook.
+
+pickled_leeks:
+  name: Pickled Leeks
+  classes: [fermented, allium]
+  roles: [acid_bright, raw_crunch, garnish]
+  flavour: [sharp, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  max_per_serving: 30
+  cuisine_context: [chinese]
+
+pickled_red_cabbage:
+  name: Pickled Red Cabbage
+  classes: [fermented, brassica]
+  roles: [acid_bright, raw_crunch, garnish]
+  flavour: [sharp, sweet]
+  colour: purple
+  season: [all]
+  price: cheap
+  pack_weight: 450
+  max_per_serving: 50
+  cuisine_context: [british, eastern_european]
+
+okra:
+  name: Okra
+  opened_days: 2  # once cut (drafted)
+  classes: [fruit_veg]
+  roles: [bulk, thickener]
+  flavour: [grassy, mild]
+  colour: green
+  season: [summer, autumn]
+  price: moderate
+  shelf_life_days: 4  # drafted
+  pack_weight: 200
+  cuisine_context: [american, indian, caribbean]
+  notes: Thickens a gumbo as it cooks. Frozen is fine; add it for the last 10 minutes.

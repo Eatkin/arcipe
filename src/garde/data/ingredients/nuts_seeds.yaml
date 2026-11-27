@@ -1,0 +1,120 @@
+cashews:
+  name: Cashews
+  classes: [nut]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [rich, sweet, nutty]
+  colour: white
+  season: [all]
+  price: pricey
+  pack_weight: 200
+  unlimited: true
+  nutrition: [high_fat]
+  notes: Soaked and blended = exceptional creamy base.
+
+sunflower_seeds:
+  name: Sunflower Seeds
+  classes: [seed]
+  roles: [fat_emulsifier, texture_top, garnish]
+  flavour: [mild, nutty]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  unlimited: true
+  nutrition: [high_fat, omega3]
+  notes: Soaked and blended = sunflower cream, excellent cheaper cashew alternative.
+
+pumpkin_seeds:
+  name: Pumpkin Seeds
+  classes: [seed]
+  roles: [texture_top, garnish]
+  flavour: [nutty]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  nutrition: [high_protein, omega3]
+
+pine_nuts:
+  name: Pine Nuts
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [rich, nutty]
+  colour: white
+  season: [all]
+  price: fancy
+  pack_weight: 100
+  max_per_serving: 15
+  cuisine_context: [italian, levantine]
+
+
+sesame_seeds:
+  name: Sesame Seeds
+  classes: [seed]
+  roles: [texture_top, garnish]
+  flavour: [nutty]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 100
+  unlimited: true
+  cuisine_context: [japanese, chinese, korean]
+
+walnuts:
+  name: Walnuts
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [rich, bitter, nutty]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 150
+  nutrition: [omega3, high_fat]
+
+almonds:
+  name: Almonds
+  classes: [nut]
+  roles: [texture_top, fat_emulsifier]
+  flavour: [nutty, sweet]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 200
+  nutrition: [high_protein, high_calcium]
+
+flaxseed:
+  name: Ground Flaxseed
+  classes: [seed]
+  roles: [binder]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  price: moderate
+  unlimited: true
+  max_per_serving: 15
+  nutrition: [omega3]
+  notes: 1 tbsp + 3 tbsp water = a flax egg.
+
+peanuts:
+  name: Peanuts
+  classes: [nut, legume]
+  roles: [texture_top, protein]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  price: moderate
+  nutrition: [high_protein]
+  cuisine_context: [thai, chinese]
+
+chestnuts:
+  name: Cooked Chestnuts
+  classes: [nut]
+  roles: [bulk, texture_top, sweetener]
+  flavour: [sweet, nutty, earthy]
+  colour: brown
+  season: [autumn, winter]
+  price: pricey
+  unit_weight: 180  # a vacuum pack
+  opened_days: 3  # drafted
+  cuisine_context: [british, french]
+  notes: Vacuum-packed, ready to eat; keeps for months unopened.

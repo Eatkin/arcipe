@@ -1,0 +1,565 @@
+import json
+import threading
+import urllib.error
+import urllib.request
+from http.server import ThreadingHTTPServer
+
+import pytest
+
+from garde.dashboard import BadRequestError
+from garde.dashboard import make_handler
+from garde.dashboard import meta
+from garde.dashboard import plan_request
+from garde.dashboard import rate_request
+from garde.dashboard import solve_args
+from garde.dashboard import static_file
+from garde.loader import RECIPES
+from garde.vibes import Feedback
+
+
+@pytest.fixture(autouse=True)
+def tmp_home(tmp_path, monkeypatch):
+    monkeypatch.setenv("GARDE_HOME", str(tmp_path))
+
+
+def test_meta_lists_everything():
+    m = meta()
+    assert {r["id"] for r in m["recipes"]} == set(RECIPES)
+    assert set(m["weights"]) == set(m["weight_scale"])
+    for k, scale in m["weight_scale"].items():
+        assert scale["low"] and scale["high"] and scale["label"]
+        assert 0 <= m["weights"][k] <= scale["max"]
+    assert all(i["storage"] for i in m["ingredients"])
+
+
+def test_plan_request_round_trip():
+    out = plan_request(
+        {
+            "inventory": {"spinach": {"amount": 1, "expires": 2}, "potato": 3},
+            "days": 2,
+            "effort": 1,
+            "seed": 1,
+        },
+        Feedback(recipes=RECIPES),
+    )
+    assert len(out["plan"]["days"]) == 2
+    assert out["breakdown"]["objective"] <= out["greedy"]["objective"] + 1e-9
+    json.dumps(out)  # serialisable
+
+
+@pytest.mark.parametrize(
+    "body, message",
+    [
+        ({"meals": ["brunch"]}, "meals"),
+        ({"days": 99}, "days"),
+        ({"inventory": {"dragonfruit": 1}}, "dragonfruit"),
+        ({"inventory": {"red_lentils": 2}}, "unit_weight"),
+        ({"weights": {}, "people": "lots"}, "people"),
+    ],
+)
+def test_plan_request_rejects_bad_input(body, message):
+    with pytest.raises(BadRequestError, match=message):
+        plan_request({"effort": 1, **body}, Feedback(recipes=RECIPES))
+
+
+def test_rating_is_saved(tmp_path):
+    f = Feedback(recipes=RECIPES)
+    out = rate_request(
+        {"recipe_id": "rajma", "ingredients": ["tomato"], "rating": 1}, f
+    )
+    assert out["recipe_score"] > 0
+    assert Feedback.load(recipes=RECIPES).recipe_score("rajma") > 0
+    with pytest.raises(BadRequestError):
+        rate_request({"recipe_id": "rajma", "rating": 3}, f)
+    with pytest.raises(BadRequestError):
+        rate_request({"recipe_id": "nope", "rating": 1}, f)
+
+
+def test_server_serves_page_and_api():
+    server = ThreadingHTTPServer(
+        ("127.0.0.1", 0), make_handler(Feedback(recipes=RECIPES))
+    )
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{server.server_address[1]}"
+    try:
+        page = urllib.request.urlopen(base + "/").read().decode()
+        assert "<title>Garde Manger" in page
+        req = urllib.request.Request(
+            base + "/api/plan",
+            data=json.dumps({"days": 1, "effort": 1}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        assert "plan" in json.loads(urllib.request.urlopen(req).read())
+        bad = urllib.request.Request(base + "/api/plan", data=b"[1]")
+        with pytest.raises(urllib.error.HTTPError) as e:
+            urllib.request.urlopen(bad)
+        assert e.value.code == 400
+    finally:
+        server.shutdown()
+
+
+def test_plan_request_with_shopping_lists_things_to_buy():
+    out = plan_request(
+        {
+            "inventory": {"carrot": 2},
+            "days": 3,
+            "effort": 1,
+            "seed": 0,
+            "shopping": True,
+        },
+        Feedback(recipes=RECIPES),
+    )
+    shop = out["plan"]["shopping"]
+    for row in shop:
+        assert {"name", "packs", "grams", "price_word"} <= set(row)
+    bought = {row["id"] for row in out["plan"]["stock"] if row["bought"]}
+    assert bought == {row["id"] for row in shop}
+    assert out["breakdown"]["price_points"] == sum(
+        r["price"] * r["packs"] for r in shop
+    )
+
+
+@pytest.fixture
+def server():
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(Feedback(recipes=RECIPES)))
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}"
+    srv.shutdown()
+
+
+def _req(url, body=None, method="POST"):
+    return urllib.request.Request(
+        url,
+        data=None if body is None else json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+        method=method,
+    )
+
+
+def _events(raw: str) -> list[tuple[str, dict]]:
+    out = []
+    for block in raw.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        out.append((lines["event"], json.loads(lines["data"])))
+    return out
+
+
+def test_stream_sends_progress_then_the_plan(server):
+    body = {"days": 2, "effort": 1, "inventory": {"potato": 3}}
+    raw = urllib.request.urlopen(_req(server + "/api/plan/stream", body)).read()
+    events = _events(raw.decode())
+    kinds = [k for k, _ in events]
+    assert kinds[-1] == "result"
+    assert "progress" in kinds
+    last_progress = [d for k, d in events if k == "progress"][-1]
+    assert last_progress["done"] == last_progress["total"]
+    assert {"wasted_g", "unplanned", "hours"} <= set(last_progress["best"])
+    assert len(events[-1][1]["plan"]["days"]) == 2
+
+
+def test_stream_rejects_bad_input_before_streaming(server):
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(server + "/api/plan/stream", {"days": 99}))
+    assert e.value.code == 400
+
+
+def test_pantry_round_trip_and_plans_from_it(server):
+    items = [{"id": "spinach", "amount": "1", "use_by": "2026-12-02"}]
+    put = urllib.request.urlopen(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    assert json.loads(put.read())["items"] == items
+    got = json.loads(urllib.request.urlopen(server + "/api/pantry").read())
+    assert got["items"] == items
+    args, _ = solve_args({"start_date": "2026-12-01"}, Feedback(recipes=RECIPES))
+    assert args["inventory"] == {"spinach": [{"amount": 1.0, "expires": 2}]}
+
+
+def test_pantry_keeps_good_rows_and_lists_bad_ones(server):
+    body = {
+        "items": [
+            {"id": "unicorn", "amount": "1"},
+            {"id": "carrot", "amount": "3"},
+            {"id": "red_lentils", "amount": "1 tun"},
+        ]
+    }
+    got = _json(_req(server + "/api/pantry", body, "PUT"))
+    assert [i["id"] for i in got["items"]] == ["carrot"]
+    assert [(p["index"], p["id"]) for p in got["problems"]] == [
+        (0, "unicorn"),
+        (2, "red_lentils"),
+    ]
+    assert "1 tun" in got["problems"][1]["error"]
+    assert [i["id"] for i in _json(server + "/api/pantry")["items"]] == ["carrot"]
+
+
+def test_pantry_save_from_a_stale_tab_is_refused(server):
+    first = _json(_req(server + "/api/pantry", {"items": []}, "PUT"))
+    version = first["version"]
+    here = [{"id": "carrot", "amount": "3"}]
+    second = _json(
+        _req(server + "/api/pantry", {"items": here, "version": version}, "PUT")
+    )
+    assert second["version"] != version
+    stale = {"items": [], "version": version}
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(server + "/api/pantry", stale, "PUT"))
+    assert e.value.code == 409
+    reply = json.loads(e.value.read())
+    assert reply["pantry"]["items"][0]["id"] == "carrot"
+    assert _json(server + "/api/pantry")["items"][0]["id"] == "carrot"
+
+
+def test_bin_then_undo(server):
+    items = [{"id": "carrot", "amount": "3"}, {"id": "potato", "amount": "2"}]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    binned = _json(_req(server + "/api/pantry/bin", {"items": items[:1]}))
+    assert [i["id"] for i in binned["pantry"]["items"]] == ["potato"]
+    assert binned["waste"]["recent"][0]["id"] == "carrot"
+    back = _json(_req(server + "/api/pantry/unbin", {"items": items[:1]}))
+    assert {i["id"] for i in back["pantry"]["items"]} == {"carrot", "potato"}
+    assert back["waste"]["recent"] == []
+
+
+def test_plan_with_a_start_and_no_search_keeps_the_week():
+    body = {"days": 3, "effort": 1, "inventory": {"potato": 10, "red_lentils": "1kg"}}
+    first = plan_request(body, Feedback(recipes=RECIPES))
+    choice = [m["pick"] for d in first["plan"]["days"] for m in d["meals"]]
+    second = plan_request(
+        {**body, "start": choice, "search": False, "seed": 7},
+        Feedback(recipes=RECIPES),
+    )
+    assert [m["pick"] for d in second["plan"]["days"] for m in d["meals"]] == choice
+    pinned = {**body, "start": choice, "search": False}
+    pinned["pins"] = [{"day": 2, "meal": "dinner", "pick": "~skip"}]
+    third = plan_request(pinned, Feedback(recipes=RECIPES))
+    picks = [m["pick"] for d in third["plan"]["days"] for m in d["meals"]]
+    assert third["plan"]["days"][1]["meals"][0]["skipped"]
+    assert picks[0] == choice[0] and picks[2] == choice[2]
+
+
+def test_weeknight_and_weekend_limits():
+    # 2026-12-04 is a Friday
+    args, _ = solve_args(
+        {
+            "start_date": "2026-12-04",
+            "days": 4,
+            "weeknight_minutes": 30,
+            "weekend_minutes": 0,
+            "inventory": {},
+        },
+        Feedback(recipes=RECIPES),
+    )
+    assert args["max_minutes"] == [30, None, None, 30]
+
+
+def test_plan_days_have_dates_and_meals_have_methods():
+    out = plan_request(
+        {
+            "inventory": {"potato": 4, "carrot": 4},
+            "days": 2,
+            "effort": 1,
+            "start_date": "2026-12-01",
+        },
+        Feedback(recipes=RECIPES),
+    )
+    assert [d["date"] for d in out["plan"]["days"]] == ["2026-12-01", "2026-12-02"]
+    cooked = [m for d in out["plan"]["days"] for m in d["meals"] if m["recipe_id"]]
+    assert cooked
+    for m in cooked:
+        if m["leftovers_from"] is None:
+            assert m["steps"][-1] == "Serve."
+            assert "description" in m
+            for src in m["sources"]:
+                assert src["url"].startswith("http") and src["title"]
+
+
+def test_static_files_stay_in_static():
+    assert static_file("/").name == "dashboard.html"
+    assert static_file("/static/dashboard.js").name == "dashboard.js"
+    assert static_file("/static/dashboard.css").name == "dashboard.css"
+    assert static_file("/static/../dashboard.py") is None
+    assert static_file("/static/..%2Fdashboard.py") is None
+    assert static_file("/static/nope.js") is None
+
+
+def _json(req):
+    return json.loads(urllib.request.urlopen(req).read())
+
+
+def test_saved_plan_tick_off_and_back(server):
+    items = [
+        {"id": "red_lentils", "amount": "500g", "use_by": None},
+        {"id": "potato", "amount": "6", "use_by": None},
+        {"id": "carrot", "amount": "6", "use_by": "2026-12-05"},
+    ]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    settings = {"days": 2, "effort": 1, "start_date": "2026-12-01", "people": 2}
+    result = _json(_req(server + "/api/plan", settings))
+    for day in result["plan"]["days"]:
+        for m in day["meals"]:
+            if m["recipe_id"] and m["leftovers_from"] is None:
+                assert m["consumed"]
+    saved = _json(_req(server + "/api/plans", {"result": result, "settings": settings}))
+    listed = _json(server + "/api/plans")["plans"]
+    assert [p["id"] for p in listed] == [saved["id"]]
+    assert _json(f"{server}/api/plans/{saved['id']}") == saved
+
+    meal = next(m for m in result["plan"]["days"][0]["meals"] if m["recipe_id"])
+    url = f"{server}/api/plans/{saved['id']}/cook"
+    body = {"day": 1, "meal": meal["meal"], "date": "2026-12-01"}
+    ticked = _json(_req(url, body))
+    assert ticked["plan"]["plan"]["days"][0]["meals"][0]["cooked"]
+    assert ticked["pantry"] == _json(server + "/api/pantry")
+    assert ticked["pantry"]["items"] != items
+
+    back = _json(_req(url, {**body, "cooked": False}))
+    assert back["pantry"]["dishes"] == []
+    grams = {i["id"]: i["amount"] for i in back["pantry"]["items"]}
+    assert grams == {i["id"]: i["amount"] for i in items}
+
+    _json(_req(f"{server}/api/plans/{saved['id']}", method="DELETE"))
+    assert _json(server + "/api/plans")["plans"] == []
+
+
+def test_pantry_put_without_dishes_keeps_them(server):
+    dishes = [{"recipe_id": "lentil_soup", "portions": 2, "use_by": "2026-12-03"}]
+    _json(_req(server + "/api/pantry", {"items": [], "dishes": dishes}, "PUT"))
+    got = _json(_req(server + "/api/pantry", {"items": []}, "PUT"))
+    assert got["dishes"][0]["recipe_id"] == "lentil_soup"
+    args, _ = solve_args({"start_date": "2026-12-01"}, Feedback(recipes=RECIPES))
+    assert args["leftovers"][0].recipe_id == "lentil_soup"
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "body", "code"),
+    [
+        ("GET", "/api/plans/../pantry", None, 404),
+        ("GET", "/api/plans/20261125-183012-ab12", None, 404),
+        ("POST", "/api/plans", {"result": {}}, 400),
+        (
+            "POST",
+            "/api/plans/20261125-183012-ab12/cook",
+            {"day": 1, "meal": "brunch"},
+            400,
+        ),
+        ("PUT", "/api/plans", {}, 404),
+    ],
+)
+def test_plan_endpoints_reject_bad_requests(server, method, path, body, code):
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(server + path, body, method))
+    assert e.value.code == code
+
+
+def test_shop_endpoint(server):
+    _json(_req(server + "/api/pantry", {"items": [], "dishes": []}, "PUT"))
+    body = {
+        "days": 2,
+        "effort": 1,
+        "start_date": "2026-12-01",
+        "shopping": True,
+        "inventory": {},
+    }
+    result = _json(_req(server + "/api/plan", body))
+    shopping = result["plan"]["shopping"]
+    assert shopping  # nothing in, so it has to buy
+    saved = _json(_req(server + "/api/plans", {"result": result, "settings": body}))
+    url = f"{server}/api/plans/{saved['id']}/shop"
+    first = shopping[0]["id"]
+    got = _json(_req(url, {"id": first, "date": "2026-12-01"}))
+    assert [i["id"] for i in got["pantry"]["items"]] == [first]
+    assert got["plan"]["plan"]["shopping"][0]["bought"]["on"] == "2026-12-01"
+    extra = {"id": "spinach", "amount": "1"}
+    got = _json(_req(url, {"extra": extra, "date": "2026-12-01"}))
+    assert {i["id"] for i in got["pantry"]["items"]} == {first, "spinach"}
+    got = _json(_req(url, {"extra_index": 0}))
+    got = _json(_req(url, {"id": first, "bought": False}))
+    assert got["pantry"]["items"] == []
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(_req(url, {"extra": {"id": "unicorn", "amount": "1"}}))
+    assert e.value.code == 400
+
+
+def test_empty_meals_say_why():
+    out = plan_request(
+        {"inventory": {}, "days": 1, "effort": 1, "max_minutes": 5},
+        Feedback(recipes=RECIPES),
+    )
+    (meal,) = out["plan"]["days"][0]["meals"]
+    assert meal["recipe_id"] is None
+    assert meal["why"]
+    assert meta()["quickest_minutes"]["dinner"] > 5
+
+
+def _saved_week(server, days=4):
+    items = [
+        {"id": "red_lentils", "amount": "1000g", "use_by": None},
+        {"id": "potato", "amount": "10", "use_by": None},
+        {"id": "carrot", "amount": "10", "use_by": "2026-12-08"},
+        {"id": "cannellini_beans", "amount": "4", "use_by": None},
+        {"id": "spinach", "amount": "2", "use_by": "2026-12-03"},
+    ]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    settings = {"days": days, "effort": 1, "start_date": "2026-12-01", "people": 2}
+    result = _json(_req(server + "/api/plan", settings))
+    return _json(_req(server + "/api/plans", {"result": result, "settings": settings}))
+
+
+def _meals(record):
+    return {
+        (d["day"], m["meal"]): m for d in record["plan"]["days"] for m in d["meals"]
+    }
+
+
+def test_results_say_which_pick_each_meal_is():
+    out = plan_request(
+        {"inventory": {"potato": 6, "red_lentils": "500g"}, "days": 2, "effort": 1},
+        Feedback(recipes=RECIPES),
+    )
+    for day in out["plan"]["days"]:
+        for m in day["meals"]:
+            if m["recipe_id"]:
+                assert m["pick"].split("*")[0] in (m["recipe_id"], "~leftovers")
+
+
+def test_pins_in_the_request():
+    body = {
+        "inventory": {"potato": 6, "red_lentils": "500g"},
+        "days": 2,
+        "effort": 1,
+        "pins": [{"day": 2, "meal": "dinner", "pick": "~skip"}],
+    }
+    out = plan_request(body, Feedback(recipes=RECIPES))
+    meal = out["plan"]["days"][1]["meals"][0]
+    assert meal["skipped"] and meal["recipe_id"] is None
+    with pytest.raises(BadRequestError):
+        plan_request(
+            {**body, "pins": [{"day": 1, "meal": "dinner", "pick": "nope"}]},
+            Feedback(recipes=RECIPES),
+        )
+
+
+def test_replan_keeps_ticked_and_locked_meals(server):
+    saved = _saved_week(server)
+    url = f"{server}/api/plans/{saved['id']}"
+    before = _meals(saved)
+    _json(_req(url + "/cook", {"day": 1, "meal": "dinner", "date": "2026-12-01"}))
+    locked = before[(4, "dinner")]
+    assert locked["recipe_id"]
+    _json(_req(url + "/meal", {"day": 4, "meal": "dinner", "locked": True}))
+    got = _json(_req(url + "/replan", {"date": "2026-12-02", "effort": 1}))
+    after = _meals(got["plan"])
+    assert after[(1, "dinner")]["cooked"]
+    assert after[(1, "dinner")]["recipe_id"] == before[(1, "dinner")]["recipe_id"]
+    assert after[(4, "dinner")]["recipe_id"] == locked["recipe_id"]
+    assert after[(4, "dinner")]["locked"]
+    assert got["plan"]["replans"] == [{"on": "2026-12-02", "from_day": 2}]
+    assert [d["date"] for d in got["plan"]["plan"]["days"]] == [
+        d["date"] for d in saved["plan"]["days"]
+    ]
+
+
+def test_skip_a_meal_then_bring_it_back(server):
+    saved = _saved_week(server, days=3)
+    url = f"{server}/api/plans/{saved['id']}/replan"
+    body = {"date": "2026-12-01", "set": {"day": 2, "meal": "dinner", "pick": "~skip"}}
+    got = _json(_req(url, {**body, "search": False}))
+    m = _meals(got["plan"])[(2, "dinner")]
+    assert m["skipped"] and not m["recipe_id"]
+    got = _json(
+        _req(url, {"date": "2026-12-01", "unskip": {"day": 2, "meal": "dinner"}})
+    )
+    assert not _meals(got["plan"])[(2, "dinner")]["skipped"]
+
+
+def test_swap_a_meal_for_an_option(server):
+    saved = _saved_week(server, days=3)
+    url = f"{server}/api/plans/{saved['id']}"
+    options = _json(
+        _req(url + "/options", {"day": 2, "meal": "dinner", "date": "2026-12-01"})
+    )["options"]
+    assert options
+    pick = options[0]["pick"]
+    body = {"date": "2026-12-01", "search": False}
+    got = _json(
+        _req(
+            url + "/replan", {**body, "set": {"day": 2, "meal": "dinner", "pick": pick}}
+        )
+    )
+    m = _meals(got["plan"])[(2, "dinner")]
+    assert m["pick"] == pick and m["locked"]
+    # The days before and after keep their dishes when not searching
+    for key in ((1, "dinner"), (3, "dinner")):
+        assert _meals(got["plan"])[key]["recipe_id"] == _meals(saved)[key]["recipe_id"]
+
+
+def test_replan_after_the_end_is_refused(server):
+    saved = _saved_week(server, days=2)
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(
+            _req(f"{server}/api/plans/{saved['id']}/replan", {"date": "2026-12-09"})
+        )
+    assert e.value.code == 400
+
+
+def test_rating_and_rename_stay_on_the_saved_plan(server):
+    saved = _saved_week(server, days=2)
+    m = _meals(saved)[(1, "dinner")]
+    _json(
+        _req(
+            server + "/api/rate",
+            {
+                "recipe_id": m["recipe_id"],
+                "rating": 1,
+                "plan_id": saved["id"],
+                "day": 1,
+                "meal": "dinner",
+            },
+        )
+    )
+    got = _json(_req(f"{server}/api/plans/{saved['id']}/rename", {"name": "Advent"}))
+    assert got["plan"]["name"] == "Advent"
+    assert _meals(got["plan"])[(1, "dinner")]["rating"] == 1
+
+
+def test_changing_a_rating_replaces_it(server):
+    saved = _saved_week(server, days=2)
+    m = _meals(saved)[(1, "dinner")]
+    feedback = Feedback(recipes=RECIPES)
+    body = {"recipe_id": m["recipe_id"], "plan_id": saved["id"], "day": 1}
+    body["meal"] = "dinner"
+    rate_request({**body, "rating": 1}, feedback)
+    rate_request({**body, "rating": -1}, feedback)
+    assert [r.rating for r in feedback.ratings] == [-1]
+    rate_request({**body, "rating": 0}, feedback)
+    assert feedback.ratings == []
+    got = _json(f"{server}/api/plans/{saved['id']}")
+    assert _meals(got)[(1, "dinner")]["rating"] is None
+    with pytest.raises(BadRequestError):
+        rate_request({"recipe_id": m["recipe_id"], "rating": 0}, feedback)
+
+
+def test_mark_a_meal_as_not_made(server):
+    saved = _saved_week(server, days=2)
+    url = f"{server}/api/plans/{saved['id']}/meal"
+    got = _json(_req(url, {"day": 1, "meal": "dinner", "skipped": True}))
+    assert _meals(got["plan"])[(1, "dinner")]["skipped"]
+
+
+def test_options_for_an_unsaved_plan():
+    body = {"inventory": {"potato": 6, "red_lentils": "500g"}, "days": 2, "effort": 1}
+    fb = Feedback(recipes=RECIPES)
+    out = plan_request(body, fb)
+    choice = [m["pick"] for d in out["plan"]["days"] for m in d["meals"]]
+    from garde.dashboard import options_request
+
+    got = options_request({**body, "choice": choice, "day": 1, "meal": "dinner"}, fb)
+    assert all({"pick", "name", "minutes", "delta"} <= set(o) for o in got["options"])
+
+
+def test_hands_on_limit_on_weeknights_only():
+    args, _ = solve_args(
+        {"start_date": "2026-12-04", "days": 3, "weeknight_active_minutes": 15},
+        Feedback(recipes=RECIPES),
+    )
+    assert args["max_active_minutes"] == [15, None, None]  # Fri, Sat, Sun
+    assert meta()["least_hands_on"]["dinner"] > 0

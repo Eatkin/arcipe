@@ -1,0 +1,18 @@
+# One-off recipe pages from any site: `fetch.py extra` fetches these.
+# Picked to give archetypes a free, vegan source (2026-11-25). Dropped: rainbowplantlife,
+# holycowvegan, forksoverknives, vegrecipesofindia (all 403 to plain fetches).
+
+# dal
+https://www.veganricha.com/masoor-dal-tadka-indian-red-lentil-dal/
+# biryani
+https://veganheaven.org/recipe/vegetable-biryani/
+# gumbo
+https://elavegan.com/vegan-gumbo-gluten-free/
+https://www.olivemagazine.com/recipes/vegetarian/vegan-gumbo
+# hot and sour soup
+https://omnivorescookbook.com/vegetarian-hot-and-sour-soup/
+# keema
+https://bosh.tv/recipes/mushroom-keema-rice-bowl
+# Caribbean veg stew
+https://www.easycheesyvegetarian.com/caribbean-style-sweet-potato-stew/
+https://thatgirlcookshealthy.com/ital-stew

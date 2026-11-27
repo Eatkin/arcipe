@@ -1,4 +1,7 @@
-from arcipe.models import COLOUR_RGB, COLOUR_MAX, colour_distance
+from garde.models import COLOUR_MAX
+from garde.models import COLOUR_RGB
+from garde.models import colour_distance
+
 
 for colour in COLOUR_RGB:
     dist = colour_distance(colour, "green") / COLOUR_MAX

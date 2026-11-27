@@ -1,0 +1,77 @@
+parsley:
+  name: Fresh Parsley
+  classes: [fresh_herb]
+  roles: [finish_herb, garnish]
+  flavour: [fresh, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 30
+  max_per_serving: 5
+  cuisine_context: [italian, mediterranean, eastern_european, levantine, british]
+
+basil:
+  name: Fresh Basil
+  classes: [fresh_herb]
+  roles: [finish_herb, garnish]
+  flavour: [fresh, floral, sweet]
+  colour: green
+  season: [summer]
+  price: moderate
+  shelf_life_days: 5
+  unit_weight: 30
+  max_per_serving: 5
+  cuisine_context: [italian, thai]
+
+dill:
+  name: Fresh Dill
+  classes: [fresh_herb]
+  roles: [finish_herb, garnish]
+  flavour: [fresh, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 6
+  unit_weight: 30
+  max_per_serving: 5
+  cuisine_context: [eastern_european]
+
+chives:
+  name: Chives
+  classes: [fresh_herb, allium]
+  roles: [finish_herb, garnish]
+  flavour: [fresh, sharp]
+  colour: green
+  season: [spring, summer]
+  price: moderate
+  shelf_life_days: 6
+  unit_weight: 20
+  max_per_serving: 5
+
+mint:
+  name: Fresh Mint
+  classes: [fresh_herb]
+  roles: [finish_herb, garnish]
+  flavour: [fresh, sweet]
+  colour: green
+  season: [summer]
+  price: moderate
+  shelf_life_days: 6
+  unit_weight: 30
+  max_per_serving: 5
+  cuisine_context: [levantine, indian, thai]
+
+lemongrass:
+  name: Lemongrass
+  classes: [fresh_herb]
+  roles: [aromatic]
+  flavour: [fresh, floral]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 14  # drafted
+  unit_weight: 20
+  max_per_serving: 8
+  cuisine_context: [thai]
+  notes: Freezes well whole. Optional in the Thai curry sauce.

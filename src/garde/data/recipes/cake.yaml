@@ -1,0 +1,75 @@
+# recipes.yaml
+vegan_banana_bread:
+  id: vegan_banana_bread
+  name: The Best Vegan Banana Bread
+  batch: true  # one loaf, whoever is eating
+  keeps_days: 5  # leftovers keep this long in the fridge
+  description: >
+    Moist classic banana bread utilizing overripe bananas for structure,
+    with an optional crunchy/sweet fold-in.
+  colour_dominant: brown
+  cuisine_context: [universal]
+  meal_type: [breakfast, snack, cake]
+  serves: 10
+  required_ingredients: [banana]
+  no_ingredient_reuse: true
+  
+  slots: [baking_grain_base, fruit_binder_sweetener, baking_fat, baking_leavener, baking_spice_flavor, baking_add_ins]
+  slot_overrides:
+    baking_fat: {required_classes: [fat]}
+    baking_add_ins: {label: Nuts / Dried Fruit, required_roles: [texture_top], required_classes: [nut, seed, fruit]}
+
+  edges:
+    - {from: fruit_binder_sweetener, to: baking_fat, type: combine}
+    - {from: baking_leavener, to: baking_grain_base, type: combine}
+    - {from: baking_spice_flavor, to: baking_grain_base, type: combine}
+    - {from: baking_grain_base, to: fruit_binder_sweetener, type: fold_in}
+    - {from: baking_add_ins, to: fruit_binder_sweetener, type: fold_in}
+    
+  notes: "Canonical fill: plain_flour + ripe_bananas + coconut_oil + baking_soda + cinnamon. Ref - https://www.ambitiouskitchen.com/vegan-banana-bread/"
+  sources:
+    - https://www.vegansandra.com/2016/04/my-favorite-vegan-banana-bread-video.html
+
+fruit_cake:
+  name: Fruit Cake / Muffins
+  batch: true  # one cake or tray of muffins, whoever is eating
+  keeps_days: 4  # leftovers keep this long
+  description: >
+    Flour, sugar, oil and plant milk with baking powder, folded round whatever
+    fruit wants using (apples, rhubarb, berries, grated carrot), a little spice,
+    nuts if there are any. Apple cake, rhubarb cake, muffins, carrot cake.
+  colour_dominant: beige
+  cuisine_context: [eastern_european, universal]
+  meal_type: [breakfast, snack, cake]
+  serves: 10
+  preferred_ingredients: [plain_flour, sugar, vegetable_oil, plant_milk, baking_powder, apple, rhubarb, frozen_fruit, orange, cinnamon_ground, walnuts, cocoa]
+  slots: [baking_grain_base, fruit_topping, sweet_note, baking_fat, breakfast_liquid, baking_leavener, baking_spice_flavor, baking_add_ins]
+  slot_overrides:
+    fruit_topping: {label: Fruit, required_roles: [bulk_blendable], required_method: [raw, bake], amount: {per_batch: 300}}
+    sweet_note: {optional: false, label: Sugar, amount: {per_batch: 120}}
+    baking_fat: {required_classes: [fat], amount: {per_batch: 80}, time: {active: 5, passive: 45}}
+    breakfast_liquid: {label: Plant Milk, amount: {per_batch: 200}}
+    baking_add_ins: {label: Nuts / Dried Fruit, required_roles: [texture_top], required_classes: [nut, seed, fruit]}
+  edges:
+    - {from: sweet_note,          to: baking_fat,        type: combine}
+    - {from: breakfast_liquid,    to: baking_fat,        type: combine}
+    - {from: baking_leavener,     to: baking_grain_base, type: combine}
+    - {from: baking_spice_flavor, to: baking_grain_base, type: combine}
+    - {from: baking_grain_base,   to: baking_fat,        type: fold_in}
+    - {from: fruit_topping,       to: baking_fat,        type: fold_in}
+    - {from: baking_add_ins,      to: baking_fat,        type: fold_in}
+  notes: Bake time (about 40 min at 180°C) sits on the baking_fat step, the last one.
+  sources:
+    - https://www.vegansandra.com/2015/09/simple-and-delicious-apple-cake.html
+    - https://www.vegansandra.com/2015/05/perfect-rhubarb-cake.html
+    - https://www.vegansandra.com/2013/05/easiest-rhubarb-cake-ever.html
+    - https://www.vegansandra.com/2015/07/easy-raspberry-muffins.html
+    - https://www.vegansandra.com/2015/04/apple-and-walnut-muffins.html
+    - https://www.vegansandra.com/2018/01/easy-vegan-carrot-cake.html
+    - https://www.vegansandra.com/2013/06/simple-crumb-cake-with-apple-jam_10.html
+    - https://www.vegansandra.com/2015/11/gingerbread-loaf-with-orange-and-prunes.html
+    - https://www.vegansandra.com/2013/06/chocolate-cake-with-hint-of-lemon.html
+    - https://www.vegansandra.com/2013/07/carrot-and-peanut-butter-brownies.html
+    - https://www.vegansandra.com/2016/03/vegan-gluten-free-cake-with-coconut.html
+    - https://www.vegansandra.com/2016/12/vegan-gingerbread-cake-4-ingredients.html
+    - https://www.vegansandra.com/2016/06/watch-how-i-make-carrot-and-peanut.html

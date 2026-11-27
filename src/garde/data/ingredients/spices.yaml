@@ -1,0 +1,339 @@
+ginger:
+  name: Fresh Ginger
+  aisle: fruit_veg
+  classes: [rhizome]
+  roles: [aromatic]
+  flavour: [spicy, fresh, floral]
+  colour: yellow
+  season: [all]
+  price: moderate
+  max_per_serving: 8
+  shelf_life_days: 21
+  unit_weight: 30
+
+turmeric_fresh:
+  name: Fresh Turmeric
+  aisle: fruit_veg
+  classes: [rhizome]
+  roles: [aromatic]
+  flavour: [earthy, spicy]
+  colour: orange
+  season: [all]
+  price: pricey
+  max_per_serving: 5
+  shelf_life_days: 14
+
+garam_masala:
+  name: Garam Masala
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy, floral, earthy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+fenugreek_seed:
+  name: Fenugreek Seed
+  classes: [dried_spice]
+  roles: [spice_base, texture_spice]
+  flavour: [earthy, bitter, floral]
+  colour: yellow
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+cumin:
+  name: Cumin
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [earthy, spicy, smoky]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, mexican, levantine, thai]
+
+coriander_seed:
+  name: Coriander Seed
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [floral, earthy, spicy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, levantine, thai]
+
+chilli_powder:
+  name: Chilli Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy]
+  colour: red
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, mexican]
+
+smoked_paprika:
+  name: Smoked Paprika
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [smoky, spicy, sweet]
+  colour: red
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [eastern_european, mexican, american]
+
+turmeric_dried:
+  name: Turmeric (dried)
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [earthy, spicy]
+  colour: yellow
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, thai]
+
+curry_powder:
+  name: Curry Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [spicy, earthy, floral]
+  colour: yellow
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, japanese]
+  notes: Generic blend. Fine for katsu or mild curries.
+
+mixed_spice:
+  name: Mixed Spice
+  classes: [dried_spice]
+  roles: [baking_spice]
+  flavour: [sweet, spicy, nutty]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+
+cinnamon_ground:
+  name: Ground Cinnamon
+  classes: [dried_spice]
+  roles: [spice_base, baking_spice]
+  flavour: [sweet, spicy, earthy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+
+paprika:
+  name: Paprika (sweet)
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [sweet, earthy]
+  colour: red
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [eastern_european]
+
+chilli_flakes:
+  name: Chilli Flakes
+  classes: [dried_spice]
+  roles: [heat, spice_base]
+  flavour: [spicy]
+  colour: red
+  season: [all]
+  price: negligible
+  unlimited: true
+
+garlic_powder:
+  name: Garlic Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [umami, spicy]
+  colour: white
+  season: [all]
+  price: negligible
+  unlimited: true
+
+onion_powder:
+  name: Onion Powder
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [sweet, umami]
+  colour: white
+  season: [all]
+  price: negligible
+  unlimited: true
+
+black_pepper:
+  name: Black Pepper
+  classes: [dried_spice]
+  roles: [spice_base, heat, texture_spice]  # whole peppercorns fried in the oil
+  flavour: [spicy]
+  colour: black
+  season: [all]
+  price: negligible
+  unlimited: true
+
+oregano:
+  name: Dried Oregano
+  classes: [dried_spice]
+  roles: [dried_herb]
+  flavour: [earthy, bitter]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [italian, mediterranean, mexican]
+
+thyme:
+  name: Dried Thyme
+  classes: [dried_spice]
+  roles: [dried_herb]
+  flavour: [earthy, floral]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [french, british, eastern_european, mediterranean, caribbean]
+
+bay_leaf:
+  name: Bay Leaves
+  classes: [dried_spice]
+  roles: [dried_herb, texture_spice]
+  flavour: [floral, earthy]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+
+cardamom:
+  name: Cardamom
+  classes: [dried_spice]
+  roles: [spice_base, texture_spice, baking_spice]
+  flavour: [floral, sweet]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+mustard_seeds:
+  name: Mustard Seeds
+  classes: [dried_spice, seed]
+  roles: [texture_spice, spice_base]
+  flavour: [spicy, nutty]
+  colour: yellow
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+rosemary:
+  name: Rosemary
+  classes: [dried_spice, fresh_herb]
+  roles: [dried_herb]
+  flavour: [earthy, floral]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [italian, mediterranean, british]
+
+mixed_herbs:
+  name: Mixed Dried Herbs
+  classes: [dried_spice]
+  roles: [dried_herb]
+  flavour: [earthy, floral]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  notes: Italian herbs, herbes de Provence, marjoram — one jar covers it.
+
+nutmeg:
+  name: Nutmeg
+  classes: [dried_spice]
+  roles: [spice_base, baking_spice]
+  flavour: [sweet, earthy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+
+cloves:
+  name: Cloves
+  classes: [dried_spice]
+  roles: [texture_spice, baking_spice]
+  flavour: [spicy, sweet]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian]
+
+fennel_seed:
+  name: Fennel Seed
+  classes: [dried_spice]
+  roles: [texture_spice, spice_base]
+  flavour: [sweet, fresh]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [indian, italian]
+
+kala_namak:
+  name: Kala Namak (black salt)
+  classes: [seasoning]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami]
+  colour: white
+  season: [all]
+  price: negligible
+  unlimited: true
+  max_per_serving: 2
+  cuisine_context: [indian]
+  notes: Sulphurous and eggy; the trick in tofu and urad dal scrambles.
+
+sage:
+  name: Dried Sage
+  classes: [dried_spice]
+  roles: [dried_herb]
+  flavour: [earthy, fresh]
+  colour: green
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [italian, british]
+
+sumac:
+  name: Sumac
+  classes: [dried_spice]
+  roles: [spice_base, acid_bright]
+  flavour: [sharp, fresh]
+  colour: red
+  season: [all]
+  price: negligible
+  pack_weight: 50
+  max_per_serving: 2
+  cuisine_context: [levantine]
+
+five_spice:
+  name: Chinese Five Spice
+  classes: [dried_spice]
+  roles: [spice_base]
+  flavour: [sweet, spicy]
+  colour: brown
+  season: [all]
+  price: negligible
+  unlimited: true
+  cuisine_context: [chinese]

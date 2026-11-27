@@ -1,0 +1,267 @@
+# Archetypes added from the Pinch of Nom import (2026-11-25). Slot grams, times
+# and keeps_days here are drafted guesses waiting for a sanity check.
+
+risotto:
+  name: Risotto
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Onion and garlic softened, risotto rice (or pearl barley) stirred in stock a
+    ladle at a time, with mushrooms, squash, leek or sweetcorn folded through.
+    Finished with something savoury, a splash of vinegar or lemon, and herbs.
+  colour_dominant: beige
+  cuisine_context: [italian]
+  preferred_ingredients: [arborio_rice, pearl_barley, onion, garlic, leek, mushrooms, squash, sweetcorn, frozen_sweetcorn, frozen_peas, fresh_peas, vegetable_stock, nutritional_yeast, vegan_parmesan, worcestershire_sauce, white_wine_vinegar, lemon, parsley, nutmeg]
+  slots: [aromatic_base, cooked_veg, risotto_rice, stock_liquid, umami_boost, acid_bright, finish_herb]
+  slot_overrides:
+    cooked_veg: {preferred_classes: [fungus, squash, allium, leafy_green]}
+    stock_liquid: {amount: {per_serving: 250}, time: {active: 0, passive: 0}}  # the stirring is on the rice
+    umami_boost: {optional: false, preferred_roles: [meltable]}  # nooch or vegan parmesan, not capers
+  edges:
+    - {from: aromatic_base, to: risotto_rice, type: combine}
+    - {from: stock_liquid,  to: risotto_rice, type: combine}
+    - {from: cooked_veg,    to: risotto_rice, type: fold_in}
+    - {from: umami_boost,   to: risotto_rice, type: fold_in}
+    - {from: acid_bright,   to: risotto_rice, type: finish}
+    - {from: finish_herb,   to: risotto_rice, type: finish}
+  sources:
+    - https://pinchofnom.com/recipes/butternut-squash-risotto/
+    - https://pinchofnom.com/recipes/garlic-mushroom-risotto/
+  notes: Roast squash first for a sweeter one. Half the squash mashed in makes it creamy without cheese.
+
+gnocchi_bake:
+  name: Creamy Squash Gnocchi
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Squash simmered soft with onion and garlic in a little stock, blended with
+    plant milk, mustard, sage and something cheesy into a sauce, poured over
+    shop-bought gnocchi and baked until bubbling.
+  colour_dominant: orange
+  cuisine_context: [italian]
+  required_ingredients: [gnocchi]
+  preferred_ingredients: [gnocchi, squash, sweet_potato, onion, garlic, plant_milk, plant_cream, mustard, nutritional_yeast, sage, breadcrumbs]
+  slots: [pasta_base, aromatic_base, blend_veg, stock_liquid, creamy_liquid, umami_boost, dried_herbs, texture_top]
+  slot_overrides:
+    pasta_base: {label: Gnocchi, amount: {per_serving: 200}, time: {active: 2, passive: 3}}
+    blend_veg: {amount: {per_serving: 150}, preferred_classes: [squash, root_veg]}
+    stock_liquid: {amount: {per_serving: 50}, time: {active: 1, passive: 15}}
+    creamy_liquid: {amount: {per_serving: 60}}
+    umami_boost: {optional: false, max_ingredients: 2, preferred_roles: [meltable]}
+    texture_top: {preferred_classes: [bread, seed, nut], time: {active: 2, passive: 20}}
+  edges:
+    - {from: aromatic_base, to: blend_veg,     type: combine}
+    - {from: stock_liquid,  to: blend_veg,     type: combine}
+    - {from: blend_veg,     to: creamy_liquid, type: blend}
+    - {from: umami_boost,   to: creamy_liquid, type: fold_in}
+    - {from: dried_herbs,   to: creamy_liquid, type: combine}
+    - {from: creamy_liquid, to: pasta_base,    type: coat}
+    - {from: texture_top,   to: pasta_base,    type: top}
+  sources:
+    - https://pinchofnom.com/recipes/butternut-squash-and-sage-gnocchi/
+  notes: Bake 20 min at 200°C. Mustard goes in the umami slot alongside nutritional yeast.
+
+nut_roast:
+  name: Nut Roast
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Sunday-roast centrepiece: chestnuts or nuts with finely chopped mushrooms,
+    onion and grated carrot, bound with breadcrumbs or flax egg, seasoned with
+    thyme, soy and tomato purée, baked in a tin. Roast veg alongside.
+  colour_dominant: brown
+  cuisine_context: [british]
+  meal_type: [dinner]
+  preferred_ingredients: [chestnuts, walnuts, mushrooms, onion, carrot, breadcrumbs, flax_egg, thyme, sage, dark_soy_sauce, soy_sauce, tomato_puree, white_wine_vinegar, potato, parsnip]
+  slots: [patty_body, aromatic_base, cooked_veg, grated_veg, binder, dried_herbs, stir_fry_seasoning, roast_veg]
+  slot_overrides:
+    patty_body: {label: Nuts / Chestnuts, required_roles: [bulk], required_classes: [nut, pulse], preferred_classes: [nut], amount: {per_serving: 90}, time: {active: 10, passive: 45}}
+    cooked_veg: {label: Mushrooms, preferred_classes: [fungus], max_ingredients: 1, amount: {per_serving: 60}}
+    grated_veg: {amount: {per_serving: 40}}
+    stir_fry_seasoning: {label: Soy / Savoury, amount: {per_serving: 8}}
+    roast_veg: {label: Roast Potatoes & Veg, preferred_classes: [root_veg], excluded_classes: [pulse, leafy_green], amount: {per_serving: 250}}
+  edges:
+    - {from: aromatic_base,      to: cooked_veg, type: combine}
+    - {from: cooked_veg,         to: patty_body, type: combine}
+    - {from: grated_veg,         to: patty_body, type: combine}
+    - {from: binder,             to: patty_body, type: fold_in}
+    - {from: dried_herbs,        to: patty_body, type: combine}
+    - {from: stir_fry_seasoning, to: patty_body, type: combine}
+    - {from: roast_veg,          to: patty_body, type: top}
+  sources:
+    - https://pinchofnom.com/recipes/chestnut-roast/
+  notes: The original binds with an egg; a flax egg plus the breadcrumbs does it. Bake 45 min at 180°C, rest 10 before slicing.
+
+stuffed_veg:
+  name: Stuffed Veg (Imam Bayildi, Stuffed Peppers)
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Halved aubergines, peppers or squash roasted soft, filled with a spiced
+    onion and tomato sauce (with rice, couscous or beans if you want it to be a
+    whole meal) and baked again. Something sharp and herbs on top.
+  colour_dominant: purple
+  cuisine_context: [levantine, mediterranean]
+  preferred_ingredients: [aubergine, bell_pepper, squash, onion, garlic, canned_tomato, paprika, cinnamon_ground, sumac, oregano, couscous, chickpeas, lemon, basil, parsley]
+  slots: [roast_veg, aromatic_base, spice_bloom, tomato_sauce_body, hearty_base, protein_bulk, acid_bright, finish_herb]
+  slot_overrides:
+    roast_veg: {label: Veg to Stuff, preferred_classes: [fruit_veg, squash], max_ingredients: 1, amount: {per_serving: 250}}
+    spice_bloom: {max_ingredients: 3}
+    tomato_sauce_body: {amount: {per_serving: 120}}
+    hearty_base: {label: Filling Grain, optional: true, required_classes: [grain, rice], excluded_classes: [pasta, noodle, bread], amount: {per_serving: 80}}
+    protein_bulk: {optional: true, max_ingredients: 1}
+  edges:
+    - {from: aromatic_base,     to: tomato_sauce_body, type: combine}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: hearty_base,       to: tomato_sauce_body, type: fold_in}
+    - {from: protein_bulk,      to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: roast_veg,         type: top}
+    - {from: acid_bright,       to: roast_veg,         type: finish}
+    - {from: finish_herb,       to: roast_veg,         type: finish}
+  sources:
+    - https://pinchofnom.com/recipes/imam-bayildi/
+  notes: Roast the shells 20 min at 200°C first, fill, then 15 more. Balsamic in place of sumac works.
+
+thai_curry:
+  name: Thai-Style Curry (homemade sauce)
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    No jar of paste: spring onion, garlic and ginger blended with coriander and/or
+    basil, cumin, coriander and turmeric, coconut milk, and soy with fish sauce
+    or Worcestershire into a sauce. Veg and tofu simmered in it, lime at the end,
+    over rice. More herbs makes it green; more turmeric, yellow.
+  colour_dominant: green
+  cuisine_context: [thai]
+  preferred_ingredients: [green_onion, garlic, ginger, lemongrass, coriander_leaf, basil, cumin, coriander_seed, turmeric_dried, coconut_milk, soy_sauce, vegan_fish_sauce, worcestershire_sauce, lime, tofu, sweet_potato, courgette, bell_pepper, green_beans, basmati_rice]
+  slots: [rice_base, curry_aromatic, curry_herb_paste, spice_bloom, creamy_curry_fat, stir_fry_seasoning, curry_bulk, curry_protein, heat, acid_bright]
+  slot_overrides:
+    curry_aromatic: {label: Spring Onion / Garlic / Ginger, preferred_classes: [allium, rhizome, fresh_herb], amount: {per_serving: 50}, time: {active: 5, passive: 0}}
+    spice_bloom: {max_ingredients: 3}
+    creamy_curry_fat: {label: Coconut Milk, preferred_classes: [plant_milk]}
+    stir_fry_seasoning: {label: Soy / Fish Sauce, amount: {per_serving: 10}}
+    curry_protein: {optional: true, max_ingredients: 1, preferred_classes: [soy_product, legume]}
+  edges:
+    - {from: curry_aromatic,     to: curry_herb_paste, type: blend}
+    - {from: spice_bloom,        to: curry_herb_paste, type: blend}
+    - {from: creamy_curry_fat,   to: curry_herb_paste, type: blend}
+    - {from: stir_fry_seasoning, to: curry_herb_paste, type: blend}
+    - {from: heat,               to: curry_herb_paste, type: blend}
+    - {from: curry_herb_paste,   to: curry_bulk,       type: combine}
+    - {from: curry_protein,      to: curry_bulk,       type: fold_in}
+    - {from: curry_bulk,         to: rice_base,        type: coat}
+    - {from: acid_bright,        to: rice_base,        type: finish}
+  sources:
+    - https://pinchofnom.com/recipes/vegetarian-thai-style-green-curry/
+  notes: >
+    The household's way: blend the sauce, don't buy paste. The coconut milk is
+    coconut cream thinned with water (coconut_milk is made_from coconut_cream). Fry the sauce for a
+    minute, add the veg and a splash of water, simmer 10-15 min. It's a sauce,
+    not a paste, so it doesn't keep like one: make it on the night.
+
+rice_and_peas:
+  name: Rice and Peas
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Jamaican-style: rice simmered in coconut milk with kidney beans, spring onion,
+    garlic and thyme (and a whole chilli if you're brave). Greens on the side, or
+    under a stew.
+  colour_dominant: beige
+  cuisine_context: [caribbean]
+  preferred_ingredients: [basmati_rice, kidney_beans, coconut_milk, green_onion, onion, garlic, thyme, fresh_chilli, kale, cabbage]
+  slots: [rice_base, aromatic_base, protein_bulk, creamy_liquid, dried_herbs, heat, cooked_veg]
+  slot_overrides:
+    rice_base: {time: {active: 3, passive: 20}}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, preferred_classes: [pulse]}
+    creamy_liquid: {label: Coconut Milk, amount: {per_serving: 100}}
+    cooked_veg: {label: Greens on the side, optional: true, preferred_classes: [leafy_green, brassica], amount: {per_serving: 100}}
+  edges:
+    - {from: aromatic_base, to: rice_base, type: combine}
+    - {from: creamy_liquid, to: rice_base, type: combine}
+    - {from: protein_bulk,  to: rice_base, type: fold_in}
+    - {from: dried_herbs,   to: rice_base, type: combine}
+    - {from: heat,          to: rice_base, type: combine}
+    - {from: cooked_veg,    to: rice_base, type: top}
+  sources:
+    - https://pinchofnom.com/recipes/jamaican-rice-and-peas/
+
+salt_pepper_tofu:
+  name: Salt and Pepper Tofu
+  description: >
+    Chinese takeaway style: tofu fried crisp, tossed in a hot pan with onion,
+    pepper, garlic, ginger and chilli, seasoned hard with five spice, black
+    pepper and salt. Coriander or spring onion over rice. No sauce.
+  colour_dominant: brown
+  cuisine_context: [chinese]
+  preferred_ingredients: [crispy_tofu, tofu, bell_pepper, onion, garlic, ginger, fresh_chilli, five_spice, black_pepper, coriander_leaf, green_onion, basmati_rice]
+  slots: [rice_base, protein_bulk, aromatic_base, cooked_veg, spice_bloom, heat, finish_herb]
+  slot_overrides:
+    protein_bulk: {label: Crispy Tofu, required_roles: [protein, bulk], required_method: [fry, roast, bake, raw], max_ingredients: 1, preferred_classes: [soy_product], amount: {per_serving: 125}, time: {active: 8, passive: 15}}
+    aromatic_base: {preferred_classes: [allium, rhizome], amount: {per_serving: 30}}
+    cooked_veg: {amount: {per_serving: 100}}
+    spice_bloom: {max_ingredients: 2}
+    heat: {optional: false}
+  edges:
+    - {from: aromatic_base, to: cooked_veg, type: combine}
+    - {from: protein_bulk,  to: cooked_veg, type: combine}
+    - {from: spice_bloom,   to: cooked_veg, type: combine}
+    - {from: heat,          to: cooked_veg, type: combine}
+    - {from: cooked_veg,    to: rice_base,  type: top}
+    - {from: finish_herb,   to: rice_base,  type: finish}
+  sources:
+    - https://pinchofnom.com/recipes/salt-and-pepper-tofu/
+  notes: Press the tofu, toss in cornflour, then bake or air-fry 15 min at 200°C until crisp.
+
+dal:
+  name: Dal with Tarka
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Red lentils (or split peas, urad) simmered soft with turmeric, finished with
+    a tarka: whole spices, onion and garlic sizzled in oil and poured over.
+    Spinach, tomato or coconut milk if you like. Rice or flatbread.
+  colour_dominant: yellow
+  cuisine_context: [indian]
+  preferred_ingredients: [red_lentils, urad_dal, green_lentils, turmeric_dried, cumin, mustard_seeds, onion, garlic, ginger, canned_tomato, tomato_puree, spinach, coconut_milk, lemon, coriander_leaf, basmati_rice]
+  slots: [curry_grain_base, curry_protein, spice_bloom, whole_spice_bloom, curry_aromatic, tomato_enhancement, stew_wilted_greens, creamy_curry_fat, acid_bright, finish_herb]
+  slot_overrides:
+    curry_protein: {label: Lentils, required_classes: [pulse], preferred_roles: [], preferred_classes: [pulse], max_ingredients: 1, amount: {per_serving: 180}, time: {active: 3, passive: 25}}
+    spice_bloom: {max_ingredients: 2}
+    tomato_enhancement: {optional: true}
+    creamy_curry_fat: {optional: true, amount: {per_serving: 50}}
+  edges:
+    - {from: spice_bloom,        to: curry_protein,    type: combine}
+    - {from: whole_spice_bloom,  to: curry_aromatic,   type: combine}
+    - {from: tomato_enhancement, to: curry_aromatic,   type: combine}
+    - {from: curry_aromatic,     to: curry_protein,    type: top}
+    - {from: stew_wilted_greens, to: curry_protein,    type: fold_in}
+    - {from: creamy_curry_fat,   to: curry_protein,    type: fold_in}
+    - {from: curry_protein,      to: curry_grain_base, type: coat}
+    - {from: acid_bright,        to: curry_grain_base, type: finish}
+    - {from: finish_herb,        to: curry_grain_base, type: finish}
+  sources:
+    - https://www.veganricha.com/masoor-dal-tadka-indian-red-lentil-dal/
+  notes: Cook the lentils separately until soft, then pour the tarka over. Coconut cream in place of yogurt.
+
+biryani:
+  name: Veg Biryani
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Whole spices and deeply browned onions, ground spices, veg (cauliflower,
+    carrot, peas, potato) and maybe chickpeas, layered with part-cooked basmati
+    and steamed with the lid on. Nuts or crispy onions on top, mint or coriander.
+  colour_dominant: yellow
+  cuisine_context: [indian]
+  preferred_ingredients: [basmati_rice, cardamom, cloves, cinnamon_ground, bay_leaf, onion, garlic, ginger, garam_masala, turmeric_dried, chilli_powder, cauliflower, carrot, frozen_peas, fresh_peas, potato, chickpeas, cashews, mint, coriander_leaf, lemon]
+  slots: [rice_base, whole_spice_bloom, curry_aromatic, spice_bloom, curry_bulk, curry_protein, texture_top, acid_bright, finish_herb]
+  slot_overrides:
+    rice_base: {time: {active: 5, passive: 25}}
+    curry_bulk: {preferred_classes: [brassica, root_veg, leafy_green], max_ingredients: 3}
+    curry_protein: {optional: true, max_ingredients: 1}
+    texture_top: {required_classes: [nut, seed], preferred_classes: [nut]}
+  edges:
+    - {from: whole_spice_bloom, to: curry_aromatic, type: combine}
+    - {from: curry_aromatic,    to: spice_bloom,    type: combine}
+    - {from: spice_bloom,       to: curry_bulk,     type: combine}
+    - {from: curry_protein,     to: curry_bulk,     type: fold_in}
+    - {from: curry_bulk,        to: rice_base,      type: combine}
+    - {from: texture_top,       to: rice_base,      type: top}
+    - {from: acid_bright,       to: rice_base,      type: finish}
+    - {from: finish_herb,       to: rice_base,      type: finish}
+  sources:
+    - https://veganheaven.org/recipe/vegetable-biryani/
+  notes: Not the same as pilaf, which is barely spiced. The quick way cooks the rice in stock with the veg; the slow way layers part-cooked rice over the curry and steams it.

@@ -1,0 +1,98 @@
+porridge:
+  name: Porridge
+  description: >
+    Oats or buckwheat simmered in plant milk, topped with fruit (fresh, frozen or
+    stewed), nuts or seeds, a little sweetness. Brilliant for using up bananas.
+  colour_dominant: beige
+  cuisine_context: [universal]
+  meal_type: [breakfast]
+  preferred_ingredients: [oats, buckwheat, plant_milk, banana, frozen_fruit, apple, walnuts, flaxseed]
+  slots: [porridge_base, breakfast_liquid, fruit_topping, texture_top, sweet_note]
+  slot_overrides:
+    texture_top: {preferred_classes: [nut, seed]}
+  edges:
+    - {from: breakfast_liquid, to: porridge_base, type: combine}
+    - {from: fruit_topping,    to: porridge_base, type: top}
+    - {from: texture_top,      to: porridge_base, type: top}
+    - {from: sweet_note,       to: porridge_base, type: finish}
+
+pancakes:
+  name: Pancakes
+  description: >
+    Flour, plant milk, baking powder, a little sugar. Fruit and syrup on top.
+    Weekend breakfast; also the answer to "two sad bananas".
+  colour_dominant: yellow
+  cuisine_context: [american, british, eastern_european]
+  meal_type: [breakfast]
+  preferred_ingredients: [plain_flour, plant_milk, baking_powder, banana, frozen_fruit, fruit_compote, maple_syrup]
+  slots: [batter_flour, breakfast_liquid, baking_leavener, sweet_note, griddle, fruit_topping]
+  slot_overrides:
+    breakfast_liquid: {amount: {per_serving: 120}}
+    sweet_note: {optional: false}
+    fruit_topping: {required_classes: [fruit, stone_fruit], required_method: [raw, boil]}
+  edges:
+    - {from: breakfast_liquid, to: batter_flour, type: combine}
+    - {from: baking_leavener,  to: batter_flour, type: combine}
+    - {from: sweet_note,       to: batter_flour, type: combine}
+    - {from: batter_flour,     to: griddle,      type: combine}
+    - {from: fruit_topping,    to: griddle,      type: top}
+  sources:
+    - https://www.vegansandra.com/2013/05/fluffy-little-pancakes.html
+
+smoothie:
+  name: Smoothie
+  description: >
+    Banana plus whatever fruit, plant milk, a spoon of oats or nut butter for
+    staying power. Thirty seconds of blender noise.
+  colour_dominant: purple
+  cuisine_context: [universal]
+  meal_type: [breakfast, snack]
+  preferred_ingredients: [banana, frozen_fruit, apple, dates, plant_milk, oats, peanut_butter]
+  slots: [blend_fruit, breakfast_liquid, porridge_base]
+  slot_overrides:
+    breakfast_liquid: {amount: {per_serving: 150}}
+    porridge_base: {label: Oats, optional: true, amount: {per_serving: 30}, required_method: [raw, boil]}
+  edges:
+    - {from: breakfast_liquid, to: blend_fruit, type: blend}
+    - {from: porridge_base,    to: blend_fruit, type: blend}
+  sources:
+    - https://www.vegansandra.com/2015/01/cherry-and-date-smoothie.html
+    - https://www.vegansandra.com/2013/05/refreshing-tropical-smoothie.html
+    - https://www.vegansandra.com/2015/04/my-everyday-smoothie-with-orange-banana.html
+    - https://www.vegansandra.com/2017/02/creamy-citrus-smoothie.html
+    - https://www.vegansandra.com/2015/11/my-favorite-health-boosters-during.html
+    - https://www.vegansandra.com/2014/02/refreshing-green-kiwi-smoothie.html
+
+urad_scramble:
+  name: Urad Dal Scramble
+  description: >
+    Soaked urad dal blended smooth with something savoury (soy, nutritional yeast,
+    miso) and a pinch of turmeric, then stirred in a hot pan until it sets into soft
+    curds, with fried onion and veg. Kala namak goes in at the end for the eggy
+    smell. On toast.
+  colour_dominant: yellow
+  cuisine_context: [universal, indian]
+  meal_type: [breakfast]
+  serves: 2
+  required_ingredients: [urad_batter, kala_namak, turmeric_dried]
+  preferred_ingredients: [urad_dal, kala_namak, turmeric_dried, nutritional_yeast, soy_sauce, onion, mushrooms, spinach, tomato, chives, bread]
+  slots: [blend_veg, spice_bloom, stir_fry_seasoning, aromatic_base, cooked_veg, griddle, umami_boost, finish_herb, bread_base]
+  slot_overrides:
+    blend_veg: {label: Blended Urad Dal, required_roles: [binder, protein], required_classes: [pulse], required_method: [blend], amount: {per_serving: 120}, time: {active: 2, passive: 0}}
+    spice_bloom: {label: Turmeric / Spice, required_method: [raw, fry], max_ingredients: 2}
+    stir_fry_seasoning: {label: Umami, required_classes: [condiment, fermented], excluded_classes: [seasoning], amount: {per_serving: 8}}
+    aromatic_base: {optional: true, amount: {per_serving: 30}}
+    cooked_veg: {amount: {per_serving: 80}}
+    griddle: {label: Scramble in the pan, time: {active: 8, passive: 0}}
+    umami_boost: {label: Kala Namak to finish, required_classes: [seasoning], optional: false, amount: trace}
+    bread_base: {label: Toast}
+  edges:
+    - {from: spice_bloom,        to: blend_veg,  type: blend}
+    - {from: stir_fry_seasoning, to: blend_veg,  type: blend}
+    - {from: aromatic_base,      to: cooked_veg, type: combine}
+    - {from: cooked_veg,         to: griddle,    type: combine}
+    - {from: blend_veg,          to: griddle,    type: combine}
+    - {from: umami_boost,        to: griddle,    type: finish}
+    - {from: finish_herb,        to: griddle,    type: finish}
+    - {from: griddle,            to: bread_base, type: top}
+  notes: Soak the dal the night before. Drafted numbers - 120g batter (~50g dried) a portion.

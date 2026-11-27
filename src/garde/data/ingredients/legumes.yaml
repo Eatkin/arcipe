@@ -1,0 +1,299 @@
+chickpeas:
+  name: Chickpeas
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk, protein, sauce_base]
+  flavour: [nutty, earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_chickpeas
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
+  nutrition: [high_protein, high_fibre]
+  notes: Aquafaba (liquid) is separately useful as binder/emulsifier.
+
+cannellini_beans:
+  name: Cannellini Beans
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk, protein, sauce_base, fat_emulsifier]
+  flavour: [earthy, rich]
+  colour: white
+  season: [all]
+  price: cheap
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_cannellini_beans
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
+  nutrition: [high_protein, high_fibre]
+  notes: Blended white beans make an incredibly creamy sauce base.
+
+butter_beans:
+  name: Butter Beans
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk, protein, sauce_base, fat_emulsifier]
+  flavour: [earthy, rich]
+  colour: white
+  season: [all]
+  price: cheap
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_butter_beans
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
+  nutrition: [high_protein, high_fibre]
+
+black_beans:
+  name: Black Beans
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk, protein]
+  flavour: [earthy, rich]
+  colour: black
+  season: [all]
+  price: cheap
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_black_beans
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
+  cuisine_context: [mexican]
+  nutrition: [high_protein, high_fibre]
+
+red_lentils:
+  name: Red Lentils
+  classes: [legume, pulse]
+  roles: [bulk_blendable, protein, sauce_base]
+  flavour: [earthy, umami]
+  colour: orange
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  stock_ratio: 0.4
+  nutrition: [high_protein, high_iron, high_fibre]
+
+kidney_beans:
+  name: Kidney Beans
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk, protein]
+  flavour: [earthy, rich]
+  colour: red
+  season: [all]
+  price: cheap
+  unit_weight: 240  # a drained tin
+  made_from:
+    ingredient: dried_kidney_beans
+    ratio: 0.375  # measured: 90g dried -> 240g cooked, a tin's worth (2 portions)
+    batch: 600  # a pot: ~225g dried
+    keeps_days: 4
+    time: {active: 10, passive: 90}  # soaked overnight, then simmered
+  nutrition: [high_protein, high_fibre]
+  notes: The canonical rajma bean. Canned is fine, dried is better.
+
+tofu:
+  name: Tofu (firm)
+  opened_days: 4  # once opened (drafted)
+  classes: [soy_product, meat_alternative]
+  roles: [bulk, protein]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: pricey
+  pack_weight: 280
+  shelf_life_days: 7
+  unit_weight: 280
+  cuisine_context: [japanese, korean, chinese]
+  nutrition: [high_protein, high_calcium]
+  notes: Press well before using. Takes on sauce flavour readily.
+
+green_lentils:
+  name: Green / Brown Lentils
+  classes: [legume, pulse]
+  roles: [bulk, protein]
+  flavour: [earthy]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  stock_ratio: 0.4
+  nutrition: [high_protein, high_iron, high_fibre]
+  notes: Hold their shape, unlike red lentils. Tinned = stock_ratio 1 really.
+
+tempeh:
+  name: Tempeh
+  opened_days: 5  # once opened (drafted)
+  classes: [soy_product, fermented, meat_alternative]
+  roles: [protein, bulk, umami_boost]
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  price: pricey
+  pack_weight: 200
+  shelf_life_days: 14
+  unit_weight: 200
+  nutrition: [high_protein]
+
+soy_chunks:
+  name: Soy Chunks / TVP
+  classes: [soy_product, meat_alternative]
+  roles: [protein, bulk]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: cheap
+  pack_weight: 300
+  stock_ratio: 0.35
+  nutrition: [high_protein]
+  notes: Rehydrated weight is ~3x dry.
+
+dried_chickpeas:
+  name: Dried Chickpeas
+  classes: [legume, pulse]
+  roles: []  # cooked first: see chickpeas.made_from
+  flavour: [earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_cannellini_beans:
+  name: Dried Cannellini Beans
+  classes: [legume, pulse]
+  roles: []  # cooked first: see cannellini_beans.made_from
+  flavour: [earthy]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_butter_beans:
+  name: Dried Butter Beans
+  classes: [legume, pulse]
+  roles: []  # cooked first: see butter_beans.made_from
+  flavour: [earthy]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_black_beans:
+  name: Dried Black Beans
+  classes: [legume, pulse]
+  roles: []  # cooked first: see black_beans.made_from
+  flavour: [earthy]
+  colour: black
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+dried_kidney_beans:
+  name: Dried Kidney Beans
+  classes: [legume, pulse]
+  roles: []  # cooked first: see kidney_beans.made_from
+  flavour: [earthy]
+  colour: red
+  season: [all]
+  price: cheap
+  pack_weight: 500
+
+seitan:
+  name: Seitan
+  opened_days: 4  # once opened (drafted)
+  classes: [meat_alternative]
+  roles: [protein, bulk]
+  flavour: [umami, mild]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  shelf_life_days: 7
+  made_from:
+    ingredient: vital_wheat_gluten
+    ratio: 0.26  # 250g makes ~8 servings (of 120g)
+    batch: 960  # a whole 250g of gluten at a time
+    keeps_days: 5  # drafted; freezes well
+    time: {active: 20, passive: 60}  # knead, then simmer (drafted)
+  nutrition: [high_protein]
+  notes: "Wheat gluten. Bought, or Sandra's homemade steaks. Not gluten free. Recipe: https://www.vegansandra.com/2015/11/perfect-homemade-seitan-steaks.html"
+
+vital_wheat_gluten:
+  name: Vital Wheat Gluten
+  classes: []
+  roles: []  # made into seitan first: see seitan.made_from
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  nutrition: [high_protein]
+  notes: Kneaded with stock and spices into seitan (250g -> ~8 servings).
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+urad_dal:
+  name: Urad Dal (split black gram)
+  classes: [legume, pulse]
+  roles: [bulk_blendable, protein, sauce_base]
+  flavour: [earthy, mild]
+  colour: white
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [indian]
+  nutrition: [high_protein, high_iron, high_fibre]
+  notes: Soaked and blended, it sets like egg; with kala namak it makes a scramble.
+
+mushy_peas:
+  name: Mushy Peas (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume, pulse]
+  roles: [bulk_blendable, sauce_base, protein]
+  flavour: [sweet, earthy]
+  colour: green
+  season: [all]
+  price: cheap
+  unit_weight: 300
+  cuisine_context: [british]
+  nutrition: [high_protein, high_fibre]
+
+tinned_peas:
+  name: Garden Peas (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume]
+  roles: [bulk, garnish]
+  flavour: [sweet]
+  colour: green
+  season: [all]
+  price: cheap
+  unit_weight: 180  # drained
+  cuisine_context: [british]
+  nutrition: [high_fibre]
+  notes: Softer than frozen; better stirred into curries and pies than as a side.
+
+dried_tofu_sticks:
+  name: Dried Tofu Sticks (fuzhu)
+  classes: [soy_product, meat_alternative]
+  roles: [protein, bulk]
+  flavour: [mild, nutty]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  stock_ratio: 0.4  # soaked overnight they roughly double and a half (drafted)
+  cuisine_context: [chinese]
+  nutrition: [high_protein]
+  notes: Soak overnight, then braise or stir-fry. Chewy; drinks up sauce.

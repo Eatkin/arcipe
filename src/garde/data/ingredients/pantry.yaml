@@ -1,0 +1,656 @@
+capers:
+  name: Capers
+  classes: [fermented]
+  roles: [acid_bright, umami_boost, texture_top, garnish]
+  flavour: [sharp, umami]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 100
+  max_per_serving: 10
+  cuisine_context: [italian, levantine]
+  notes: Fried capers are a texture revelation.
+
+white_wine_vinegar:
+  name: White Wine Vinegar
+  density: 1.0  # g per ml: shown in ml
+  classes: [vinegar]
+  roles: [acid_component, acid_bright]
+  flavour: [sharp]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 350
+  max_per_serving: 15
+  notes: Structural acid in vindaloo — required, not optional.
+
+apple_cider_vinegar:
+  name: Apple Cider Vinegar
+  density: 1.0  # g per ml: shown in ml
+  classes: [vinegar]
+  roles: [acid_component, acid_bright]
+  flavour: [sharp, sweet]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 350
+  max_per_serving: 15
+
+miso:
+  name: White Miso
+  storage: fridge
+  classes: [fermented]
+  roles: [umami_boost, fat_emulsifier]
+  flavour: [umami, rich]
+  colour: yellow
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  max_per_serving: 15
+  cuisine_context: [japanese, korean]
+  nutrition: [b12_source]
+
+nutritional_yeast:
+  name: Nutritional Yeast
+  classes: [fermented]
+  roles: [umami_boost, meltable]  # stirs in cheesy
+  flavour: [umami, nutty]
+  colour: yellow
+  season: [all]
+  price: pricey
+  pack_weight: 150
+  max_per_serving: 10
+  unlimited: true
+  nutrition: [b12_source]
+
+olive_oil:
+  name: Olive Oil
+  density: 0.92  # g per ml: shown in ml
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, earthy]
+  colour: yellow
+  season: [all]
+  price: moderate
+  max_per_serving: 15
+  unlimited: true
+  nutrition: [high_fat]
+
+butter:
+  name: Butter
+  storage: fridge
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, nutty]
+  colour: yellow
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  cuisine_context: [french, british]
+  nutrition: [high_fat]
+  notes: May sub for vegan alternative.
+
+coconut_milk:
+  name: Coconut Milk (full fat)
+  density: 1.0  # g per ml: shown in ml
+  opened_days: 4  # once opened (drafted)
+  classes: [plant_milk]
+  roles: [fat_emulsifier, liquid, sauce_base]
+  flavour: [rich, sweet, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 400
+  unit_weight: 400
+  cuisine_context: [indian, chinese, caribbean]
+  nutrition: [high_fat]
+  made_from:
+    ingredient: coconut_cream
+    ratio: 0.5  # half cream, half water
+    keeps_days: 3
+  notes: Full fat only. The lite stuff is a waste of everyone's time.
+
+coconut_cream:
+  name: Coconut Cream
+  opened_days: 4  # once opened (drafted)
+  classes: [plant_milk]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [rich, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 400
+  unit_weight: 400
+  cuisine_context: [indian, thai, caribbean]
+  nutrition: [high_fat]
+  notes: Thins down to coconut milk (coconut_milk.made_from).
+
+canned_tomato:
+  name: Canned Tomatoes
+  opened_days: 3  # once opened (drafted)
+  classes: [nightshade]
+  roles: [sauce_base, liquid]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [all]
+  price: cheap
+  unit_weight: 400
+  unlimited: true
+  nutrition: [high_fibre]
+  notes: Year-round pantry staple. Often better than out-of-season fresh.
+
+tomato_puree:
+  name: Tomato Puree
+  classes: [nightshade]
+  roles: [thickener, umami_boost, flavour_enhancer]
+  flavour: [rich, umami]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  max_per_serving: 15
+  unlimited: true
+
+tomato_ketchup:
+  name: Tomato Ketchup
+  classes: [nightshade]
+  roles: [thickener, umami_boost, sweetener, flavour_enhancer]
+  flavour: [rich, umami, sweet]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  max_per_serving: 20
+  unlimited: true
+
+bicarbonate_of_soda:
+  name: Bicarbonate of Soda
+  classes: [raising_agent]
+  roles: [raising_agent, basic]
+  flavour: []
+  colour: white
+  price: negligible
+  unlimited: true
+  season: [all]
+
+sun_dried_tomatoes:
+  name: Sun-dried Tomatoes
+  classes: [nightshade]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami, sharp, sweet]
+  colour: red
+  season: [all]
+  price: pricey
+  pack_weight: 280
+  max_per_serving: 30
+  unit_weight: 280
+  cuisine_context: [italian]
+
+vegan_parmesan:
+  name: Vegan Parmesan
+  storage: fridge
+  classes: [fat]
+  roles: [umami_boost, flavour_enhancer, meltable]
+  flavour: [umami, rich, sharp]
+  colour: beige
+  season: [all]
+  price: fancy
+  pack_weight: 150
+  max_per_serving: 15
+  cuisine_context: [italian]
+
+vegetable_oil:
+  name: Vegetable Oil
+  density: 0.92  # g per ml: shown in ml
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  price: cheap
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+coconut_oil:
+  name: Coconut Oil
+  classes: [fat]
+  roles: [fat_emulsifier]
+  flavour: [rich, sweet]
+  colour: white
+  season: [all]
+  price: pricey
+  pack_weight: 300
+  max_per_serving: 15
+
+sesame_oil:
+  name: Toasted Sesame Oil
+  density: 0.92  # g per ml: shown in ml
+  classes: [fat, seed]
+  roles: [fat_emulsifier, umami_boost]
+  flavour: [nutty, rich]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 230  # a 250ml bottle
+  max_per_serving: 8
+  cuisine_context: [chinese, japanese, korean]
+
+vegetable_stock:
+  name: Vegetable Stock
+  density: 1.0  # g per ml: shown in ml
+  classes: [seasoning]
+  roles: [liquid]
+  flavour: [umami, mild]
+  colour: yellow
+  season: [all]
+  price: negligible
+  unlimited: true
+  staple: true
+  notes: Cubes or bouillon powder — water + a cube counts as stock.
+
+passata:
+  name: Passata
+  opened_days: 5  # once opened (drafted)
+  classes: [nightshade]
+  roles: [sauce_base, liquid]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [all]
+  price: cheap
+  unit_weight: 500
+  nutrition: [high_fibre]
+
+soy_sauce:
+  name: Soy Sauce
+  density: 1.2  # g per ml: shown in ml
+  classes: [condiment, fermented, soy_product]
+  roles: [umami_boost]
+  flavour: [umami]
+  colour: black
+  season: [all]
+  price: moderate
+  max_per_serving: 15
+  unlimited: true
+  cuisine_context: [chinese, japanese, korean, thai]
+
+plant_milk:
+  name: Plant Milk
+  density: 1.0  # g per ml: shown in ml
+  opened_days: 7  # once opened (drafted)
+  classes: [plant_milk]
+  roles: [liquid]
+  flavour: [mild, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 1000
+  unit_weight: 1000
+  nutrition: [high_calcium, b12_source]
+  notes: unit = a carton. Soy, oat, whatever.
+
+plant_cream:
+  name: Plant Cream
+  density: 1.0  # g per ml: shown in ml
+  opened_days: 4  # once opened (drafted)
+  classes: [plant_milk]
+  roles: [fat_emulsifier, sauce_base, liquid]
+  flavour: [rich, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  unit_weight: 200
+  nutrition: [high_fat]
+  notes: Oat / soy cooking cream, a 200ml carton.
+
+peanut_butter:
+  name: Peanut Butter
+  classes: [nut]
+  roles: [fat_emulsifier, sauce_base, umami_boost]
+  flavour: [nutty, rich, sweet]
+  colour: brown
+  season: [all]
+  price: moderate
+  max_per_serving: 30
+  unlimited: true
+  cuisine_context: [thai, chinese, indian]
+  nutrition: [high_protein, high_fat]
+
+tahini:
+  name: Tahini
+  classes: [seed]
+  roles: [fat_emulsifier, sauce_base]
+  flavour: [nutty, bitter, rich]
+  colour: beige
+  season: [all]
+  price: pricey
+  pack_weight: 300
+  max_per_serving: 20
+  cuisine_context: [levantine, mediterranean]
+  nutrition: [high_calcium, high_fat]
+
+maple_syrup:
+  name: Maple / Agave Syrup
+  density: 1.33  # g per ml: shown in ml
+  classes: [sweetener]
+  roles: [sweetener]
+  flavour: [sweet]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 330  # a 250ml bottle
+  max_per_serving: 15
+
+sugar:
+  name: Sugar
+  classes: [sweetener]
+  roles: [sweetener]
+  flavour: [sweet]
+  colour: white
+  season: [all]
+  price: negligible
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+cornflour:
+  name: Cornflour
+  classes: [starch]
+  roles: [thickener, binder]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: negligible
+  max_per_serving: 15
+  unlimited: true
+  staple: true
+
+baking_powder:
+  name: Baking Powder
+  classes: [raising_agent]
+  roles: [raising_agent]
+  flavour: []
+  colour: white
+  season: [all]
+  price: negligible
+  unlimited: true
+  staple: true
+
+yeast:
+  name: Dried Yeast
+  classes: [raising_agent]
+  roles: [raising_agent]
+  flavour: [umami]
+  colour: beige
+  season: [all]
+  price: negligible
+  unlimited: true
+
+mustard:
+  name: Dijon Mustard
+  classes: [condiment]
+  roles: [acid_bright, fat_emulsifier, umami_boost]
+  flavour: [sharp, spicy]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  max_per_serving: 10
+  cuisine_context: [french, british]
+  notes: The only mustard in the house. Holds a vinaigrette together.
+
+rice_vinegar:
+  name: Rice (Wine) Vinegar
+  density: 1.0  # g per ml: shown in ml
+  classes: [vinegar]
+  roles: [acid_bright, acid_component]
+  flavour: [sharp, sweet]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  max_per_serving: 15
+  cuisine_context: [japanese, chinese, korean]
+
+gochujang:
+  name: Gochujang
+  classes: [condiment, fermented]
+  roles: [heat, umami_boost, sweetener]
+  flavour: [spicy, umami, sweet]
+  colour: red
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  max_per_serving: 20
+  cuisine_context: [korean]
+
+hot_sauce:
+  name: Hot Sauce / Sriracha
+  classes: [condiment]
+  roles: [heat, acid_bright]
+  flavour: [spicy, sharp]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 150
+  max_per_serving: 10
+
+sweet_chilli_sauce:
+  name: Sweet Chilli Sauce
+  classes: [condiment]
+  roles: [sweetener, heat]
+  flavour: [sweet, spicy]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  max_per_serving: 30
+  cuisine_context: [thai]
+
+plant_yogurt:
+  name: Plant Yoghurt
+  opened_days: 5  # once opened (drafted)
+  storage: fridge
+  classes: [plant_milk, fermented]
+  roles: [fat_emulsifier, sauce_base, acid_bright]
+  flavour: [sharp, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  shelf_life_days: 10
+  unit_weight: 500
+  notes: Soy or coconut. Dolloped on curries, chilli, porridge.
+  cuisine_context: [indian, levantine, eastern_european, british]
+
+kimchi:
+  name: Kimchi
+  storage: fridge
+  classes: [fermented, brassica]
+  roles: [acid_bright, heat, raw_crunch]
+  flavour: [sharp, spicy, umami]
+  colour: red
+  season: [all]
+  price: pricey
+  pack_weight: 400
+  max_per_serving: 80
+  cuisine_context: [korean]
+
+nori:
+  name: Nori Sheets
+  classes: [sea_veg]
+  roles: [umami_boost, garnish]
+  flavour: [umami]
+  colour: black
+  season: [all]
+  price: moderate
+  pack_weight: 25
+  max_per_serving: 5
+  cuisine_context: [japanese, korean]
+  nutrition: [b12_source]
+
+mayo:
+  name: Mayo
+  classes: [condiment]
+  roles: [sauce_base, fat_emulsifier]
+  flavour: [rich, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  made_from: {ingredient: vegetable_oil, ratio: 0.6, keeps_days: 5, time: {active: 4}}
+  notes: >
+    Vegan mayo; in this house mayo is mayo. A jar, or blend plant milk, oil,
+    mustard and lemon until it catches (made_from counts only the oil).
+    Recipe: https://www.vegansandra.com/2015/02/my-favorite-vegan-mayonnaise.html
+
+gravy:
+  name: Gravy
+  density: 1.0  # g per ml: shown in ml
+  storage: fridge
+  classes: [condiment]
+  roles: [gravy]
+  flavour: [umami, rich]
+  colour: brown
+  season: [all]
+  price: cheap
+  shelf_life_days: 4  # in the fridge (drafted)
+  cuisine_context: [british, eastern_european]
+  # Drafted: ~550g from 30g butter, 2 tbsp flour, an onion and/or a few mushrooms,
+  # 500ml stock and a spoon of dark soy for colour
+  made_from: {ingredient: butter, ratio: 0.06, keeps_days: 4, time: {active: 10, passive: 15}}
+  notes: >
+    Brown gravy: onions and/or mushrooms softened in butter, flour cooked out,
+    stock whisked in, dark soy for colour (made_from counts only the butter;
+    flour, onion, stock and soy are staples). Leftover gravy goes in the pantry
+    and gets used first.
+
+cocoa:
+  name: Cocoa Powder
+  classes: [sweetener]
+  roles: [baking_spice]
+  flavour: [bitter, rich]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  notes: Chocolate cakes, brownies, cookies.
+
+barbecue_sauce:
+  name: Barbecue Sauce
+  classes: [condiment]
+  roles: [umami_boost, sweetener, flavour_enhancer]
+  flavour: [smoky, sweet, umami]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  cuisine_context: [american]
+  notes: Sandra's barbecue patties, roasted veg and filled pancakes.
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+dark_soy_sauce:
+  name: Dark Soy Sauce
+  density: 1.2  # g per ml: shown in ml
+  classes: [condiment, fermented, soy_product]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami, sweet, rich]
+  colour: black
+  season: [all]
+  price: moderate
+  pack_weight: 180  # a 150ml bottle
+  max_per_serving: 8
+  cuisine_context: [chinese]
+  notes: For colour and a molasses depth; less salty than light soy.
+
+vegan_fish_sauce:
+  name: Vegan Fish Sauce
+  density: 1.2  # g per ml: shown in ml
+  classes: [condiment]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami, sharp]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 180  # a 150ml bottle
+  max_per_serving: 8
+  cuisine_context: [thai]
+
+vegan_oyster_sauce:
+  name: Vegan Oyster Sauce
+  storage: fridge  # once opened
+  classes: [condiment]
+  roles: [umami_boost, flavour_enhancer]
+  flavour: [umami, sweet]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  max_per_serving: 15
+  cuisine_context: [chinese]
+  notes: Mushroom-based. Stir-fried greens, noodles, braises.
+
+tabasco:
+  name: Tabasco
+  density: 1.0  # g per ml: shown in ml
+  classes: [condiment]
+  roles: [heat, acid_bright]
+  flavour: [spicy, sharp]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 60
+  max_per_serving: 3
+  cuisine_context: [american, mexican]
+
+apricot_jam:
+  name: Apricot Jam
+  classes: [sweetener, fruit]
+  roles: [sweetener]
+  flavour: [sweet, sharp]
+  colour: orange
+  season: [all]
+  price: cheap
+  pack_weight: 340
+  max_per_serving: 20
+  notes: Glazes, and a spoonful in a tagine or a sweet-and-sour sauce.
+
+agar_agar:
+  name: Agar Agar
+  classes: [sea_veg]
+  roles: [binder, thickener]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 50
+  max_per_serving: 2
+  notes: Sets like gelatine; about 1g per 100ml for a firm set.
+
+alcohol_free_beer:
+  name: Alcohol-free Beer
+  density: 1.0  # g per ml: shown in ml
+  classes: [fermented]
+  roles: [liquid]
+  flavour: [bitter, mild]
+  colour: yellow
+  season: [all]
+  price: moderate
+  unit_weight: 330  # a bottle
+  cuisine_context: [british, american]
+  notes: Batter, stews and chilli. Doesn't keep once opened, so a bottle at a time.
+
+worcestershire_sauce:
+  name: Henderson's Relish / Vegan Worcestershire
+  density: 1.1  # g per ml: shown in ml
+  classes: [condiment]
+  roles: [umami_boost, flavour_enhancer, acid_bright]
+  flavour: [umami, sharp]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 312  # a 284ml (10 fl oz) bottle
+  max_per_serving: 8
+  cuisine_context: [british]
+  notes: Henderson's is vegan; most Worcestershire has anchovy. Stands in for fish sauce too.

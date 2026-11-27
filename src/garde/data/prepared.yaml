@@ -1,0 +1,166 @@
+sunflower_cream:
+  base_ingredients: [sunflower_seeds]
+  base_ratio: {sunflower_seeds: 0.4}
+  method: blend
+  time: {active: 5, passive: 240}
+  make_ahead: true
+  unlocked_roles: [fat_emulsifier, sauce_base]
+  notes: "Soak 4hrs, drain, blend with water. Cheaper cashew cream substitute. Recipe: https://www.vegansandra.com/2014/11/sunflower-sour-cream.html"
+
+cashew_cream:
+  base_ingredients: [cashews]
+  base_ratio: {cashews: 0.4}
+  method: blend
+  time: {active: 5, passive: 120}
+  make_ahead: true
+  unlocked_roles: [fat_emulsifier, sauce_base]
+  notes: Soak 2hrs, drain, blend with water until very smooth.
+
+roasted_carrot:
+  base_ingredients: [carrot]
+  base_ratio: {carrot: 1.3}
+  method: roast
+  time: {active: 5, passive: 35}
+  unlocked_roles: [sauce_base, bulk_blendable]
+  colour: brown
+  notes: Roast at 200°C until caramelised. Blends into sweet gravy base.
+
+roux:
+  base_ingredients: [plain_flour, butter]
+  base_ratio: {plain_flour: 0.5, butter: 0.5}
+  method: fry
+  time: {active: 5, passive: 0}
+  unlocked_roles: [thickener, sauce_base]
+  cuisine_context: [french, japanese]
+  notes: Equal parts flour and vegan butter/oil, cooked out 2 mins.
+
+flatbread:
+  base_ingredients: [plain_flour]
+  base_ratio: {plain_flour: 0.6}
+  method: fry
+  time: {active: 15, passive: 0}
+  unlocked_roles: [grain_base]
+  cuisine_context: [levantine, indian]
+  notes: Flour, water, salt, baking powder. Fry 1 minute each side. Cover with damp towel to steam.
+
+dumplings:
+  base_ingredients: [plain_flour, butter]
+  base_ratio: {plain_flour: 0.6, butter: 0.3}
+  method: blend
+  time: {active: 10, passive: 20}
+  unlocked_roles: [bulk, grain_base]
+  cuisine_context: [british, french]
+  colour: yellow
+  notes: "ref here, but it is just a roux: https://www.thevegspace.co.uk/recipe-vegan-dumplings/#recipe"
+
+crumpets:
+  base_ingredients: [plain_flour]
+  base_ratio: {plain_flour: 0.5}
+  method: fry
+  time: {active: 15, passive: 60}
+  unlocked_roles: [grain_base]
+  cuisine_context: [british]
+  notes: Flour, water, baking powder, yeast. Rings optional. Eaten with toppings.
+
+fruit_compote:
+  base_ingredients: [frozen_fruit]
+  base_ratio: {frozen_fruit: 1.1}
+  method: boil
+  time: {active: 2, passive: 10}
+  unlocked_roles: [texture_top]
+  notes: Simmer frozen fruit down with a splash of water until jammy.
+
+thickened_cashew_cream:
+  base_ingredients: [cashews, plain_flour]
+  base_ratio: {cashews: 0.4, plain_flour: 0.05}
+  method: blend
+  time: {active: 5, passive: 120}
+  make_ahead: true
+  unlocked_roles: [fat_emulsifier, sauce_base, thickener]
+  notes: Cashews, water, and a pinch of flour blended smooth. Thicken via simmering.
+
+hummus:
+  base_ingredients: [chickpeas, tahini, lemon]
+  base_ratio: {chickpeas: 0.75, tahini: 0.12, lemon: 0.06}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, protein]
+  cuisine_context: [levantine, mediterranean]
+  colour: beige
+  notes: Chickpeas, tahini, lemon, garlic, a splash of the aquafaba.
+
+pesto:
+  base_ingredients: [basil, olive_oil, walnuts]
+  base_ratio: {basil: 0.35, olive_oil: 0.35, walnuts: 0.25}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier]
+  cuisine_context: [italian]
+  colour: green
+  notes: Any soft herb or wild garlic works; any nut or seed does too.
+
+peanut_sauce:
+  base_ingredients: [peanut_butter, soy_sauce]
+  base_ratio: {peanut_butter: 0.55, soy_sauce: 0.1}
+  method: blend
+  time: {active: 3, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, umami_boost]
+  cuisine_context: [thai, chinese]
+  colour: brown
+  notes: Peanut butter, soy, lime, a little sweetener, hot water to loosen.
+
+guacamole:
+  base_ingredients: [avocado, lime]
+  base_ratio: {avocado: 0.9, lime: 0.05}
+  method: blend
+  time: {active: 5, passive: 0}
+  unlocked_roles: [sauce_base, fat_emulsifier, garnish]
+  cuisine_context: [mexican, american]
+  colour: green
+
+cashew_cheese_sauce:
+  base_ingredients: [cashews, nutritional_yeast]
+  base_ratio: {cashews: 0.35, nutritional_yeast: 0.08}
+  method: blend
+  time: {active: 5, passive: 120}
+  make_ahead: true
+  unlocked_roles: [sauce_base, fat_emulsifier, meltable, umami_boost]
+  colour: yellow
+  notes: Soaked cashews, nooch, garlic, lemon, water. Mac and cheese's best friend.
+
+flax_egg:
+  base_ingredients: [flaxseed]
+  base_ratio: {flaxseed: 0.25}
+  method: soak
+  time: {active: 1, passive: 5}
+  unlocked_roles: [binder]
+  notes: 1 tbsp ground flax + 3 tbsp water, rest 5 minutes.
+
+crispy_tofu:
+  base_ingredients: [tofu, cornflour]
+  base_ratio: {tofu: 1.0, cornflour: 0.05}
+  method: fry
+  time: {active: 8, passive: 10}
+  unlocked_roles: [protein, texture_top, bulk]
+  cuisine_context: [chinese, japanese, korean, thai]
+  colour: yellow
+  notes: Press, cube, toss in cornflour, fry or bake until golden.
+
+roasted_chickpeas:
+  base_ingredients: [chickpeas]
+  base_ratio: {chickpeas: 1.1}
+  method: roast
+  time: {active: 2, passive: 25}
+  unlocked_roles: [texture_top, protein]
+  colour: brown
+
+urad_batter:
+  base_ingredients: [urad_dal]
+  base_ratio: {urad_dal: 1.0}  # soaked dal swells ~2.5x, so 100g batter is ~40g dried
+  method: blend
+  time: {active: 5, passive: 240}
+  make_ahead: true
+  unlocked_roles: [binder, protein]
+  cuisine_context: [indian]
+  colour: white
+  notes: Soak the dal 4 hours or overnight, drain, blend smooth with a splash of water.

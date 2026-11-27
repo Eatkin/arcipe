@@ -1,0 +1,320 @@
+spaghetti:
+  name: Spaghetti
+  classes: [grain, pasta]
+  roles: [grain_base]
+  flavour: [earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  stock_ratio: 0.4
+  unlimited: true
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+farro:
+  name: Farro
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [italian]
+  nutrition: [high_carb, high_fibre]
+
+polenta:
+  name: Polenta
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [sweet, earthy]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.25
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+plain_flour:
+  name: Plain Flour
+  classes: [grain]
+  roles: [thickener, binder, gluten]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: cheap
+  unlimited: true
+  staple: true
+
+basmati_rice:
+  name: Basmati Rice
+  classes: [grain, rice]
+  roles: [grain_base]
+  flavour: [earthy, floral]
+  colour: white
+  season: [all]
+  price: cheap
+  stock_ratio: 0.35
+  unlimited: true
+  cuisine_context: [indian, levantine]
+  nutrition: [high_carb]
+
+brown_rice:
+  name: Brown Rice
+  classes: [grain, rice]
+  roles: [grain_base]
+  flavour: [earthy]
+  colour: brown
+  season: [all]
+  price: cheap
+  stock_ratio: 0.35
+  unlimited: true
+  nutrition: [high_carb]
+
+sushi_rice:
+  name: Sushi Rice
+  classes: [grain, rice]
+  roles: [grain_base]
+  flavour: [earthy, floral]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.35
+  unlimited: true
+  cuisine_context: [japanese]
+  nutrition: [high_carb]
+
+pasta:
+  name: Pasta (any shape)
+  classes: [grain, pasta]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  price: cheap
+  unlimited: true
+  stock_ratio: 0.4
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+noodles:
+  name: Wheat Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  stock_ratio: 0.4
+  cuisine_context: [chinese, japanese, korean]
+  nutrition: [high_carb]
+
+rice_noodles:
+  name: Rice Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  stock_ratio: 0.4
+  cuisine_context: [thai, chinese]
+  nutrition: [high_carb]
+
+quinoa:
+  name: Quinoa
+  classes: [grain]
+  roles: [grain_base, protein]
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  price: pricey
+  pack_weight: 500
+  stock_ratio: 0.35
+  nutrition: [high_protein, high_fibre]
+
+couscous:
+  name: Couscous
+  classes: [grain]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [levantine, mediterranean]
+  nutrition: [high_carb]
+
+bulgur:
+  name: Bulgur Wheat
+  classes: [grain]
+  roles: [grain_base, bulk]
+  flavour: [nutty]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [levantine]
+  nutrition: [high_fibre]
+
+pearl_barley:
+  name: Pearl Barley
+  classes: [grain]
+  roles: [grain_base, bulk, risotto_base]  # barley risotto
+  flavour: [nutty, earthy]
+  colour: beige
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  stock_ratio: 0.35
+  cuisine_context: [british, eastern_european]
+  nutrition: [high_fibre]
+
+buckwheat:
+  name: Buckwheat
+  classes: [grain]
+  roles: [grain_base, porridge_base]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.4
+  cuisine_context: [eastern_european]
+  nutrition: [high_fibre]
+
+oats:
+  name: Oats
+  classes: [grain]
+  roles: [porridge_base, binder]
+  flavour: [mild, nutty]
+  colour: beige
+  season: [all]
+  price: cheap
+  unlimited: true
+  stock_ratio: 0.25
+  nutrition: [high_fibre]
+  notes: 40g oats makes ~160g porridge, hence the stock ratio.
+
+millet:
+  name: Millet
+  classes: [grain]
+  roles: [grain_base, porridge_base, bulk]
+  flavour: [mild, nutty]
+  colour: yellow
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.3
+  cuisine_context: [eastern_european]
+
+gram_flour:
+  name: Gram Flour (chickpea flour)
+  classes: [legume]
+  roles: [binder, thickener]
+  flavour: [nutty, earthy]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 1000
+  nutrition: [high_protein]
+  cuisine_context: [indian]
+  notes: Chickpea omelettes, bhajias, binding patties.
+
+# From the cupboard audit, 2026-11-25. Numbers drafted.
+udon:
+  name: Udon Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  stock_ratio: 0.4  # dried; the vacuum packs of fresh are ~1.0
+  cuisine_context: [japanese]
+  nutrition: [high_carb]
+
+soba:
+  name: Soba Noodles
+  classes: [grain, noodle]
+  roles: [grain_base]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  stock_ratio: 0.4
+  cuisine_context: [japanese]
+  nutrition: [high_carb]
+
+wholemeal_flour:
+  name: Wholemeal Flour
+  classes: [grain]
+  roles: [gluten, binder, thickener]
+  flavour: [nutty, earthy]
+  colour: brown
+  season: [all]
+  price: cheap
+  pack_weight: 1500
+  nutrition: [high_fibre]
+
+tapioca_flour:
+  name: Tapioca Flour
+  classes: [starch]
+  roles: [thickener, binder]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  max_per_serving: 15
+  notes: Glossier and stretchier than cornflour; the chew in cheesy sauces and bubble tea.
+
+acorn_flour:
+  name: Acorn Flour
+  classes: [grain]
+  roles: [gluten, binder]  # the flour slot in bakes; the cap keeps it a minority
+  flavour: [nutty, earthy, bitter]
+  colour: brown
+  season: [all]
+  price: negligible  # foraged
+  pack_weight: 500
+  max_per_serving: 20  # ~10% of the flour in a bake
+  nutrition: [high_fat]
+  notes: Homemade from foraged acorns (soaked, dried, ground). A baking addition, about
+    10% of the flour; the rest comes from wheat flour.
+
+arborio_rice:
+  name: Risotto Rice (arborio)
+  classes: [grain, rice]
+  roles: [grain_base, risotto_base]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  stock_ratio: 0.33  # drafted: soaks up ~3x its weight in stock
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+
+gnocchi:
+  name: Gnocchi (shop-bought)
+  classes: [pasta]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  opened_days: 2  # drafted
+  cuisine_context: [italian]
+  nutrition: [high_carb]
+  notes: Shelf-stable packs; a vacuum pack keeps for months until opened.

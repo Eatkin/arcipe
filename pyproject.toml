@@ -1,5 +1,5 @@
 [project]
-name = "arcipe"
+name = "garde-manger"
 version = "0.1.0"
 description = "Archetype-recipes - abstracting recipes and ingredients into data points and resolving meal plans using a graph db"
 readme = "README.md"
@@ -8,13 +8,22 @@ authors = [{ name = "Ed", email = "edwardatkin@edwardatkin.co.uk" }]
 license = { text = "MIT" }
 dependencies = [
     "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
 ]
 
+[project.scripts]
+garde-dashboard = "garde.dashboard:main"
+
 [tool.hatch.build.targets.wheel]
-packages = ["src/arcipe"]
+packages = ["src/garde"]
 
 [project.optional-dependencies]
 dev = ["ruff", "ty", "pytest", "pre-commit"]
+ui = ["playwright"]
+scrape = [
+    "setuptools>=84.2.1",
+    "undetected-chromedriver==3.5.5",  # NOT the PyPI package "undetected" (taken over)
+]
 
 [build-system]
 requires = ["hatchling"]

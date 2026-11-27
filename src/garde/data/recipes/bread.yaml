@@ -1,0 +1,44 @@
+crumpet_meal:
+  name: Crumpets
+  description: >
+    They're crumpets
+  colour_dominant: beige
+  cuisine_context: [british]
+  meal_type: [breakfast, lunch]
+  required_ingredients: [crumpets]
+  slots: [grain_base, fat_emulsifier, texture_top]  # butter slot, topping slot
+  edges:
+    - {from: grain_base, to: fat_emulsifier,  type: combine}
+    - {from: grain_base, to: texture_top,  type: combine}
+  sources:
+    - https://www.recipetineats.com/crumpet-recipe/
+
+
+bread_rolls:
+  name: Bread Rolls / Buns
+  batch: true  # a tray of rolls, whoever is eating
+  keeps_days: 3  # leftovers keep this long
+  description: >
+    Flour (some wholemeal or rye if there is any), yeast, warm water, a splash of
+    oil, seeds on top. Knead, prove, shape, bake. Sandra's mum's multigrain buns.
+  colour_dominant: brown
+  cuisine_context: [eastern_european, british]
+  meal_type: [bread]
+  serves: 8
+  preferred_ingredients: [plain_flour, oats, yeast, vegetable_oil, sunflower_seeds, pumpkin_seeds, flaxseed]
+  slots: [baking_grain_base, baking_leavener, baking_fat, sweet_note, texture_top]
+  slot_overrides:
+    baking_grain_base: {amount: {per_batch: 500}, time: {active: 20, passive: 100}}
+    baking_fat: {amount: {per_batch: 30}}
+    texture_top: {label: Seeds on top, amount: {per_batch: 30}}
+    sweet_note: {required_classes: [sweetener], amount: {per_batch: 10}}
+  edges:
+    - {from: baking_leavener, to: baking_grain_base, type: combine}
+    - {from: baking_fat,      to: baking_grain_base, type: combine}
+    - {from: sweet_note,      to: baking_grain_base, type: combine}
+    - {from: texture_top,     to: baking_grain_base, type: top}
+  notes: Passive time is the prove (about an hour) plus the bake.
+  sources:
+    - https://www.vegansandra.com/2017/12/cooking-with-my-mom-easy-vegan.html
+    - https://www.vegansandra.com/2013/04/simple-whole-wheat-roll.html
+    - https://www.vegansandra.com/2016/04/fluffy-vegan-cinnamon-rolls.html

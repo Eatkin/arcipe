@@ -1,0 +1,174 @@
+buddha_bowl:
+  name: Buddha Bowl
+  description: >
+    Grain, a tray of roasted veg, a protein, something raw and crunchy, a big
+    spoon of sauce (peanut, tahini, gochujang), seeds on top.
+  colour_dominant: orange
+  cuisine_context: [korean, levantine, american]
+  preferred_ingredients: [sweet_potato, broccoli, crispy_tofu, chickpeas, cabbage, cucumber, peanut_sauce, tahini, sesame_seeds]
+  slots: [hearty_base, roast_veg, protein_bulk, raw_veg, creamy_drizzle, texture_top]
+  slot_overrides:
+    hearty_base: {preferred_classes: [rice, grain], excluded_classes: [pasta, bread]}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1}  # holds its shape: no red lentils
+  edges:
+    - {from: roast_veg,      to: hearty_base, type: top}
+    - {from: protein_bulk,   to: hearty_base, type: top}
+    - {from: raw_veg,        to: hearty_base, type: top}
+    - {from: creamy_drizzle, to: hearty_base, type: finish}
+    - {from: texture_top,    to: hearty_base, type: top}
+  sources:
+    - https://sweetpotatosoul.com/2020/08/korean-inspired-vegan-buddha-bowl.html
+    - https://sweetpotatosoul.com/korean-inspired-vegan-buddha-bowl/#recipe
+
+tray_bake:
+  name: Veg & Bean Tray Bake
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Chop, toss with oil and spice, roast. Beans or chickpeas go in for the last
+    15 minutes. Finish with a tahini or yoghurt drizzle and herbs.
+  colour_dominant: orange
+  cuisine_context: [levantine, mediterranean, british]
+  preferred_ingredients: [cauliflower, squash, carrot, sweet_potato, onion, chickpeas, tahini, smoked_paprika, parsley]
+  slots: [roast_veg, protein_bulk, spice_bloom, dressing_fat, creamy_drizzle, finish_herb]
+  slot_overrides:
+    roast_veg: {max_ingredients: 3, amount: {per_serving: 300}}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1, required_classes: [legume]}  # holds its shape: no red lentils
+    spice_bloom: {max_ingredients: 2}
+    creamy_drizzle: {optional: true, preferred_classes: [seed]}
+    dressing_fat: {required_classes: [fat]}
+  edges:
+    - {from: dressing_fat,   to: roast_veg, type: combine}
+    - {from: spice_bloom,    to: roast_veg, type: combine}
+    - {from: protein_bulk,   to: roast_veg, type: fold_in}
+    - {from: creamy_drizzle, to: roast_veg, type: finish}
+    - {from: finish_herb,    to: roast_veg, type: finish}
+  sources:
+    - https://www.healthiersteps.com/recipe/roasted-cauliflower-in-spicy-marinara-sauce/
+    - https://www.veganricha.com/caramelized-onion-beans-charred-cauliflower/
+    - https://www.vegansandra.com/2012/12/oven-baked-beets-and-potatoes-with-tofu.html
+    - https://www.vegansandra.com/2012/12/roasted-vegetables-in-bbq-sauce.html
+    - https://www.vegansandra.com/2012/12/baked-cauliflower-with-rye-bread-crumbs.html
+    - https://www.vegansandra.com/2017/03/crispy-sesame-and-garlic-potatoes.html
+
+grain_salad:
+  name: Grain & Bean Salad
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Cooked grain (quinoa, bulgur, barley, lentils) with raw veg, beans, a sharp
+    oily dressing, lots of herbs and some seeds. Lunchbox hero.
+  colour_dominant: green
+  cuisine_context: [levantine, mediterranean]
+  meal_type: [lunch, dinner]
+  preferred_ingredients: [quinoa, bulgur, pearl_barley, cucumber, tomato, chickpeas, parsley, mint, lemon, olive_oil]
+  slots: [hearty_base, raw_veg, protein_bulk, dressing_fat, acid_bright, finish_herb, texture_top]
+  slot_overrides:
+    hearty_base: {required_classes: [grain, legume], excluded_classes: [pasta, noodle, bread], preferred_classes: [grain], amount: {per_serving: 150}}
+    protein_bulk: {required_roles: [protein, bulk], max_ingredients: 1}  # holds its shape: no red lentils
+    raw_veg: {amount: {per_serving: 100}}
+  edges:
+    - {from: raw_veg,      to: hearty_base, type: combine}
+    - {from: protein_bulk, to: hearty_base, type: combine}
+    - {from: dressing_fat, to: hearty_base, type: coat}
+    - {from: acid_bright,  to: hearty_base, type: coat}
+    - {from: finish_herb,  to: hearty_base, type: finish}
+    - {from: texture_top,  to: hearty_base, type: top}
+  sources:
+    - https://www.101cookbooks.com/anna-jones-california-salad/
+    - https://www.vegansandra.com/2022/10/easy-warm-lentil-salad-ready-in-10.html
+    - https://www.vegansandra.com/2022/10/juicy-cabbage-salad-with-apple-celery.html
+    - https://www.vegansandra.com/2015/01/super-easy-creamy-buckwheat-salad.html
+
+potato_salad:
+  name: Creamy Potato Salad
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Boiled potatoes (or roasted cauliflower, or beetroot) with pickles and
+    something crunchy, chickpeas, beans or tofu, a mayo or sour-cream dressing,
+    lots of dill. Estonian family classic; lunchbox the next day.
+  colour_dominant: yellow
+  cuisine_context: [eastern_european, american]
+  meal_type: [lunch, dinner, side]
+  preferred_ingredients: [potato, beetroot, pickles, onion, green_onion, chickpeas, tofu, frozen_peas, fresh_peas, mayo, plant_yogurt, mustard, dill]
+  slots: [starchy_bulk, raw_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb]
+  slot_overrides:
+    starchy_bulk: {label: Potatoes / Roots, optional: false, amount: {per_serving: 200}}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
+    creamy_drizzle: {label: Creamy Dressing, amount: {per_serving: 50}, preferred_classes: [condiment, plant_milk]}
+    acid_bright: {preferred_classes: [vinegar, fermented]}
+  edges:
+    - {from: raw_veg,        to: starchy_bulk, type: fold_in}
+    - {from: protein_bulk,   to: starchy_bulk, type: fold_in}
+    - {from: creamy_drizzle, to: starchy_bulk, type: coat}
+    - {from: acid_bright,    to: starchy_bulk, type: finish}
+    - {from: finish_herb,    to: starchy_bulk, type: finish}
+  sources:
+    - https://www.vegansandra.com/2016/09/our-family-favorite-potato-salad-vegan.html
+    - https://www.vegansandra.com/2013/07/creamy-potato-and-tofu-salad.html
+    - https://www.vegansandra.com/2015/03/creamy-potato-and-roasted-cauliflower.html
+    - https://www.vegansandra.com/2015/10/baked-beet-and-potato-salad-with-beans.html
+
+raw_salad:
+  name: Big Raw Salad
+  keeps_days: 1  # leftovers keep this long in the fridge
+  description: >
+    Grated roots (beetroot, carrot, celeriac, turnip) and crunchy raw veg with an
+    apple or orange, beans or chickpeas if it's a meal, an oily sharp dressing,
+    seeds on top. Sandra's "salad a day".
+  colour_dominant: purple
+  cuisine_context: [eastern_european, universal]
+  meal_type: [lunch, dinner, side]
+  preferred_ingredients: [beetroot, carrot, celeriac, cabbage, sauerkraut, cucumber, apple, orange, chickpeas, kidney_beans, sunflower_seeds, lemon, olive_oil]
+  slots: [grated_veg, raw_veg, fruit_topping, protein_bulk, dressing_fat, acid_bright, texture_top]
+  slot_overrides:
+    grated_veg: {amount: {per_serving: 120}}
+    raw_veg: {amount: {per_serving: 80}}
+    fruit_topping: {optional: true, max_ingredients: 1, amount: {per_serving: 50}, required_method: [raw]}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
+    acid_bright: {optional: false}
+  edges:
+    - {from: raw_veg,       to: grated_veg, type: combine}
+    - {from: fruit_topping, to: grated_veg, type: combine}
+    - {from: protein_bulk,  to: grated_veg, type: fold_in}
+    - {from: dressing_fat,  to: grated_veg, type: coat}
+    - {from: acid_bright,   to: grated_veg, type: coat}
+    - {from: texture_top,   to: grated_veg, type: top}
+  sources:
+    - https://www.vegansandra.com/2014/10/salad-day-aka-big-raw-salad-special.html
+    - https://www.vegansandra.com/2013/04/beet-and-sauerkraut-salad.html
+    - https://www.vegansandra.com/2014/03/crunchy-vegetable-salad-with-peanut.html
+    - https://www.vegansandra.com/2012/12/curried-chickpea-avocado-salad-with_27.html
+    - https://www.vegansandra.com/2016/12/vegan-rutabaga-salad-with-curried-beans.html
+    - https://www.vegansandra.com/2017/03/creamy-and-tangy-vegan-caesar-salad-gf.html
+    - https://www.vegansandra.com/2015/07/fresh-salad-with-baked-bean-balls-and.html
+    - https://www.vegansandra.com/2015/02/pancakes-with-crunchy-and-creamy-beet.html
+    - https://www.vegansandra.com/2015/02/watch-how-i-make-my-favorite-salad.html
+    - https://www.101cookbooks.com/california-salad/#recipe
+
+noodle_salad:
+  name: Noodle Salad
+  keeps_days: 1  # leftovers keep this long in the fridge
+  description: >
+    Cold rice noodles with crunchy raw veg, maybe pan-fried mushrooms or
+    broccoli, tofu or chickpeas, a creamy dressing (peanut, pea cream, sesame)
+    with lime, herbs and seeds. Spring and summer lunch.
+  colour_dominant: green
+  cuisine_context: [thai, chinese, universal]
+  meal_type: [lunch, dinner]
+  preferred_ingredients: [rice_noodles, cucumber, carrot, radish, broccoli, mushrooms, tofu, peanut_sauce, frozen_peas, fresh_peas, lime, coriander_leaf, sesame_seeds, capers]
+  slots: [noodle_base, raw_veg, cooked_veg, protein_bulk, creamy_drizzle, acid_bright, finish_herb, texture_top]
+  slot_overrides:
+    cooked_veg: {optional: true, amount: {per_serving: 80}}
+    protein_bulk: {required_roles: [protein, bulk], optional: true, max_ingredients: 1}  # holds its shape: no red lentils
+    creamy_drizzle: {label: Dressing, amount: {per_serving: 40}}
+  edges:
+    - {from: raw_veg,        to: noodle_base, type: fold_in}
+    - {from: cooked_veg,     to: noodle_base, type: fold_in}
+    - {from: protein_bulk,   to: noodle_base, type: fold_in}
+    - {from: creamy_drizzle, to: noodle_base, type: coat}
+    - {from: acid_bright,    to: noodle_base, type: finish}
+    - {from: finish_herb,    to: noodle_base, type: finish}
+    - {from: texture_top,    to: noodle_base, type: top}
+  sources:
+    - https://www.vegansandra.com/2013/04/springy-rice-noodle-salad-with-pea-cream_12.html
+    - https://www.vegansandra.com/2015/03/broccoli-and-noodle-salad-with-capers.html
+    - https://www.vegansandra.com/2016/05/creamy-rice-noodle-salad-with-pan-fried.html

@@ -1,0 +1,52 @@
+tortillas:
+  name: Tortillas
+  storage: counter
+  aisle: bakery
+  classes: [bread]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 320
+  shelf_life_days: 14
+  unit_weight: 40
+  cuisine_context: [mexican, american]
+
+bread:
+  name: Bread
+  storage: counter
+  classes: [bread]
+  roles: [grain_base]
+  flavour: [mild]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 800
+  shelf_life_days: 5
+  unit_weight: 40
+  notes: unit = a slice. Burger buns count too.
+
+breadcrumbs:
+  name: Breadcrumbs
+  classes: [bread]
+  roles: [texture_top, binder]
+  flavour: [mild]
+  colour: beige
+  season: [all]
+  price: cheap
+  unlimited: true
+  staple: true
+
+puff_pastry:
+  name: Puff Pastry
+  classes: [bread]
+  roles: [gluten]
+  flavour: [rich, mild]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 320
+  shelf_life_days: 14
+  unit_weight: 320
+  notes: Ready-rolled sheet (most supermarket ones are accidentally vegan). Pies, carrots in a blanket.

@@ -1,0 +1,79 @@
+potato:
+  name: Potato
+  storage: counter
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable]
+  flavour: [earthy, mild]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 1000
+  shelf_life_days: 30
+  unit_weight: 200
+  nutrition: [high_carb, high_fibre]
+
+carrot:
+  name: Carrot
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy, mild]
+  colour: orange
+  season: [all]
+  price: cheap
+  pack_weight: 500
+  shelf_life_days: 21
+  unit_weight: 80
+  nutrition: [high_fibre]
+  notes: Roast then blend = extraordinary cheap curry gravy base.
+
+parsnip:
+  name: Parsnip
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy, mild]
+  colour: white
+  season: [autumn, winter]
+  price: cheap
+  shelf_life_days: 14
+  unit_weight: 150
+  nutrition: [high_fibre]
+
+sweet_potato:
+  name: Sweet Potato
+  opened_days: 3  # once cut (drafted)
+  storage: counter
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable, sweetener]
+  flavour: [sweet, earthy]
+  colour: orange
+  season: [all]
+  price: moderate
+  shelf_life_days: 21
+  unit_weight: 250
+  nutrition: [high_carb, high_fibre]
+
+turnip:
+  name: Turnip / Swede
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable]
+  flavour: [earthy, sharp, sweet]
+  colour: white
+  season: [autumn, winter]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 300
+  cuisine_context: [eastern_european, british]
+
+celeriac:
+  name: Celeriac (root celery)
+  opened_days: 5  # once cut (drafted)
+  classes: [root_veg]
+  roles: [bulk, bulk_blendable]
+  flavour: [earthy, fresh]
+  colour: white
+  season: [autumn, winter]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 600
+  cuisine_context: [eastern_european, french]
+  notes: Grated raw in salads, cubed in soups and pies.

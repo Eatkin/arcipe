@@ -1,0 +1,147 @@
+frozen_fruit:
+  name: Frozen Fruit
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet, rich, floral]
+  colour: red
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  nutrition: []
+  notes: Frozen mixed berries, cheap stuff
+
+apple:
+  name: Apple
+  opened_days: 1  # once cut (drafted)
+  storage: counter
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet, sharp]
+  colour: green
+  season: [autumn]
+  price: moderate
+  pack_weight: 150
+  shelf_life_days: 30
+  unit_weight: 150
+  notes: Grated or blended into katsu sauce for natural sweetness.
+
+banana:
+  name: Banana
+  opened_days: 1  # once cut (drafted)
+  storage: counter
+  classes: [stone_fruit]
+  roles: [sweetener, bulk_blendable, binder]
+  flavour: [sweet]
+  colour: yellow
+  season: [all]
+  price: cheap
+  pack_weight: 120
+  shelf_life_days: 5
+  unit_weight: 120
+  notes: Blended into katsu sauce. Sounds wrong, tastes right.
+
+lemon:
+  name: Lemon
+  classes: [citrus]
+  roles: [acid_bright, garnish]
+  flavour: [sharp, floral]
+  colour: yellow
+  season: [all]
+  price: moderate
+  max_per_serving: 15
+  shelf_life_days: 21
+  unit_weight: 60
+  stock_ratio: 2.0
+  unlimited: true
+
+
+lime:
+  name: Lime
+  opened_days: 3  # once cut (drafted)
+  storage: counter
+  classes: [citrus]
+  roles: [acid_bright, garnish]
+  flavour: [sharp, fresh]
+  colour: green
+  season: [all]
+  price: moderate
+  shelf_life_days: 14
+  unit_weight: 60
+  stock_ratio: 2.0
+  max_per_serving: 15
+  cuisine_context: [thai, mexican, indian]
+
+raisins:
+  name: Raisins
+  classes: [fruit, sweetener]
+  roles: [sweetener, texture_top]
+  flavour: [sweet]
+  colour: black
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  max_per_serving: 30
+
+dates:
+  name: Dates
+  classes: [fruit, sweetener]
+  roles: [sweetener, binder]
+  flavour: [sweet, rich]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 250
+  max_per_serving: 30
+
+orange:
+  name: Orange
+  opened_days: 2  # once cut (drafted)
+  storage: counter
+  classes: [citrus, fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet, sharp, floral]
+  colour: orange
+  season: [winter, all]
+  price: cheap
+  shelf_life_days: 21
+  unit_weight: 180
+  notes: Juice and zest in Sandra's smoothies, cakes and salad dressings.
+
+rhubarb:
+  name: Rhubarb
+  classes: [fruit]
+  roles: [bulk_blendable, acid_bright]
+  flavour: [sharp]
+  colour: red
+  season: [spring]
+  price: cheap
+  shelf_life_days: 7
+  unit_weight: 100
+  pack_weight: 400
+  notes: Sour, so it wants sugar. Cakes and compote.
+
+prunes:
+  name: Prunes (dried plums)
+  classes: [fruit, sweetener]
+  roles: [sweetener, umami_boost, binder]
+  flavour: [sweet, rich]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 250
+  max_per_serving: 30
+  notes: Sandra's secret in savoury stews and gravies (bean and plum ragout, mushroom and plum gravy) as well as cakes.
+
+pineapple:
+  name: Pineapple
+  opened_days: 3  # once cut (drafted)
+  storage: counter
+  classes: [fruit]
+  roles: [sweetener, acid_bright]
+  flavour: [sweet, sharp]
+  colour: yellow
+  season: [all]
+  price: moderate
+  shelf_life_days: 5
+  unit_weight: 900
+  cuisine_context: [chinese, caribbean]

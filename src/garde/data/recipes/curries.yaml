@@ -1,0 +1,189 @@
+rajma:
+  name: Rajma
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Simple kidney bean curry: whole spices fried in the oil, then onion and
+    ginger, ground spices, tomatoes, the beans and a cup of water, simmered and
+    finished with lemon. Few ingredients, so the beans are the star.
+  colour_dominant: red
+  cuisine_context: [indian]
+  preferred_ingredients: [kidney_beans, tomato, ginger, onion, black_pepper, cloves, fennel_seed, cumin, coriander_seed, turmeric_dried, lemon, basmati_rice]
+  required_ingredients: []
+  slots: [curry_grain_base, whole_spice_bloom, curry_aromatic, spice_bloom, tomato_sauce_body, curry_protein, acid_bright, finish_herb]
+  edges:
+    - {from: whole_spice_bloom, to: curry_aromatic,    type: combine}
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: acid_bright,       to: curry_grain_base,  type: finish}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: >
+    Salt only at the end, or the bean skins peel. Rinse the beans first. Simmer
+    10-15 min with the lid ajar; longer and slower is richer.
+  sources:
+    - https://ekantcookcurry.wordpress.com/rajma-kidney-bean-curry/
+
+butter_chickpeas:
+  name: Butter Chickpeas
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Vegan butter chicken adjacent. Rich creamy tomato sauce,
+    chickpeas as protein. Fat emulsifier is coconut milk or cashew/sunflower cream.
+    Garam masala and cumin forward.
+  colour_dominant: orange
+  cuisine_context: [indian]
+  preferred_ingredients: [garam_masala, turmeric_dried, smoked_paprika, mixed_spice, canned_tomato]
+  required_ingredients: []
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, creamy_curry_fat, curry_protein, finish_herb]
+  edges:
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: creamy_curry_fat,  to: tomato_sauce_body, type: emulsify}
+    - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: Blitz half the sauce before adding chickpeas for texture.
+  sources:
+    - https://www.vegansandra.com/2014/09/tomato-and-chickpea-curry-with-coconut.html
+    - https://pinchofnom.com/recipes/vegetarian-tikka-masala/
+
+cauliflower_madras:
+  name: Cauliflower Madras
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Hot, dry-ish tomato curry. Cauliflower roasted before going in — keeps texture.
+    Chilli forward, no fat emulsifier.
+  colour_dominant: red
+  cuisine_context: [indian]
+  preferred_ingredients: [garam_masala, chilli_powder, turmeric_dried, ginger, canned_tomato]
+  required_ingredients: [cauliflower]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, curry_bulk, curry_protein, finish_herb]
+  edges:
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: curry_bulk,        to: tomato_sauce_body, type: fold_in}
+    - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: Cauliflower goes in curry_bulk — roast at 200°C first. Chickpeas or lentils as protein.
+  sources:
+    - https://pinchofnom.com/recipes/cauliflower-madras/
+
+vindaloo:
+  name: Vindaloo
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Fierce. Tomato and vinegar base, heavy chilli.
+    Vinegar is structural not optional — it's what makes it vindaloo.
+    Chickpeas or potato as bulk.
+  colour_dominant: red
+  cuisine_context: [indian]
+  preferred_ingredients: []
+  required_ingredients: []
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_sauce_body, acid_component, curry_protein, finish_herb]
+  edges:
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: combine}
+    - {from: acid_component,    to: tomato_sauce_body, type: fold_in}
+    - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: Without vinegar it's just a hot tomato curry, not a vindaloo.
+
+saag:
+  name: Saag (Aloo / Tofu / Chana)
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Spinach-based green curry sauce. Starchy bulk slot takes potato (aloo),
+    tofu, or chickpeas (chana). Creamy fat optional but recommended.
+  colour_dominant: green
+  cuisine_context: [indian]
+  preferred_ingredients: [cumin, coriander_seed, turmeric_dried, fenugreek_seed, potato, spinach]
+  required_ingredients: []
+  slots: [curry_grain_base, curry_aromatic, whole_spice_bloom, spice_bloom, saag_green, creamy_curry_fat, starchy_bulk, finish_herb]
+  edges:
+    - {from: whole_spice_bloom, to: curry_aromatic,   type: combine}
+    - {from: curry_aromatic,    to: spice_bloom,      type: combine}
+    - {from: spice_bloom,       to: saag_green,       type: combine}
+    - {from: creamy_curry_fat,  to: saag_green,       type: emulsify}
+    - {from: starchy_bulk,      to: saag_green,       type: fold_in}
+    - {from: saag_green,        to: curry_grain_base, type: coat}
+    - {from: finish_herb,       to: curry_grain_base, type: finish}
+  notes: Frozen spinach is canonical. Fresh works but you need a lot of it.
+  sources:
+    - https://pinchofnom.com/recipes/saag-aloo/
+
+katsu_curry:
+  name: Katsu Curry
+  description: >
+    Japanese-style mild sweet curry sauce. Roux base thickened with flour,
+    sweetened with apple and banana, spiced with curry powder.
+    Serve over rice with whatever bulk veg you fancy.
+  colour_dominant: yellow
+  cuisine_context: [japanese]
+  preferred_ingredients: [tomato_ketchup, tofu, curry_powder, garam_masala]
+  required_ingredients: [roux]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, tomato_enhancement, katsu_sauce_body, katsu_sweetener, curry_protein, finish_herb]
+  edges:
+    - {from: curry_aromatic,     to: katsu_sauce_body, type: combine}
+    - {from: spice_bloom,        to: katsu_sauce_body, type: fold_in}
+    - {from: katsu_sweetener,    to: katsu_sauce_body, type: blend}
+    - {from: tomato_enhancement, to: katsu_sauce_body, type: combine}
+    - {from: curry_protein,      to: katsu_sauce_body, type: top}
+    - {from: katsu_sauce_body,   to: curry_grain_base, type: coat}
+    - {from: finish_herb,        to: curry_grain_base, type: finish}
+  notes: Cauliflower or tofu as curry_protein. Ketchup preferred over puree.
+
+carrot_curry_gravy:
+  name: Roasted Carrot Curry Gravy
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Cheap, deeply satisfying. Root veg roasted until caramelised then blended
+    with tomato and spices into a smooth, mildly sweet gravy.
+    Carrot is canonical but parsnip, squash, sweet potato all work.
+  colour_dominant: orange
+  cuisine_context: [indian]
+  preferred_ingredients: [carrot, roasted_carrot, sweet_potato, parsnip]
+  required_ingredients: []
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, root_sauce_body, tomato_sauce_body, curry_protein, finish_herb]
+  edges:
+    - {from: curry_aromatic,    to: spice_bloom,       type: combine}
+    - {from: root_sauce_body,   to: tomato_sauce_body, type: blend}
+    - {from: spice_bloom,       to: tomato_sauce_body, type: fold_in}
+    - {from: curry_protein,     to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body, to: curry_grain_base,  type: coat}
+    - {from: finish_herb,       to: curry_grain_base,  type: finish}
+  notes: Roast carrot at 200°C until edges are dark. Blend with stock before combining with tomato.
+
+coconut_veg_curry:
+  name: Everyday Coconut / Peanut Veg Curry
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Sandra's weeknight curry: onion, garlic and ginger, curry powder, whatever veg
+    (sweet potato, beetroot, courgette, cauliflower), tofu or lentils, coconut
+    milk or a spoon of peanut butter, over rice. Milder and quicker than the
+    restaurant ones.
+  colour_dominant: yellow
+  cuisine_context: [indian, thai]
+  preferred_ingredients: [basmati_rice, tomato_puree, onion, garlic, ginger, curry_powder, coconut_milk, peanut_butter, tofu, red_lentils, sweet_potato, beetroot, courgette, cauliflower, coriander_leaf]
+  slots: [curry_grain_base, curry_aromatic, spice_bloom, curry_bulk, curry_protein, creamy_curry_fat, tomato_enhancement, finish_herb]
+  slot_overrides:
+    curry_grain_base: {preferred_classes: [rice]}
+    curry_protein: {max_ingredients: 1}
+    spice_bloom: {max_ingredients: 2}
+    tomato_enhancement: {optional: true}
+  edges:
+    - {from: curry_aromatic,     to: spice_bloom,      type: combine}
+    - {from: spice_bloom,        to: curry_bulk,       type: combine}
+    - {from: curry_bulk,         to: creamy_curry_fat, type: combine}
+    - {from: curry_protein,      to: creamy_curry_fat, type: fold_in}
+    - {from: tomato_enhancement, to: creamy_curry_fat, type: combine}
+    - {from: creamy_curry_fat,   to: curry_grain_base, type: coat}
+    - {from: finish_herb,        to: curry_grain_base, type: finish}
+  sources:
+    - https://www.vegansandra.com/2014/08/peanut-butter-and-vegetable-curry.html
+    - https://www.vegansandra.com/2016/05/tofu-and-peanut-butter-curry-video.html
+    - https://www.vegansandra.com/2015/08/groovy-summer-curry.html
+    - https://www.vegansandra.com/2012/12/beet-curry.html
+    - https://www.vegansandra.com/2015/01/creamy-lentil-and-root-vegetable-curry.html

@@ -1,0 +1,77 @@
+garlic:
+  name: Garlic
+  classes: [allium]
+  roles: [aromatic, umami_boost]
+  flavour: [umami, spicy]
+  colour: white
+  season: [all]
+  price: cheap
+  max_per_serving: 8
+  unit_weight: 5
+  unlimited: true
+
+onion:
+  name: Onion
+  classes: [allium]
+  roles: [aromatic]
+  flavour: [sweet, umami]
+  colour: white
+  season: [all]
+  price: cheap
+  unit_weight: 150
+  unlimited: true
+
+green_onion:
+  name: Green Onion
+  classes: [allium]
+  roles: [aromatic, garnish, finish_herb]
+  flavour: [fresh, sharp]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 100
+  max_per_serving: 20
+  shelf_life_days: 7
+  unit_weight: 15
+
+mushrooms:
+  name: Mushrooms
+  classes: [fungus]
+  roles: [bulk, umami_boost]
+  flavour: [umami, earthy]
+  colour: brown
+  season: [autumn, winter]
+  price: moderate
+  pack_weight: 250
+  shelf_life_days: 5
+  unit_weight: 250
+  nutrition: [high_fibre]
+
+tomato:
+  name: Tomato
+  opened_days: 2  # once cut (drafted)
+  storage: counter
+  classes: [nightshade]
+  roles: [sauce_base, bulk, acid_bright]
+  flavour: [umami, sweet, sharp]
+  colour: red
+  season: [summer]
+  price: moderate
+  pack_weight: 400
+  shelf_life_days: 7
+  unit_weight: 100
+  nutrition: [high_fibre]
+
+coriander_leaf:
+  name: Fresh Coriander
+  classes: [fresh_herb]
+  roles: [garnish, finish_herb]
+  flavour: [fresh, floral]
+  colour: green
+  season: [all]
+  price: moderate
+  max_per_serving: 5
+  shelf_life_days: 5
+  unit_weight: 30
+  cuisine_context: [indian, thai, mexican, chinese, levantine]
+

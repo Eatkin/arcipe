@@ -1,0 +1,116 @@
+spinach:
+  name: Spinach
+  classes: [leafy_green]
+  roles: [sauce_base, bulk, garnish]
+  flavour: [earthy, mild, fresh]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 200
+  shelf_life_days: 4
+  unit_weight: 200
+  nutrition: [high_iron, high_calcium]
+
+nettle:
+  name: Nettle
+  classes: [leafy_green]
+  roles: [sauce_base, bulk]
+  flavour: [earthy, grassy]
+  colour: green
+  season: [spring, forage]
+  price: cheap
+  shelf_life_days: 2
+  nutrition: [high_iron]
+  notes: Blanch first to neutralise sting. Remarkable spring ingredient.
+
+dried_nettle:
+  name: Nettle (dried)
+  classes: [leafy_green]
+  roles: [sauce_base]
+  flavour: [earthy, grassy]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 100
+  stock_ratio: 0.15  # dried leaf per gram as it lands in the dish (drafted)
+  max_per_serving: 40  # dish grams, ~6g dried: strong and hay-like (drafted)
+  nutrition: [high_iron]
+  notes: Crumble into soups, stews and green sauces, or soak 10 minutes first.
+
+kale:
+  name: Kale
+  classes: [leafy_green, brassica]
+  roles: [bulk, sauce_base, garnish]
+  flavour: [bitter, earthy]
+  colour: green
+  season: [autumn, winter]
+  price: moderate
+  shelf_life_days: 5
+  unit_weight: 200
+  nutrition: [high_iron, high_calcium, high_fibre]
+
+cauliflower:
+  name: Cauliflower
+  opened_days: 4  # once cut (drafted)
+  classes: [brassica]
+  roles: [bulk, bulk_blendable]
+  flavour: [mild, earthy, nutty]
+  colour: white
+  season: [all]
+  price: moderate
+  shelf_life_days: 7
+  unit_weight: 600
+  nutrition: [high_fibre]
+  notes: Roasts beautifully. Takes spice well. Blends into creamy sauce if needed.
+
+fresh_peas:
+  name: Peas (fresh, in the pod)
+  classes: [legume]
+  roles: [sauce_base, bulk, protein, garnish, raw_crunch]
+  flavour: [sweet, fresh, grassy]
+  colour: green
+  season: [summer]
+  price: moderate
+  pack_weight: 500
+  shelf_life_days: 3  # drafted
+  stock_ratio: 2.5  # pods weigh ~2.5x the shelled peas (drafted)
+  nutrition: [high_protein, high_fibre]
+  notes: Pod them. Sweetest raw or barely cooked; they turn starchy within days of picking.
+
+swiss_chard:
+  name: Swiss Chard
+  classes: [leafy_green]
+  roles: [bulk, sauce_base, garnish]
+  flavour: [earthy, bitter]
+  colour: green
+  season: [summer, autumn]
+  price: moderate
+  pack_weight: 250
+  shelf_life_days: 4
+  unit_weight: 250
+  nutrition: [high_iron]
+
+beansprouts:
+  name: Beansprouts
+  classes: [legume]
+  roles: [bulk, raw_crunch, garnish]
+  flavour: [fresh, mild]
+  colour: white
+  season: [all]
+  price: moderate
+  shelf_life_days: 3
+  unit_weight: 300
+  cuisine_context: [chinese, thai]
+
+tinned_beansprouts:
+  name: Beansprouts (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [legume]
+  roles: [bulk]
+  flavour: [mild]
+  colour: white
+  season: [all]
+  price: cheap
+  unit_weight: 160  # drained
+  cuisine_context: [chinese, thai]
+  notes: Soft, no crunch. Rinse well; stir into stir-fries and soups at the end.
