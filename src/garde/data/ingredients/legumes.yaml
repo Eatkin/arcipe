@@ -113,9 +113,9 @@ tofu:
   colour: white
   season: [all]
   price: pricey
-  pack_weight: 280
+  pack_weight: 400
   shelf_life_days: 7
-  unit_weight: 280
+  unit_weight: 400
   cuisine_context: [japanese, korean, chinese]
   nutrition: [high_protein, high_calcium]
   notes: Press well before using. Takes on sauce flavour readily.
@@ -132,6 +132,23 @@ green_lentils:
   stock_ratio: 0.4
   nutrition: [high_protein, high_iron, high_fibre]
   notes: Hold their shape, unlike red lentils. Tinned = stock_ratio 1 really.
+
+smoked_tofu:
+  name: Tofu (smoked)
+  opened_days: 4  # once opened (drafted)
+  classes: [soy_product, meat_alternative]
+  roles: [bulk, protein, umami_boost]
+  flavour: [smoky, umami]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 400
+  shelf_life_days: 14  # drafted: sealed smoked tofu keeps longer than plain
+  unit_weight: 400
+  nutrition: [high_protein, high_calcium]
+  notes: >-
+    Ready to eat, no pressing. Cubed into salads, fried rice, pasta and
+    stews where you'd use smoked bacon; also good blitzed into a spread.
 
 tempeh:
   name: Tempeh

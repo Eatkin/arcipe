@@ -112,3 +112,31 @@ pasta_salad:
     - https://www.vegansandra.com/2015/04/rich-and-juicy-pasta-salad-with-veggies.html
     - https://www.vegansandra.com/2015/06/creamy-pasta-salad-with-crunchy-carrots.html
     - https://www.vegansandra.com/2014/12/pasta-salad-with-homemade-vegan-sour.html
+
+
+meatball_pasta:
+  name: Meatballs in Tomato Sauce
+  keeps_days: 3  # leftovers keep this long in the fridge
+  description: >
+    Veggie meatballs browned in the pan or oven, then simmered in a garlicky
+    tomato sauce with oregano and basil. Over spaghetti or penne, with a
+    sprinkle of vegan parmesan; or stuffed into a sub roll the next day.
+  colour_dominant: red
+  cuisine_context: [italian, american]
+  required_ingredients: [veggie_meatballs]
+  preferred_ingredients: [veggie_meatballs, onion, garlic, passata, canned_tomato, tomato_puree, oregano, basil, parsley, spaghetti, pasta, vegan_parmesan]
+  slots: [protein_bulk, aromatic_base, tomato_sauce_body, tomato_enhancement, dried_herbs, pasta_base, umami_boost, finish_herb]
+  slot_overrides:
+    protein_bulk: {label: Meatballs, required_method: [fry, roast, bake], max_ingredients: 1, preferred_classes: [meat_alternative], amount: {per_serving: 100}, time: {active: 5, passive: 15}}
+    aromatic_base: {amount: {per_serving: 40}}
+    tomato_sauce_body: {time: {active: 3, passive: 20}}
+    tomato_enhancement: {optional: true}
+    umami_boost: {label: Cheese on top, optional: true, preferred_classes: [fermented, condiment], excluded_classes: [fruit_veg, nightshade, fungus, leafy_green]}
+  edges:
+    - {from: aromatic_base,      to: tomato_sauce_body, type: combine}
+    - {from: tomato_enhancement, to: tomato_sauce_body, type: fold_in}
+    - {from: dried_herbs,        to: tomato_sauce_body, type: combine}
+    - {from: protein_bulk,       to: tomato_sauce_body, type: fold_in}
+    - {from: tomato_sauce_body,  to: pasta_base,        type: coat}
+    - {from: umami_boost,        to: pasta_base,        type: finish}
+    - {from: finish_herb,        to: pasta_base,        type: finish}
