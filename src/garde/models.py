@@ -393,7 +393,14 @@ class Ingredient(DataModel):
     # Days it keeps once opened (a tin of coconut milk: 4). Whole tins left keep
     # their date; the opened remainder gets this. None = opening doesn't matter
     opened_days: int | None = None
+    # Grams per ml, for liquids (soy sauce 1.2, oil 0.92, stock 1.0). Set = it's a
+    # liquid, shown and typed in ml / l; the ledger stays in grams. None = solid
+    density: float | None = Field(default=None, gt=0)
     notes: str = ""
+
+    @property
+    def liquid(self) -> bool:
+        return self.density is not None
 
     @property
     def unit_grams(self) -> float | None:

@@ -51,6 +51,7 @@ from garde.models import Season
 from garde.models import colour_distance
 from garde.timing import Timing
 from garde.timing import recipe_timing
+from garde.units import format_amount
 from garde.utils import get_season
 from garde.vibes import Feedback
 
@@ -121,7 +122,9 @@ class Resolution:
 
 
 def _fmt_pick(ing_id: str, grams: float | None) -> str:
-    return f"{ing_id} {grams:.0f}g" if grams else ing_id
+    return (
+        f"{ing_id} {format_amount(INGREDIENTS.get(ing_id), grams)}" if grams else ing_id
+    )
 
 
 # ---------------------------------------------------------------------------

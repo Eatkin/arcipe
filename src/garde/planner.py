@@ -51,6 +51,8 @@ from garde.models import Recipe
 from garde.resolver import RecipeScore
 from garde.resolver import Resolution
 from garde.resolver import rank_recipes
+from garde.units import format_amount
+from garde.units import unit
 from garde.vibes import Feedback
 
 
@@ -99,14 +101,21 @@ _UNIT_GRAMS = {None: None, "g": 1.0, "ml": 1.0, "kg": 1000.0, "l": 1000.0}
 
 
 def parse_amount(ing: Ingredient, value: float | str) -> float:
-    """Grams from a natural-unit count (3) or a measured string ("500g", "1.5kg")."""
+    """
+    Grams from a natural-unit count (3) or a measured string ("500g", "1.5kg",
+    "250ml"). Millilitres go through the ingredient's density (soy sauce: 1.2g
+    per ml); things without one count as 1g per ml.
+    """
     if isinstance(value, str):
         m = _AMOUNT.match(value)
         if not m:
             raise ValueError(f"{ing.id}: can't parse amount {value!r}")
-        number, unit = float(m.group(1)), m.group(2)
-        factor = _UNIT_GRAMS[unit.lower() if unit else None]
+        number, measure = float(m.group(1)), m.group(2)
+        measure = measure.lower() if measure else None
+        factor = _UNIT_GRAMS[measure]
         if factor is not None:
+            if measure in ("ml", "l"):
+                factor *= ing.density or 1.0
             return number * factor
         value = number
     if ing.unit_weight is None:
@@ -484,7 +493,10 @@ def _slot_lines(slot: MealSlot, c: _Colours) -> list[str]:
         if not a.assigned:
             continue
         picks = ", ".join(
-            f"{i} {a.grams[i]:.0f}g" if a.grams.get(i) else i for i in a.assigned
+            f"{i} {format_amount(INGREDIENTS.get(i), a.grams[i])}"
+            if a.grams.get(i)
+            else i
+            for i in a.assigned
         )
         lines.append(f"    • {a.slot_label + ':':<28} {c.yellow}{picks}{c.reset}")
     return lines
@@ -543,9 +555,15 @@ class MealPlan:
             wasted = self.wasted.get(ing_id, 0.0)
             used = start - left - wasted
             colour = c.red if wasted else c.reset
-            note = f"  {c.red}wasted {wasted:.0f}g{c.reset}" if wasted else ""
+            ing = INGREDIENTS.get(ing_id)
+            note = (
+                f"  {c.red}wasted {format_amount(ing, wasted)}{c.reset}"
+                if wasted
+                else ""
+            )
             lines.append(
-                f"  {ing_id:<22} {colour}{left:>6.0f}g left{c.reset}  (used {used:.0f}g){note}"
+                f"  {ing_id:<22} {colour}{format_amount(ing, left):>7} left{c.reset}"
+                f"  (used {format_amount(ing, used)}){note}"
             )
         for key, grams in sorted(self.wasted.items()):
             if key.startswith("leftovers:"):
@@ -562,17 +580,23 @@ class MealPlan:
     def shopping_items(
         self, ingredient_db: dict[str, Ingredient] | None = None
     ) -> list[dict]:
-        """One row per thing to buy: id, name, packs, grams, price level."""
+        """
+        One row per thing to buy: id, name, packs, grams, price level, and the
+        amount as people read it (`amount`: "1l" of plant milk, "500g" of pasta).
+        """
         db = ingredient_db or INGREDIENTS
         rows = []
         for ing_id, packs in sorted(self.bought.items(), key=lambda kv: db[kv[0]].name):
             ing = db[ing_id]
+            grams = packs * ing.pack_grams
             rows.append(
                 {
                     "id": ing_id,
                     "name": ing.name,
                     "packs": packs,
-                    "grams": round(packs * ing.pack_grams),
+                    "grams": round(grams),
+                    "amount": format_amount(ing, grams),
+                    "unit": unit(ing),
                     "price": int(ing.price),
                     "price_word": ing.price.word,
                     "aisle": ing.aisle,
@@ -589,7 +613,7 @@ class MealPlan:
             lines = [f"Shopping list ({spend} price points):"]
             for r in rows:
                 lines.append(
-                    f"  {r['packs']} x {r['name']:<26} ({r['grams']}g)  {r['price_word']}"
+                    f"  {r['packs']} x {r['name']:<26} ({r['amount']})  {r['price_word']}"
                 )
         for day, meal in self.unplanned:
             lines.append(f"  Day {day} {meal} — nothing to cook even with the shop")

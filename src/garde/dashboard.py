@@ -120,6 +120,8 @@ from garde.solver import optimise_week
 from garde.solver import parse_pick
 from garde.solver import quickest_minutes
 from garde.solver import weights_from
+from garde.units import format_amount
+from garde.units import unit
 from garde.vibes import Feedback
 
 
@@ -217,6 +219,9 @@ def meta() -> dict[str, Any]:
                 "price_word": ing.price.word,
                 "storage": ing.storage,
                 "aisle": ing.aisle,
+                # Liquids are shown and typed in ml: grams = ml * density
+                "unit": unit(ing),
+                "density": ing.density,
             }
             for ing in sorted(INGREDIENTS.values(), key=lambda i: i.name)
         ],
@@ -254,6 +259,18 @@ def _source(url: str) -> dict[str, str]:
     return {"url": url, "title": title, "site": parsed.netloc.removeprefix("www.")}
 
 
+def _slot_item(ing_id: str, grams: float | None) -> dict[str, Any]:
+    """One pick in a slot: grams for the ledger, `amount` to show ("15ml")."""
+    ing = INGREDIENTS.get(ing_id)
+    return {
+        "id": ing_id,
+        "name": display_name(ing_id),
+        "grams": grams,
+        "amount": None if grams is None else format_amount(ing, grams),
+        "unit": unit(ing),
+    }
+
+
 def _meal(r: Resolution) -> dict[str, Any]:
     recipe = RECIPES[r.recipe_id]
     return {
@@ -269,10 +286,7 @@ def _meal(r: Resolution) -> dict[str, Any]:
         "slots": [
             {
                 "label": a.slot_label,
-                "items": [
-                    {"id": i, "name": display_name(i), "grams": a.grams.get(i)}
-                    for i in a.assigned
-                ],
+                "items": [_slot_item(i, a.grams.get(i)) for i in a.assigned],
             }
             for a in r.assignments
             if a.assigned
@@ -342,6 +356,7 @@ def _plan(
                 "used": round(start + extra - left - wasted),
                 "left": round(left),
                 "wasted": round(wasted),
+                "unit": unit(INGREDIENTS.get(ing_id)),
             }
         )
     dishes = [

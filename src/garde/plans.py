@@ -68,6 +68,7 @@ from garde.pantry import Pantry
 from garde.solver import DOUBLE
 from garde.solver import LEFTOVERS
 from garde.solver import SKIP
+from garde.units import stock_amount
 from garde.utils import garde_home
 
 
@@ -364,7 +365,9 @@ def _batch_rest(
             items, {made_from.ingredient: extra * made_from.ratio}, db
         )
         taken += took
-        new = Item(raw, f"{extra:.1f}g", _plus_days(when, made_from.keeps_days))
+        new = Item(
+            raw, stock_amount(db[raw], extra, 1), _plus_days(when, made_from.keeps_days)
+        )
         items = pantry.give(items, [new], db)
         added.append(new)
     return items, taken, added
@@ -590,12 +593,12 @@ def fresh_use_by(ing: Ingredient, when: date) -> str | None:
 
 
 def _amount(ing: Ingredient, grams: float) -> str:
-    """A count if it comes in whole units, else grams."""
+    """A count if it comes in whole units, else grams (ml for liquids)."""
     if ing.unit_weight:
         count = grams / ing.unit_weight
         if abs(count - round(count)) < 1e-6:
             return f"{round(count)}"
-    return f"{round(grams)}g"
+    return stock_amount(ing, grams)
 
 
 def _row(record: dict[str, Any], ing_id: str, bought: bool) -> dict[str, Any]:

@@ -65,8 +65,13 @@ uv run --extra dev --extra ui pytest tests/ui   # browser smoke test (Playwright
 
 Slot amounts are grams **as they land in the dish**. Stock is grams **as stocked**.
 `stock_ratio` and `base_ratio` convert between them. Inventory can be given as
-counts (`carrot: 6`), measures (`red_lentils: "500g"`), and with explicit expiry
-(`spinach: {amount: 1, expires: 2}`).
+counts (`carrot: 6`), measures (`red_lentils: "500g"`, `soy_sauce: "150ml"`), and
+with explicit expiry (`spinach: {amount: 1, expires: 2}`).
+
+Liquids have a `density` (grams per ml: soy sauce 1.2, oil 0.92, stock 1.0). The
+ledger stays in grams, but they're shown in ml (or l from a litre up) and ml
+typed in goes through the density (`garde.units`). No density means a solid,
+shown in grams.
 
 ### Made ingredients, scraps and leftovers
 

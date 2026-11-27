@@ -13,6 +13,7 @@ capers:
 
 white_wine_vinegar:
   name: White Wine Vinegar
+  density: 1.0  # g per ml: shown in ml
   classes: [vinegar]
   roles: [acid_component, acid_bright]
   flavour: [sharp]
@@ -25,6 +26,7 @@ white_wine_vinegar:
 
 apple_cider_vinegar:
   name: Apple Cider Vinegar
+  density: 1.0  # g per ml: shown in ml
   classes: [vinegar]
   roles: [acid_component, acid_bright]
   flavour: [sharp, sweet]
@@ -63,6 +65,7 @@ nutritional_yeast:
 
 olive_oil:
   name: Olive Oil
+  density: 0.92  # g per ml: shown in ml
   classes: [fat]
   roles: [fat_emulsifier]
   flavour: [rich, earthy]
@@ -89,6 +92,7 @@ butter:
 
 coconut_milk:
   name: Coconut Milk (full fat)
+  density: 1.0  # g per ml: shown in ml
   opened_days: 4  # once opened (drafted)
   classes: [plant_milk]
   roles: [fat_emulsifier, liquid, sauce_base]
@@ -197,6 +201,7 @@ vegan_parmesan:
 
 vegetable_oil:
   name: Vegetable Oil
+  density: 0.92  # g per ml: shown in ml
   classes: [fat]
   roles: [fat_emulsifier]
   flavour: [mild]
@@ -220,18 +225,20 @@ coconut_oil:
 
 sesame_oil:
   name: Toasted Sesame Oil
+  density: 0.92  # g per ml: shown in ml
   classes: [fat, seed]
   roles: [fat_emulsifier, umami_boost]
   flavour: [nutty, rich]
   colour: brown
   season: [all]
   price: pricey
-  pack_weight: 250
+  pack_weight: 230  # a 250ml bottle
   max_per_serving: 8
   cuisine_context: [chinese, japanese, korean]
 
 vegetable_stock:
   name: Vegetable Stock
+  density: 1.0  # g per ml: shown in ml
   classes: [seasoning]
   roles: [liquid]
   flavour: [umami, mild]
@@ -256,6 +263,7 @@ passata:
 
 soy_sauce:
   name: Soy Sauce
+  density: 1.2  # g per ml: shown in ml
   classes: [condiment, fermented, soy_product]
   roles: [umami_boost]
   flavour: [umami]
@@ -268,6 +276,7 @@ soy_sauce:
 
 plant_milk:
   name: Plant Milk
+  density: 1.0  # g per ml: shown in ml
   opened_days: 7  # once opened (drafted)
   classes: [plant_milk]
   roles: [liquid]
@@ -282,6 +291,7 @@ plant_milk:
 
 plant_cream:
   name: Plant Cream
+  density: 1.0  # g per ml: shown in ml
   opened_days: 4  # once opened (drafted)
   classes: [plant_milk]
   roles: [fat_emulsifier, sauce_base, liquid]
@@ -322,13 +332,14 @@ tahini:
 
 maple_syrup:
   name: Maple / Agave Syrup
+  density: 1.33  # g per ml: shown in ml
   classes: [sweetener]
   roles: [sweetener]
   flavour: [sweet]
   colour: brown
   season: [all]
   price: pricey
-  pack_weight: 250
+  pack_weight: 330  # a 250ml bottle
   max_per_serving: 15
 
 sugar:
@@ -391,6 +402,7 @@ mustard:
 
 rice_vinegar:
   name: Rice (Wine) Vinegar
+  density: 1.0  # g per ml: shown in ml
   classes: [vinegar]
   roles: [acid_bright, acid_component]
   flavour: [sharp, sweet]
@@ -495,6 +507,7 @@ mayo:
 
 gravy:
   name: Gravy
+  density: 1.0  # g per ml: shown in ml
   storage: fridge
   classes: [condiment]
   roles: [gravy]
@@ -539,26 +552,28 @@ barbecue_sauce:
 # From the cupboard audit, 2026-11-25. Numbers drafted.
 dark_soy_sauce:
   name: Dark Soy Sauce
+  density: 1.2  # g per ml: shown in ml
   classes: [condiment, fermented, soy_product]
   roles: [umami_boost, flavour_enhancer]
   flavour: [umami, sweet, rich]
   colour: black
   season: [all]
   price: moderate
-  pack_weight: 150
+  pack_weight: 180  # a 150ml bottle
   max_per_serving: 8
   cuisine_context: [chinese]
   notes: For colour and a molasses depth; less salty than light soy.
 
 vegan_fish_sauce:
   name: Vegan Fish Sauce
+  density: 1.2  # g per ml: shown in ml
   classes: [condiment]
   roles: [umami_boost, flavour_enhancer]
   flavour: [umami, sharp]
   colour: brown
   season: [all]
   price: moderate
-  pack_weight: 150
+  pack_weight: 180  # a 150ml bottle
   max_per_serving: 8
   cuisine_context: [thai]
 
@@ -578,6 +593,7 @@ vegan_oyster_sauce:
 
 tabasco:
   name: Tabasco
+  density: 1.0  # g per ml: shown in ml
   classes: [condiment]
   roles: [heat, acid_bright]
   flavour: [spicy, sharp]
@@ -614,6 +630,7 @@ agar_agar:
 
 alcohol_free_beer:
   name: Alcohol-free Beer
+  density: 1.0  # g per ml: shown in ml
   classes: [fermented]
   roles: [liquid]
   flavour: [bitter, mild]
@@ -626,13 +643,14 @@ alcohol_free_beer:
 
 worcestershire_sauce:
   name: Henderson's Relish / Vegan Worcestershire
+  density: 1.1  # g per ml: shown in ml
   classes: [condiment]
   roles: [umami_boost, flavour_enhancer, acid_bright]
   flavour: [umami, sharp]
   colour: brown
   season: [all]
   price: cheap
-  pack_weight: 284
+  pack_weight: 312  # a 284ml (10 fl oz) bottle
   max_per_serving: 8
   cuisine_context: [british]
   notes: Henderson's is vegan; most Worcestershire has anchovy. Stands in for fish sauce too.
