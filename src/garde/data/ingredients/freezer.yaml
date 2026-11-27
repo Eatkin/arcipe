@@ -30,3 +30,49 @@ frozen_sweetcorn:
   season: [all]
   price: cheap
   pack_weight: 900
+
+quorn_pieces:
+  name: Quorn Chicken-Style Pieces (frozen)
+  classes: [meat_alternative, fungus]
+  roles: [protein, bulk]
+  flavour: [mild, umami]
+  colour: beige
+  season: [all]
+  price: moderate
+  pack_weight: 300
+  nutrition: [high_protein, high_fibre]
+  notes: >-
+    Mycoprotein. Cook from frozen in curries, stir-fries and pies. The standard
+    range has egg white (vegetarian, not vegan); Quorn's vegan pieces are a
+    different pack.
+
+quorn_sausages:
+  name: Quorn Sausages (frozen)
+  classes: [meat_alternative]
+  roles: [protein, bulk]
+  flavour: [umami, mild]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 336
+  unit_weight: 42  # 8 in a pack
+  cuisine_context: [british]
+  nutrition: [high_protein]
+  notes: >-
+    Bangers and mash, toad in the hole, sausage casserole. Contains egg
+    (vegetarian, not vegan).
+
+quorn_meatballs:
+  name: Quorn Swedish-Style Balls (frozen)
+  classes: [meat_alternative]
+  roles: [protein, bulk]
+  flavour: [umami, mild]
+  colour: brown
+  season: [all]
+  price: pricey
+  pack_weight: 300
+  unit_weight: 15  # drafted: about 20 in a pack
+  nutrition: [high_protein]
+  notes: >-
+    Meatballs in tomato sauce, or Swedish style with gravy and mash. Contains egg
+    (vegetarian, not vegan).

@@ -145,3 +145,68 @@ pineapple:
   shelf_life_days: 5
   unit_weight: 900
   cuisine_context: [chinese, caribbean]
+
+grapes:
+  name: Grapes
+  storage: fridge
+  classes: [fruit]
+  roles: [sweetener, garnish]
+  flavour: [sweet, fresh]
+  colour: green
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  shelf_life_days: 7
+  notes: Mostly snacking. Halved in salads (with walnuts), or frozen as sweets.
+
+nectarine:
+  name: Nectarine
+  opened_days: 1  # once cut (drafted)
+  storage: counter
+  classes: [stone_fruit, fruit]
+  roles: [sweetener, bulk_blendable, garnish]
+  flavour: [sweet, floral]
+  colour: orange
+  season: [summer]
+  price: moderate
+  pack_weight: 520  # a pack of 4
+  shelf_life_days: 5
+  unit_weight: 130
+  notes: Ripens on the counter, then the fridge. Salads, salsa, crumble, smoothies.
+
+dried_mixed_fruit:
+  name: Dried Mixed Fruit
+  classes: [fruit, sweetener]
+  roles: [sweetener, texture_top]
+  flavour: [sweet, rich]
+  colour: brown
+  season: [all]
+  price: moderate
+  pack_weight: 500
+  max_per_serving: 30
+  notes: Raisins, sultanas, currants, peel. Fruit cake, scones, flapjacks, porridge.
+
+tinned_mandarins:
+  name: Mandarin Segments (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [citrus, fruit]
+  roles: [sweetener, garnish, acid_bright]
+  flavour: [sweet, fresh]
+  colour: orange
+  season: [all]
+  price: cheap
+  unit_weight: 298
+  cuisine_context: [chinese]
+  notes: Weighed with the juice. Desserts, sweet and sour, salads.
+
+tinned_peaches:
+  name: Peach Slices (tin)
+  opened_days: 3  # once opened (drafted)
+  classes: [stone_fruit, fruit]
+  roles: [sweetener, bulk_blendable]
+  flavour: [sweet]
+  colour: orange
+  season: [all]
+  price: cheap
+  unit_weight: 411
+  notes: In light syrup, weighed with it. Crumble, cobbler, upside-down cake, with yogurt.

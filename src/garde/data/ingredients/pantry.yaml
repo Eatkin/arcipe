@@ -123,7 +123,7 @@ coconut_cream:
   unit_weight: 400
   cuisine_context: [indian, thai, caribbean]
   nutrition: [high_fat]
-  notes: Thins down to coconut milk (coconut_milk.made_from).
+  notes: Tinned, or the 200g creamed coconut block. Thins down to coconut milk (coconut_milk.made_from).
 
 canned_tomato:
   name: Canned Tomatoes
