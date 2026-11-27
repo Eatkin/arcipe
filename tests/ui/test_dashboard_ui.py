@@ -93,6 +93,14 @@ def test_plan_save_tick_skip_replan(page):
     first.locator(".cook input").check()
     page.wait_for_selector("#saved-grid .meal.done")
     assert page.inner_text("#saved-grid .meal.done .took")  # what came out, if anything
+    rate = page.locator("#saved-grid .meal.done .rate")
+    if rate.count():  # not for leftovers
+        rate.locator("button[data-r='1']").click()
+        page.wait_for_selector("#saved-grid .meal.done .rate button.on")
+        rate.locator("button[data-r='1']").click()  # again: taken back
+        page.wait_for_function(
+            "document.getElementById('status').textContent.includes('taken back')"
+        )
 
     # Skip the last dinner, then bring the week back up to date
     last = page.locator("#saved-grid .meal").last
@@ -119,6 +127,38 @@ def test_plan_save_tick_skip_replan(page):
     )
 
 
+def test_swap_on_the_plan_tab_keeps_the_rest_of_the_week(page):
+    page.fill("#days", "3")
+    page.dispatch_event("#days", "input")
+    page.click("#plan-btn")
+    page.wait_for_selector("#days-grid .meal .name", timeout=60_000)
+    assert (
+        page.locator("#days-grid .rate").count() == 0
+    )  # nothing to rate before cooking
+
+    def names():
+        return [
+            day.locator(".meal").first.inner_text().split("\n")[1]
+            for day in page.locator("#days-grid .day").all()
+        ]
+
+    before = names()
+    page.locator("#days-grid .day").nth(1).locator("button[data-do=swap]").click()
+    page.wait_for_selector("#days-grid .options button.option")
+    page.locator("#days-grid .options button.option").first.click()
+    page.wait_for_function(
+        "document.getElementById('progress-text').textContent.includes('as it was')"
+    )
+    after = names()
+    assert [after[0], after[2]] == [before[0], before[2]]
+    assert "1 meal locked" in page.inner_text("#pins-note")
+    page.reload()  # the plan survives a reload
+    page.wait_for_selector("#days-grid .meal .name")
+    assert names() == after
+    page.click("#pins-clear")
+    assert page.locator("#pins-note").is_hidden()
+
+
 def test_bin_what_went_off(server, page):
     stale = {"id": "spinach", "amount": "1", "use_by": "2020-01-01"}
     req = urllib.request.Request(
@@ -138,10 +178,34 @@ def test_bin_what_went_off(server, page):
     )
     assert page.locator("#gone-off").is_hidden()
     # A row's own bin button
-    page.locator("#areas .prow:not(.head) button.bin").first.click()
+    rows = page.locator("#areas .prow:not(.head)")
+    before = rows.count()
+    rows.first.locator("button.bin").click()
+    page.wait_for_selector("#toast.on")
+    assert "Binned" in page.inner_text("#toast")
     page.wait_for_function(
-        "document.getElementById('status').textContent.startsWith('binned')"
+        f"document.querySelectorAll('#areas .prow:not(.head)').length < {before}"
     )
+    # ...and Undo puts it back
+    page.click("#toast button")
+    page.wait_for_function(
+        "document.getElementById('status').textContent === 'put back'"
+    )
+    assert rows.count() == before
+
+
+def test_bad_amount_is_flagged_and_the_rest_saves(server, page):
+    page.goto(server + "/#pantry")
+    page.wait_for_selector("#areas .prow:not(.head)")
+    amount = page.locator("#areas .prow:not(.head)").first.locator("input").nth(1)
+    amount.fill("1 tun")
+    page.wait_for_selector("#areas .prow .problem:not(:empty)")
+    assert "can't read" in page.inner_text("#error")
+    amount.fill("2 tins")
+    page.wait_for_function(
+        "document.getElementById('status').textContent === 'pantry saved'"
+    )
+    assert page.locator("#areas input.bad").count() == 0
 
 
 def test_shopping_list_by_aisle(server, page):

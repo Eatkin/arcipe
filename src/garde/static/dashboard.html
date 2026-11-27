@@ -24,6 +24,7 @@
   <aside>
     <section class="panel">
       <h2>In the kitchen</h2>
+      <div id="pantry-nag"></div>
       <div id="pantry-summary"></div>
       <a class="button" href="#pantry">Edit the pantry →</a>
     </section>
@@ -31,8 +32,8 @@
     <section class="panel">
       <h2>The week</h2>
       <div class="row">
-        <label>People<input type="number" id="people" min="1" max="12"></label>
-        <label>Days<input type="number" id="days" min="1" max="14"></label>
+        <label>People<input type="number" id="people" min="1" max="12" inputmode="numeric"></label>
+        <label>Days<input type="number" id="days" min="1" max="14" inputmode="numeric"></label>
       </div>
       <label class="field">Starting<input type="date" id="start_date"></label>
       <div class="meals" id="meals"></div>
@@ -79,11 +80,13 @@
     <section class="panel runbar">
       <button class="primary" id="plan-btn">Plan the week</button>
       <button id="save-btn" disabled title="Keep this plan, to tick meals off as you cook them">Save plan</button>
+      <button id="copy-week" disabled title="The week as text, to stick on the fridge or send">Copy the week</button>
       <div class="progress-wrap">
         <div class="progress"><span id="progress-bar"></span></div>
         <div class="progress-text" id="progress-text">Set things up on the left, then press Plan.</div>
       </div>
     </section>
+    <div class="pins-note" id="pins-note" style="display:none"></div>
     <div class="stale" id="stale">Settings changed since this plan. Press <b>Plan the week</b> to update it.</div>
     <div id="results">
       <section class="panel">
@@ -120,9 +123,11 @@
           <div class="saved-title" id="saved-name"></div>
           <div class="hint" id="saved-meta"></div>
         </div>
+        <button id="saved-copy" title="The week as text, to stick on the fridge or send">Copy the week</button>
         <button id="saved-rename">Rename</button>
         <button id="saved-delete" class="danger">Delete</button>
       </section>
+      <section class="panel unticked" id="unticked" style="display:none"></section>
       <section class="panel replan" id="replan-box">
         <div>
           <b>Week not going to plan?</b>
@@ -151,7 +156,8 @@
 
 <!-- ============================================================== pantry -->
 <div class="view" id="view-pantry">
-  <p class="intro">What's in. Amount is a count (“3” carrots) or a weight (“500g”).
+  <p class="intro">What's in. Amount is a count (“3” carrots), a weight (“500g”, “1.5kg”)
+    or packs (“2 tins”, “half a bag”, “2 x 400g”).
     Use-by is the last good day; leave it blank for things that keep.
     Changes save as you go. 🗑 means it went in the bin (counted as waste); × means it's used up.
     <b id="waste-month"></b></p>
@@ -186,6 +192,7 @@
   </section>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <datalist id="all-ingredients"></datalist>
 <script src="/static/dashboard.js"></script>
 </body>

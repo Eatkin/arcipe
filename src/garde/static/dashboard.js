@@ -1,6 +1,7 @@
 // Garde Manger dashboard. Vanilla JS, no build step.
 const $ = (id) => document.getElementById(id);
 const STORE = "garde.state.v2";
+const LAST_PLAN = "garde.lastplan.v1";  // the shown plan, so a reload doesn't lose it
 const NO_LIMIT = 125;            // time slider's far right
 const AREAS = [
   ["fridge", "Fridge"], ["freezer", "Freezer"], ["cupboard", "Cupboard"], ["counter", "Counter & fruit bowl"],
@@ -15,10 +16,11 @@ let lastResult = null;     // the shown plan, as /api/plan returned it
 let lastBody = null;       // ...and the settings that made it
 let savedPlans = [];       // summaries from /api/plans
 let savedPlan = null;      // the saved plan being looked at
-let ratings = {};          // "day-meal" -> +1/-1 for the shown plan
 let running = null;        // AbortController while a search runs
 let hasPlan = false;
 let pantryTimer = null, pantrySaving = Promise.resolve();
+let pantryVersion = null;  // the server's pantry version we last saw: a save from a stale tab is refused
+let shownDay = null;       // the day the page was drawn for: redrawn when the date ticks over
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -29,6 +31,20 @@ const ingByName = (name) => {
   const n = name.trim().toLowerCase();
   return META.ingredients.find((i) => i.name.toLowerCase() === n || i.id === n);
 };
+
+// A message at the bottom with an Undo button, for things done in one click
+let toastTimer = null;
+function toast(text, undo) {
+  const box = $("toast");
+  box.innerHTML = `<span>${esc(text)}</span>${undo ? `<button>Undo</button>` : ""}`;
+  box.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => box.classList.remove("on"), 8000);
+  if (undo) box.querySelector("button").addEventListener("click", async () => {
+    box.classList.remove("on");
+    try { await undo(); } catch (e) { showError(e.message); }
+  });
+}
 
 // ------------------------------------------------------------------ dates
 const isoDay = (d) => {
@@ -101,7 +117,7 @@ function renderPantry() {
     const panel = document.createElement("section");
     panel.className = "panel";
     panel.innerHTML = `
-      <div class="area-head"><h2>${title}</h2><span class="count">${plural(rows.filter((r) => r.id).length, "thing")}</span></div>
+      <div class="area-head"><h2>${title}</h2><span class="count" data-count="${area}"></span></div>
       <div class="prow head"><span>Ingredient</span><span>Amount</span><span>Use by</span><span></span><span></span><span></span><span></span></div>
       <div class="rows"></div>
       <datalist id="dl-${area}">${areaOptions(area)}</datalist>
@@ -116,9 +132,28 @@ function renderPantry() {
     });
     box.appendChild(panel);
   }
+  areaCounts();
   renderDishes();
   renderGoneOff();
   renderStaples();
+}
+
+function areaCounts() {
+  for (const [area] of AREAS) {
+    const el = document.querySelector(`[data-count="${area}"]`);
+    if (el) el.textContent = plural(pantry.filter((r) => r.area === area && r.id).length, "thing");
+  }
+}
+
+// Take a pantry row off (used up), with an Undo
+function removeRow(row) {
+  const at = pantry.indexOf(row);
+  pantry.splice(at, 1);
+  renderPantry(); pantryChanged();
+  toast(`${row.id ? ingName(row.id) : "Row"} taken off`, () => {
+    pantry.splice(Math.min(at, pantry.length), 0, row);
+    renderPantry(); pantryChanged();
+  });
 }
 
 // Staples assumed in: click one you don't keep and plans shop for it instead
@@ -216,7 +251,13 @@ async function binThings(items, gone) {
     renderWaste(data.waste);
     markStale();
     const g = data.waste.recent.slice(0, items.length + gone.length).reduce((t, e) => t + e.grams, 0);
-    $("status").textContent = `binned ${g}g`;
+    const what = [...items.map((r) => ingName(r.id)), ...gone.map((d) => recipeName(d.recipe_id))];
+    toast(`Binned ${what.join(", ")} (${g}g)`, async () => {
+      await flushPantry();
+      const back = await api("/api/pantry/unbin", { method: "POST", body: { items: items.map(asItem), dishes: gone } });
+      setPantry(back.pantry); renderPantry(); renderWaste(back.waste); markStale();
+      $("status").textContent = "put back";
+    });
   } catch (e) { showError(e.message); }
 }
 
@@ -257,7 +298,11 @@ function renderDishes() {
       dish.use_by = useBy.value; renderPantry(); pantryChanged();
     });
     el.querySelector("button.eat").addEventListener("click", () => {
-      dishes.splice(dishes.indexOf(dish), 1); renderPantry(); pantryChanged();
+      const at = dishes.indexOf(dish);
+      dishes.splice(at, 1); renderPantry(); pantryChanged();
+      toast(`${recipeName(dish.recipe_id)} taken off`, () => {
+        dishes.splice(Math.min(at, dishes.length), 0, dish); renderPantry(); pantryChanged();
+      });
     });
     el.querySelector("button.bin").addEventListener("click", () => binThings([], [dish]));
     el.querySelector("button.freeze").addEventListener("click", () => { freeze(dish, !dish.frozen); renderPantry(); pantryChanged(); });
@@ -277,6 +322,7 @@ function pantryRow(row, area) {
   const el = document.createElement("div");
   el.className = "prow";
   el.dataset.area = area;
+  el.row = row;
   el.innerHTML = `
     <input type="text" list="dl-${area}" value="${esc(ing ? ing.name : row.id)}" aria-label="Ingredient">
     <input type="text" value="${esc(row.amount)}" aria-label="Amount"
@@ -285,22 +331,31 @@ function pantryRow(row, area) {
     ${row.frozen ? `<span class="badge frozen">frozen</span>` : badge(row.use_by)}
     <button class="x freeze" title="${row.frozen ? "Take it out to defrost: good for 2 more days" : "Put it in the freezer"}">${row.frozen ? "☀" : "❄"}</button>
     <button class="x bin" title="Binned it: counts as waste">🗑</button>
-    <button class="x eat" title="Used up or gone: take it off the list">×</button>`;
+    <button class="x eat" title="Used up or gone: take it off the list">×</button>
+    <div class="problem"></div>`;
+  markProblem(el);
   const [name, amount, useBy] = el.querySelectorAll("input");
+  // Redraw just this row (same place on the page), then put the cursor back
+  const redraw = (focus) => {
+    const fresh = pantryRow(row, area);
+    el.replaceWith(fresh);
+    if (focus !== undefined) fresh.querySelectorAll("input")[focus].focus();
+    areaCounts(); renderGoneOff(); renderPantrySummary();
+  };
   name.addEventListener("change", () => {
     const found = ingByName(name.value);
-    name.style.outline = found ? "" : "2px solid var(--warn)";
+    name.classList.toggle("bad", !found);
+    name.title = found ? "" : "Not one the planner knows: pick from the list";
     if (!found) return;
     row.id = found.id;
     if (!row.use_by) row.use_by = defaultUseBy(found);
-    row.area = found.storage || area;
-    renderPantry(); pantryChanged();
+    row.area = found.storage || area;  // moves to its own shelf on the next full redraw
+    redraw(String(row.amount).trim() ? undefined : 1);
+    pantryChanged();
   });
   amount.addEventListener("input", () => { row.amount = amount.value; pantryChanged(); });
-  useBy.addEventListener("change", () => { row.use_by = useBy.value; renderPantry(); pantryChanged(); });
-  el.querySelector("button.eat").addEventListener("click", () => {
-    pantry.splice(pantry.indexOf(row), 1); renderPantry(); pantryChanged();
-  });
+  useBy.addEventListener("change", () => { row.use_by = useBy.value; redraw(); pantryChanged(); });
+  el.querySelector("button.eat").addEventListener("click", () => removeRow(row));
   const freezeBtn = el.querySelector("button.freeze");
   freezeBtn.disabled = !row.id || (area === "freezer" && !row.frozen) || ((ingById(row.id) || {}).storage === "freezer");
   freezeBtn.addEventListener("click", () => {
@@ -314,6 +369,13 @@ function pantryRow(row, area) {
   return el;
 }
 
+// A row whose amount the server couldn't read: say so under it
+function markProblem(el) {
+  const problem = el.row.problem || "";
+  el.querySelectorAll("input")[1].classList.toggle("bad", Boolean(problem));
+  el.querySelector(".problem").textContent = problem;
+}
+
 function pantryChanged() {
   markStale();
   clearTimeout(pantryTimer);
@@ -323,16 +385,25 @@ function pantryChanged() {
 function savePantry() {
   clearTimeout(pantryTimer);
   pantryTimer = null;
-  const items = pantry.filter((r) => r.id && String(r.amount).trim())
-    .map((r) => ({ id: r.id, amount: String(r.amount).trim(), use_by: r.use_by || null, frozen: Boolean(r.frozen) }));
+  const rows = pantry.filter((r) => r.id && String(r.amount).trim());
   pantrySaving = fetch("/api/pantry", {
     method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items, dishes: dishes.filter((d) => d.portions > 0) }),
+    body: JSON.stringify({ items: rows.map(asItem), dishes: dishes.filter((d) => d.portions > 0), version: pantryVersion }),
   }).then(async (res) => {
     const data = await res.json();
+    if (res.status === 409) {  // changed on another tab or device: theirs wins, show it
+      setPantry(data.pantry); renderPantry(); markStale();
+      showError("The pantry was changed somewhere else (another tab or the phone), so it's been reloaded. Check your last change went in.");
+      return;
+    }
     if (!res.ok) throw new Error(data.error);
-    showError("");
-    $("status").textContent = "pantry saved";
+    pantryVersion = data.version;
+    for (const r of pantry) r.problem = null;
+    for (const p of data.problems || []) rows[p.index].problem = p.error;
+    document.querySelectorAll("#areas .prow[data-area]").forEach((el) => el.row && markProblem(el));
+    const bad = data.problems || [];
+    showError(bad.length ? `Not saved: ${bad.map((p) => p.error).join(" · ")}` : "");
+    $("status").textContent = bad.length ? "pantry saved, apart from that" : "pantry saved";
   }).catch((e) => showError(`Pantry not saved: ${e.message}`));
   return pantrySaving;
 }
@@ -343,6 +414,7 @@ async function flushPantry() {
 }
 
 function setPantry(data) {
+  pantryVersion = data.version || null;
   pantry = data.items.map((i) => ({ ...i, use_by: i.use_by || "", area: i.frozen ? "freezer" : areaOf(i.id) }));
   dishes = data.dishes || [];
 }
@@ -363,6 +435,10 @@ async function loadPantry() {
 }
 
 function renderPantrySummary() {
+  const behind = savedPlans.filter((p) => p.unticked && p.end_date >= addDays(today(), -7));
+  const nag = behind.map((p) => `<p class="nag">${plural(p.unticked, "meal")} on
+    <a href="#plans/${esc(p.id)}">${esc(p.name)}</a> not ticked off, so the pantry may be out of date.</p>`).join("");
+  $("pantry-nag").innerHTML = nag;
   const have = pantry.filter((r) => r.id && String(r.amount).trim());
   if (!have.length && !dishes.length) {
     $("pantry-summary").innerHTML = `<p class="hint">Nothing in yet. Add what you've got and the plan will use it up.</p>`;
@@ -449,10 +525,31 @@ function knobLabels() {
   }
 }
 
-function changed() { save(); markStale(); }
+function changed() { save(); markStale(); renderPinsNote(); }
 
 function markStale() {
-  if (hasPlan) document.querySelector("main").classList.add("is-stale");
+  if (hasPlan) $("view-plan").querySelector("main").classList.add("is-stale");
+}
+const isStale = () => $("view-plan").querySelector("main").classList.contains("is-stale");
+
+// Meals locked or skipped by hand on the Plan tab: say how many, with a way out
+function renderPinsNote() {
+  const all = Object.values(state.pins || {});
+  const here = planPins();
+  const box = $("pins-note");
+  if (!all.length) { box.style.display = "none"; return; }
+  const skipped = here.filter((p) => p.pick === "~skip").length;
+  const parts = [];
+  if (here.length - skipped) parts.push(`${plural(here.length - skipped, "meal")} locked`);
+  if (skipped) parts.push(`${skipped} skipped`);
+  if (all.length > here.length) parts.push(`${all.length - here.length} more outside these days`);
+  box.style.display = "";
+  box.innerHTML = `🔒 Fixed by hand: ${parts.join(", ")}. <button class="link" id="pins-clear">Clear them</button>`;
+  $("pins-clear").addEventListener("click", () => {
+    state.pins = {}; save(); renderPinsNote();
+    if (lastResult) render(lastResult, { keepStale: true });
+    markStale();
+  });
 }
 
 // ------------------------------------------------------------------ planning
@@ -485,20 +582,25 @@ function setRunning(on) {
   $("plan-btn").classList.toggle("stop", on);
 }
 
-async function plan() {
+// keep: a swap, skip or lock on the shown plan. If the settings haven't changed
+// since, the rest of the week stays as it is and only the amounts are worked out
+// again; otherwise it's a fresh search.
+async function plan(keep = false) {
   if (running) { running.abort(); return; }
   if (!state.meals.length) { showError("Pick at least one meal."); return; }
   showError("");
   await flushPantry();
   running = new AbortController();
   const body = requestBody();
+  const send = keep && lastResult && !isStale()
+    ? { ...body, start: keep.start || choiceOf(lastResult), search: false } : body;
   setRunning(true);
   progress({ done: 0, total: 1 }, "Starting…");
   try {
     const res = await fetch("/api/plan/stream", {
       method: "POST", signal: running.signal,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(send),
     });
     if (!res.ok) throw new Error((await res.json()).error || res.statusText);
     await readEvents(res.body, {
@@ -506,7 +608,10 @@ async function plan() {
       result: (d) => {
         lastBody = body;
         render(d);
-        progress({ done: 1, total: 1 }, `Done: ${d.evaluations.toLocaleString()} different weeks tried.`);
+        rememberPlan();
+        progress({ done: 1, total: 1 }, send.search === false
+          ? "Done: the rest of the week is as it was."
+          : `Done: ${d.evaluations.toLocaleString()} different weeks tried.`);
       },
       error: (d) => { throw new Error(d.error); },
     });
@@ -571,13 +676,14 @@ function metric(label, now, before, unit, lowerIsBetter = true, digits = 0, word
     <div class="value">${fmt(now)}</div><div class="delta ${cls}">${text}</div></div>`;
 }
 
-function render(data) {
+function render(data, { keepStale = false, saved = false } = {}) {
   hasPlan = true;
   lastResult = data;
-  $("save-btn").disabled = false;
-  $("save-btn").textContent = "Save plan";
-  document.querySelector("main").classList.remove("is-stale");
-  ratings = {};
+  $("save-btn").disabled = saved;
+  $("save-btn").textContent = saved ? "Saved ✓" : "Save plan";
+  $("copy-week").disabled = false;
+  if (!keepStale) $("view-plan").querySelector("main").classList.remove("is-stale");
+  renderPinsNote();
   const b = data.breakdown, g = data.greedy;
   const meals = countMeals(data);
   $("metrics").innerHTML =
@@ -609,19 +715,66 @@ function planTabOpts(day) {
       if (on) state.pins[pinKey(day.date, m.meal)] = m.pick;
       else delete state.pins[pinKey(day.date, m.meal)];
       save();
-      render(lastResult);
+      render(lastResult, { keepStale: isStale(), saved: $("save-btn").disabled });
+      rememberPlan();
     },
-    onSkip: (m, on) => {
-      if (on) state.pins[pinKey(day.date, m.meal)] = "~skip";
-      else delete state.pins[pinKey(day.date, m.meal)];
-      save(); plan();
+    onSkip: async (m, on) => {
+      const key = pinKey(day.date, m.meal);
+      if (on) { state.pins[key] = "~skip"; save(); plan(true); return; }
+      // Back on: the best thing for that meal with the rest of the week as it is
+      delete state.pins[key];
+      save();
+      if (isStale()) { plan(); return; }
+      const choice = choiceOf(lastResult);
+      choice[slotIndex(day.day, m.meal)] = null;
+      try {
+        const { options } = await api("/api/plan/options", {
+          method: "POST", body: { ...lastBody, pins: planPins(), choice, day: day.day, meal: m.meal },
+        });
+        if (options.length) choice[slotIndex(day.day, m.meal)] = options[0].pick;
+        plan({ start: choice });
+      } catch (e) { showError(e.message); }
     },
     options: (m) => api("/api/plan/options", {
       method: "POST",
-      body: { ...lastBody, choice: choiceOf(lastResult), day: day.day, meal: m.meal },
+      body: { ...lastBody, pins: planPins(), choice: choiceOf(lastResult), day: day.day, meal: m.meal },
     }),
-    onPick: (m, pick) => { state.pins[pinKey(day.date, m.meal)] = pick; save(); plan(); },
+    onPick: (m, pick) => { state.pins[pinKey(day.date, m.meal)] = pick; save(); plan(true); },
   };
+}
+
+// Where a meal sits in a week's list of picks (day by day, meals in order)
+function slotIndex(dayNo, meal) {
+  let i = 0;
+  for (const d of lastResult.plan.days) {
+    for (const m of d.meals) {
+      if (d.day === dayNo && m.meal === meal) return i;
+      i += 1;
+    }
+  }
+  return -1;
+}
+
+// The shown plan survives a reload (until its last day has gone)
+function rememberPlan() {
+  if (!lastResult) return;
+  localStorage.setItem(LAST_PLAN, JSON.stringify({
+    result: lastResult, body: lastBody, pantry: pantryVersion, saved: $("save-btn").disabled,
+  }));
+}
+
+function restorePlan() {
+  try {
+    const kept = JSON.parse(localStorage.getItem(LAST_PLAN));
+    if (!kept || !kept.result) return;
+    const days = kept.result.plan.days;
+    if (!days.length || days[days.length - 1].date < today()) { localStorage.removeItem(LAST_PLAN); return; }
+    lastBody = kept.body;
+    render(kept.result, { saved: kept.saved });
+    const now = { ...requestBody(), pins: [] }, then = { ...kept.body, pins: [] };
+    if (JSON.stringify(now) !== JSON.stringify(then) || kept.pantry !== pantryVersion) markStale();
+    progress({ done: 0, total: 1 }, "The last plan, from before. Press Plan the week to look again.");
+  } catch (e) { localStorage.removeItem(LAST_PLAN); }
 }
 
 const choiceOf = (data) => data.plan.days.flatMap((d) => d.meals.map((m) => (m.skipped ? "~skip" : m.pick ?? null)));
@@ -644,7 +797,7 @@ function howTo(m) {
   </details>`;
 }
 
-// One meal. opts (all optional): key (for ratings), rating, onRate, locked(m),
+// One meal. opts (all optional): onRate (rate it: only once it's cooked), locked(m),
 // onLock(m, on), onSkip(m, on), options(m) -> {options}, onPick(m, pick),
 // fixed (ticked off or gone: no changing it), extra(el) to add more
 function mealEl(day, m, opts = {}) {
@@ -675,18 +828,15 @@ function mealEl(day, m, opts = {}) {
       ${m.make_ahead.length ? `<div class="ahead">⏰ Make ahead: ${m.make_ahead.map(esc).join(", ")}</div>` : ""}
       <ul class="slots">${slots}</ul>
       ${howTo(m)}
-      <div class="rate">
+      ${opts.onRate ? `<div class="rate">
         <span class="ask">How was it?</span>
-        <button data-r="1" title="Cooked it, liked it">👍</button>
-        <button data-r="-1" title="Cooked it, not again" class="down">👎</button>
-      </div>`;
-    const key = `${opts.key || ""}${day}-${m.meal}`;
-    const given = opts.rating !== undefined ? opts.rating : ratings[key];
+        <button data-r="1" title="Liked it. Click again to take it back">👍</button>
+        <button data-r="-1" title="Not again. Click again to take it back" class="down">👎</button>
+      </div>` : ""}`;
+    if (opts.onRate) drawRating(el, m);
     el.querySelectorAll(".rate button").forEach((btn) => {
-      if (given === Number(btn.dataset.r)) btn.classList.add("on");
-      btn.addEventListener("click", () => rate(key, m, Number(btn.dataset.r), el, opts.onRate));
+      btn.addEventListener("click", () => rate(m, Number(btn.dataset.r), el, opts.onRate));
     });
-    if (given !== undefined && given !== null) el.querySelector(".rate").classList.add("rated");
   }
   if (opts.extra) opts.extra(el);
   if (!opts.fixed && (opts.onLock || opts.onSkip || opts.options)) el.appendChild(mealTools(m, opts));
@@ -739,22 +889,24 @@ async function showOptions(m, opts, list) {
 
 const wasteWords = (g) => (g > 0 ? ` · ${g}g more wasted` : g < 0 ? ` · ${-g}g less wasted` : "");
 
-async function rate(key, m, rating, el, onRate) {
-  if (el.querySelector(".rate").classList.contains("rated")) return;  // one vote per meal per plan
-  const res = await fetch("/api/rate", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ recipe_id: m.recipe_id, ingredients: m.ingredients, rating, ...(onRate ? onRate() : {}) }),
-  });
-  const data = await res.json();
-  if (!res.ok) { showError(data.error); return; }
-  ratings[key] = rating;
-  if (onRate && savedPlan) {
-    const meal = savedPlan.plan.days.flatMap((d) => d.meals).find((x) => x === m);
-    if (meal) meal.rating = rating;
-  }
-  el.querySelector(".rate").classList.add("rated");
-  el.querySelector(`.rate button[data-r="${rating}"]`).classList.add("on");
-  $("status").textContent = `saved: ${m.recipe_name} now ${data.recipe_score >= 0 ? "+" : ""}${data.recipe_score.toFixed(2)}`;
+function drawRating(el, m) {
+  el.querySelectorAll(".rate button").forEach((btn) => btn.classList.toggle("on", m.rating === Number(btn.dataset.r)));
+  el.querySelector(".rate").classList.toggle("asking", !m.rating);
+}
+
+// Rate a cooked meal; the other thumb changes it, the same one again takes it back
+async function rate(m, clicked, el, onRate) {
+  const rating = m.rating === clicked ? 0 : clicked;
+  try {
+    const data = await api("/api/rate", {
+      method: "POST", body: { recipe_id: m.recipe_id, ingredients: m.ingredients, rating, ...onRate() },
+    });
+    m.rating = rating || null;
+    drawRating(el, m);
+    $("status").textContent = rating
+      ? `saved: ${m.recipe_name} now ${data.recipe_score >= 0 ? "+" : ""}${data.recipe_score.toFixed(2)}`
+      : `${m.recipe_name}: rating taken back`;
+  } catch (e) { showError(e.message); }
 }
 
 const PRICE_DOTS = (n) => "£".repeat(n) || "free";
@@ -783,6 +935,34 @@ function listText(title, rows) {
     for (const r of here) lines.push(`- ${r.packs} × ${r.name} (${r.grams}g)`);
   }
   return lines.join("\n");
+}
+
+// The week as plain text, for the fridge door or a message
+function weekText(title, days) {
+  const lines = [title];
+  for (const d of days) {
+    lines.push("", prettyDay(d.date));
+    for (const m of d.meals) {
+      let what = "nothing planned";
+      if (m.skipped) what = "skipped";
+      else if (m.recipe_id && m.leftovers_from != null) what = `leftovers: ${m.recipe_name}`;
+      else if (m.recipe_id) what = `${m.recipe_name} (${m.minutes} min)${m.make_ahead.length ? `, make ahead: ${m.make_ahead.join(", ")}` : ""}`;
+      lines.push(`- ${m.meal}: ${what}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+async function copyText(text, btn, label) {
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "Copied ✓";
+  } catch (e) {  // no clipboard (plain http from a phone): show it to copy by hand
+    const area = document.createElement("textarea");
+    area.className = "copy-text"; area.value = text; area.rows = Math.min(text.split("\n").length, 30);
+    btn.after(area); area.select();
+  }
+  setTimeout(() => { btn.textContent = label; }, 2000);
 }
 
 async function copyList(title, rows, btn) {
@@ -843,10 +1023,25 @@ async function api(url, options = {}) {
 
 async function savePlan() {
   if (!lastResult) return;
+  const btn = $("save-btn");
   try {
+    if (btn.dataset.armed !== "1") {
+      const days = lastResult.plan.days;
+      const [first, last] = [days[0].date, days[days.length - 1].date];
+      savedPlans = (await api("/api/plans")).plans;
+      const clash = savedPlans.find((p) => p.start_date <= last && p.end_date >= first && p.end_date >= today());
+      if (clash) {  // two plans for the same days would both take food out of the pantry
+        btn.dataset.armed = "1";
+        btn.textContent = `Overlaps “${clash.name}”: save anyway?`;
+        setTimeout(() => { if (btn.dataset.armed) { btn.dataset.armed = ""; btn.textContent = "Save plan"; } }, 5000);
+        return;
+      }
+    }
+    btn.dataset.armed = "";
     const saved = await api("/api/plans", { method: "POST", body: { result: lastResult, settings: lastBody } });
     $("save-btn").disabled = true;
     $("save-btn").textContent = "Saved ✓";
+    rememberPlan();
     $("status").textContent = `saved: ${saved.name}`;
     location.hash = `#plans/${saved.id}`;
   } catch (e) { showError(`Plan not saved: ${e.message}`); }
@@ -854,7 +1049,8 @@ async function savePlan() {
 
 async function showPlans(planId) {
   savedPlans = (await api("/api/plans")).plans;
-  const id = planId || (savedPlans[0] && savedPlans[0].id);
+  const now = savedPlans.find((p) => p.start_date <= today() && p.end_date >= today());
+  const id = planId || (now || savedPlans[0] || {}).id;
   savedPlan = id ? await api(`/api/plans/${id}`).catch(() => null) : null;
   renderPlanList();
   renderSaved();
@@ -884,6 +1080,7 @@ function renderSaved() {
     plural(savedPlan.plan.days.length, "day"),
     (s.meals || []).join(", "),
   ].filter(Boolean).join(" · ");
+  renderUnticked();
   renderSavedShopping();
   const grid = $("saved-grid");
   grid.innerHTML = "";
@@ -895,6 +1092,35 @@ function renderSaved() {
     if (day.date < today()) card.classList.add("past");
     grid.appendChild(card);
   }
+}
+
+// Meals from days gone by that were never ticked off: their food still counts
+// as in the pantry, so ask
+function renderUnticked() {
+  const box = $("unticked");
+  const missed = savedPlan.plan.days.filter((d) => d.date < today()).flatMap((d) => d.meals
+    .filter((m) => m.recipe_id && !m.cooked && !m.skipped).map((m) => ({ d, m })));
+  box.style.display = missed.length ? "" : "none";
+  if (!missed.length) return;
+  box.innerHTML = `<div><b>Not ticked off yet.</b> <span class="hint">Until they are, their food still
+      counts as in the pantry.</span></div>
+    <ul class="missed">${missed.map(({ d, m }, i) => `<li>
+      <span>${esc(prettyDay(d.date))}, ${esc(m.meal)}: ${esc(m.recipe_name)}${m.leftovers_from != null ? " (leftovers)" : ""}</span>
+      <button data-i="${i}" data-do="cooked">${m.leftovers_from != null ? "Ate it" : "Cooked it"}</button>
+      <button data-i="${i}" data-do="skip">Didn't happen</button></li>`).join("")}</ul>`;
+  box.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", async () => {
+    const { d, m } = missed[Number(btn.dataset.i)];
+    box.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+    try {
+      if (btn.dataset.do === "cooked") {
+        await changePlan("cook", { day: d.day, meal: m.meal, cooked: true, date: d.date }, `${m.recipe_name}: done, pantry updated`);
+      } else {
+        await changeMeal("meal", { day: d.day, meal: m.meal, skipped: true }, `${m.recipe_name}: marked as not made`);
+        savedPlans = (await api("/api/plans")).plans;
+        renderPlanList(); renderPantrySummary();
+      }
+    } catch (e) { showError(e.message); renderSaved(); }
+  }));
 }
 
 function tookText(done) {
@@ -915,9 +1141,8 @@ function tookText(done) {
 function savedMealEl(day, m) {
   const gone = day.date < today();
   const opts = {
-    key: `${savedPlan.id}-`,
-    rating: m.rating,
-    onRate: () => ({ plan_id: savedPlan.id, day: day.day, meal: m.meal }),
+    onRate: m.cooked && m.leftovers_from == null
+      ? () => ({ plan_id: savedPlan.id, day: day.day, meal: m.meal }) : null,
     fixed: Boolean(m.cooked) || gone,
     locked: (x) => Boolean(x.locked),
     onLock: (x, on) => changeMeal("meal", { day: day.day, meal: x.meal, locked: on }, on ? "locked" : "unlocked"),
@@ -941,7 +1166,6 @@ function savedMealEl(day, m) {
         return;
       }
       el.classList.toggle("done", Boolean(m.cooked));
-      if (m.cooked && m.rating == null && m.leftovers_from == null) el.querySelector(".rate")?.classList.add("asking");
       const leftovers = m.leftovers_from != null;
       const box = document.createElement("div");
       box.innerHTML = `<label class="cook"><input type="checkbox" ${m.cooked ? "checked" : ""}>
@@ -1044,7 +1268,7 @@ async function replan(body, done) {
 async function changePlan(what, body, done) {
   await flushPantry();
   const data = await api(`/api/plans/${savedPlan.id}/${what}`, {
-    method: "POST", body: { date: today(), ...body },
+    method: "POST", body: { date: today(), ...body },  // a past meal can carry its own date
   });
   savedPlan = data.plan;
   setPantry(data.pantry);
@@ -1053,6 +1277,7 @@ async function changePlan(what, body, done) {
   savedPlans = (await api("/api/plans")).plans;
   renderPlanList();
   renderSaved();
+  renderPantrySummary();
   $("status").textContent = done;
 }
 
@@ -1153,6 +1378,26 @@ async function deletePlan() {
   else location.hash = "#plans";
 }
 
+// Back on the tab (or every ten minutes): pick up a new day, and pantry changes
+// made on another device
+async function catchUp() {
+  if (today() !== shownDay) {
+    shownDay = today();
+    if (state.start_date < today()) { state.start_date = today(); renderKnobs(); save(); markStale(); }
+    renderPantry();
+    renderPantrySummary();
+    if (savedPlan) renderSaved();
+  }
+  if (pantryTimer || document.activeElement?.closest?.("#areas")) return;  // mid-edit
+  try {
+    const data = await api("/api/pantry");
+    if (data.version !== pantryVersion) { setPantry(data); renderPantry(); renderPantrySummary(); markStale(); }
+    savedPlans = (await api("/api/plans")).plans;
+    renderPantrySummary();
+    if (location.hash.startsWith("#plans")) route();
+  } catch (e) { /* offline: try next time */ }
+}
+
 // ------------------------------------------------------------------ boot
 async function boot() {
   META = await (await fetch("/api/meta")).json();
@@ -1160,13 +1405,26 @@ async function boot() {
   await loadPantry();
   await loadWaste();
   notKept = (await api("/api/household")).not_kept;
+  savedPlans = (await api("/api/plans")).plans;
+  shownDay = today();
   renderKnobs();
   renderPantry();
+  restorePlan();
+  renderPinsNote();
   route();
   window.addEventListener("hashchange", route);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) catchUp(); });
+  setInterval(catchUp, 10 * 60 * 1000);
 
   for (const id of ["people", "days"]) {
-    $(id).addEventListener("input", (e) => { state[id] = Number(e.target.value) || 1; changed(); });
+    const box = $(id);
+    box.addEventListener("input", () => {
+      const n = Number(box.value);
+      if (box.value === "" || !Number.isFinite(n)) return;  // still typing
+      state[id] = Math.min(Number(box.max), Math.max(1, Math.round(n)));
+      changed();
+    });
+    box.addEventListener("change", () => { box.value = state[id]; });
   }
   $("start_date").addEventListener("change", (e) => { state.start_date = e.target.value || today(); changed(); });
   for (const id of ["weeknight", "weekend", "handson", "effort"]) {
@@ -1177,6 +1435,10 @@ async function boot() {
   $("reset-weights").addEventListener("click", () => { state.weights = { ...META.weights }; renderKnobs(); changed(); });
   $("plan-btn").addEventListener("click", plan);
   $("save-btn").addEventListener("click", savePlan);
+  $("copy-week").addEventListener("click", () => lastResult
+    && copyText(weekText("This week", lastResult.plan.days), $("copy-week"), "Copy the week"));
+  $("saved-copy").addEventListener("click", () => savedPlan
+    && copyText(weekText(savedPlan.name, savedPlan.plan.days), $("saved-copy"), "Copy the week"));
   $("extra-add").addEventListener("click", addExtra);
   $("bulk-add").addEventListener("click", bulkAdd);
   $("bulk").addEventListener("toggle", () => { if ($("bulk").open) renderBulk(); });
