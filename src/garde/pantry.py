@@ -54,6 +54,8 @@ from garde.planner import InventoryEntry
 from garde.planner import Leftover
 from garde.planner import parse_amount
 from garde.resolver import Resolution
+from garde.units import stock_amount
+from garde.units import unit
 from garde.utils import garde_home
 
 
@@ -179,12 +181,13 @@ def validate_dishes(raw: Any, recipes: dict[str, Recipe] | None = None) -> list[
 
 
 def _measured(ing: Ingredient, amount: str) -> str | float:
-    """A bare number is a count if the thing has a natural unit, else grams."""
+    """A bare number is a count if the thing has a natural unit, else grams (ml
+    for liquids)."""
     try:
         number = float(amount)
     except ValueError:
         return amount
-    return number if ing.unit_weight else f"{amount}g"
+    return number if ing.unit_weight else f"{amount}{unit(ing)}"
 
 
 def load(path: Path | None = None) -> Pantry:
@@ -297,7 +300,7 @@ def with_grams(item: Item, g: float, db: dict[str, Ingredient] | None = None) ->
     ing = db[item.id]
     if ing.unit_weight and isinstance(_measured(ing, item.amount), float):
         return replace(item, amount=f"{round(g / ing.unit_weight, 2):g}")
-    return replace(item, amount=f"{round(g):g}g")
+    return replace(item, amount=stock_amount(ing, g))
 
 
 def _soonest_first(item: Item) -> tuple[int, str]:
@@ -366,7 +369,7 @@ def open_items(
             continue
         if whole >= EMPTY_GRAMS:
             out.append(with_grams(item, whole, db))
-        part = Item(item.id, f"{round(rest)}g", until)
+        part = Item(item.id, stock_amount(ing, rest), until)
         out.append(part)
         opened.append({**asdict(part), "was": item.use_by})
     return out, opened
@@ -388,7 +391,8 @@ def unopen_items(
         if g < EMPTY_GRAMS:
             continue
         items = _take_lot(items, with_grams(part, g, db), db)
-        items = give(items, [Item(part.id, f"{g:.1f}g", raw.get("was"))], db)
+        back = Item(part.id, stock_amount(db[part.id], g, 1), raw.get("was"))
+        items = give(items, [back], db)
     return items
 
 
