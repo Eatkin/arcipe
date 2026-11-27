@@ -239,7 +239,30 @@ def delete(plan_id: str, root: Path | None = None) -> None:
     path.unlink()
 
 
-def summary(record: dict[str, Any]) -> dict[str, Any]:
+def unticked(record: dict[str, Any], today: date) -> list[dict[str, Any]]:
+    """Meals on days before `today` that were planned but never ticked off or
+    skipped: [{day, date, meal, recipe_name}]. Their food is still counted as
+    in the pantry, so they're worth asking about."""
+    out = []
+    for d in record["plan"]["days"]:
+        if date.fromisoformat(d["date"]) >= today:
+            break
+        for m in d["meals"]:
+            if m.get("recipe_id") and not m.get("cooked") and not m.get("skipped"):
+                out.append(
+                    {
+                        "day": d["day"],
+                        "date": d["date"],
+                        "meal": m["meal"],
+                        "recipe_name": m.get("recipe_name"),
+                        "leftovers": m.get("leftovers_from") is not None,
+                    }
+                )
+    return out
+
+
+def summary(record: dict[str, Any], today: date | None = None) -> dict[str, Any]:
+    today = today or date.today()
     meals = [
         m for d in record["plan"]["days"] for m in d["meals"] if m.get("recipe_id")
     ]
@@ -257,6 +280,8 @@ def summary(record: dict[str, Any]) -> dict[str, Any]:
         ),
         "to_buy": len(shopping),
         "bought": sum(1 for row in shopping if row.get("bought")),
+        "end_date": record["plan"]["days"][-1]["date"],
+        "unticked": len(unticked(record, today)),
     }
 
 
@@ -663,12 +688,13 @@ def remove_extra(
 
 
 def rate(record: dict[str, Any], day: int, meal: str, rating: int) -> dict[str, Any]:
-    if rating not in (-1, 1):
-        raise PlanError("rating must be 1 or -1")
+    """Rate a meal +1 or -1, or 0 to take the rating back."""
+    if rating not in (-1, 0, 1):
+        raise PlanError("rating must be 1, -1 or 0")
     m = find_meal(record, day, meal)
     if not m.get("recipe_id"):
         raise PlanError("nothing was planned for that meal")
-    m["rating"] = rating
+    m["rating"] = rating or None
     return record
 
 

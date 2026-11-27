@@ -37,6 +37,7 @@ from __future__ import annotations
 import functools
 import json
 import math
+import re
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
@@ -45,6 +46,7 @@ from datetime import date
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+from typing import cast
 
 from garde.loader import INGREDIENTS
 from garde.loader import RECIPES
@@ -123,23 +125,63 @@ def _iso(value: Any, what: str) -> str | None:
 
 def validate(raw: Any, db: dict[str, Ingredient] | None = None) -> list[Item]:
     """Items from untrusted JSON. Raises ValueError with a readable message."""
+    items, problems = validate_rows(raw, db)
+    if problems:
+        raise ValueError(problems[0]["error"])
+    return items
+
+
+def validate_rows(
+    raw: Any, db: dict[str, Ingredient] | None = None
+) -> tuple[list[Item], list[dict[str, Any]]]:
+    """
+    Items from untrusted JSON, keeping the good rows: (items, problems), where
+    each problem is {index, id, error} for a row that couldn't be read (an
+    amount like "1 tun"). Raises ValueError only if the shape is wrong.
+    """
     db = db or INGREDIENTS
     if not isinstance(raw, list):
         raise ValueError("items must be a list")
     items = []
-    for entry in raw:
+    problems = []
+    for index, entry in enumerate(raw):
         if not isinstance(entry, dict):
             raise ValueError("each item must be an object")
-        ing_id = entry.get("id")
-        if ing_id not in db:
-            raise ValueError(f"unknown ingredient {ing_id!r}")
-        amount = str(entry.get("amount") or "").strip()
-        if not amount:
-            continue  # a row still being filled in
-        parse_amount(db[ing_id], _measured(db[ing_id], amount))
-        use_by = _iso(entry.get("use_by"), f"{ing_id}: use_by")
-        items.append(Item(ing_id, amount, use_by, bool(entry.get("frozen"))))
-    return items
+        row = cast(dict[str, Any], entry)
+        ing_id = row.get("id")
+        try:
+            item = _item(row, db)
+        except ValueError as e:
+            problems.append({"index": index, "id": ing_id, "error": str(e)})
+            continue
+        if item is not None:
+            items.append(item)
+    return items, problems
+
+
+def _item(entry: dict[str, Any], db: dict[str, Ingredient]) -> Item | None:
+    ing_id = entry.get("id")
+    if ing_id not in db:
+        raise ValueError(f"unknown ingredient {ing_id!r}")
+    amount = str(entry.get("amount") or "").strip()
+    if not amount:
+        return None  # a row still being filled in
+    ing = db[ing_id]
+    try:
+        parse_amount(ing, _measured(ing, amount))
+    except ValueError as e:
+        raise ValueError(
+            f"{ing.name}: can't read {amount!r}. Try {_example(ing)}"
+        ) from e
+    use_by = _iso(entry.get("use_by"), f"{ing_id}: use_by")
+    return Item(ing_id, amount, use_by, bool(entry.get("frozen")))
+
+
+def _example(ing: Ingredient) -> str:
+    """Amounts that would work for this ingredient, for error messages."""
+    if ing.unit_weight:
+        return "a count like 3, a weight like 500g, or 1 pack"
+    return "a weight like 500g, 1.5kg or 400ml, or 1 pack"
 
 
 def validate_dishes(raw: Any, recipes: dict[str, Recipe] | None = None) -> list[Dish]:
@@ -178,13 +220,69 @@ def validate_dishes(raw: Any, recipes: dict[str, Recipe] | None = None) -> list[
     return dishes
 
 
+# Words for a whole pack (a tin, a bag): that many of the ingredient's pack_grams
+PACK_WORDS = (
+    "pack|packs|packet|packets|tin|tins|can|cans|jar|jars|bag|bags|box|boxes"
+    "|block|blocks|bottle|bottles|carton|cartons|tub|tubs|bunch|bunches"
+)
+_FRACTIONS = {"half": 0.5, "a half": 0.5, "quarter": 0.25, "a quarter": 0.25}
+_NUMBER = r"(\d+(?:\.\d+)?|\d+/\d+|½|¼|¾|an?|one|two|three|four|five|six|half)"
+_WORD_NUMBERS = {
+    "a": 1.0,
+    "an": 1.0,
+    "one": 1.0,
+    "two": 2.0,
+    "three": 3.0,
+    "four": 4.0,
+    "five": 5.0,
+    "six": 6.0,
+    "half": 0.5,
+    "½": 0.5,
+    "¼": 0.25,
+    "¾": 0.75,
+}
+_PACKS = re.compile(
+    rf"^{_NUMBER}\s*(?:x\s*)?(?:an?\s+)?(?:{PACK_WORDS})$", re.IGNORECASE
+)
+_TIMES = re.compile(r"^(\d+(?:\.\d+)?)\s*[x\u00d7*]\s*(.+)$", re.IGNORECASE)
+
+
+def _number(text: str) -> float:
+    text = text.strip().lower()
+    if text in _WORD_NUMBERS:
+        return _WORD_NUMBERS[text]
+    if "/" in text:
+        top, bottom = text.split("/")
+        return float(top) / float(bottom)
+    return float(text)
+
+
 def _measured(ing: Ingredient, amount: str) -> str | float:
-    """A bare number is a count if the thing has a natural unit, else grams."""
+    """
+    A bare number is a count if the thing has a natural unit, else grams.
+    Also reads "half" (a count, or half a pack), "1/2", "2 tins" or "a bag"
+    (pack_grams each), and "2 x 400g".
+    """
+    text = amount.strip().lower()
     try:
-        number = float(amount)
+        number = float(text)
     except ValueError:
-        return amount
-    return number if ing.unit_weight else f"{amount}g"
+        pass
+    else:
+        return number if ing.unit_weight else f"{text}g"
+    if text in _FRACTIONS or re.fullmatch(r"\d+/\d+|½|¼|¾", text):
+        number = _FRACTIONS.get(text) or _number(text)
+        return number if ing.unit_weight else f"{number * ing.pack_grams:g}g"
+    if m := _PACKS.match(text):
+        return f"{_number(m.group(1)) * ing.pack_grams:g}g"
+    if m := _TIMES.match(text):
+        each = _measured(ing, m.group(2))
+        if isinstance(each, float):
+            return each * float(m.group(1))
+        inner = re.fullmatch(r"([\d.]+)\s*(g|kg|ml|l)", str(each), re.IGNORECASE)
+        if inner:
+            return f"{float(inner.group(1)) * float(m.group(1)):g}{inner.group(2)}"
+    return amount
 
 
 def load(path: Path | None = None) -> Pantry:
@@ -529,6 +627,34 @@ def bin_things(
         )
     _log_waste(log, path)
     return Pantry(left, kept), log
+
+
+def unbin(
+    stock: Pantry,
+    items: list[Item],
+    dishes: list[Dish],
+    db: dict[str, Ingredient] | None = None,
+    path: Path | None = None,
+) -> Pantry:
+    """
+    Undo bin_things(): put these back and take their entries off the end of
+    the waste log (the last ones that match, newest first).
+    """
+    db = db or INGREDIENTS
+    log = load_waste(path)
+    wanted = [i.id for i in items] + [d.recipe_id for d in dishes]
+    for key in wanted:
+        for i in range(len(log) - 1, -1, -1):
+            if key in (log[i].get("id"), log[i].get("recipe_id")):
+                del log[i]
+                break
+        else:
+            raise ValueError(f"{key} isn't in the waste log")
+    path = path or waste_path()
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(log, indent=1))
+    tmp.replace(path)
+    return Pantry(list(stock.items) + list(items), list(stock.dishes) + list(dishes))
 
 
 def wasted_since(since: date, path: Path | None = None) -> float:

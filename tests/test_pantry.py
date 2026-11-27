@@ -71,7 +71,7 @@ def test_bare_number_is_grams_without_a_natural_unit():
         ("nope", "list"),
         ([{"id": "unicorn", "amount": "1"}], "unknown ingredient"),
         ([{"id": "spinach", "amount": "1", "use_by": "soon"}], "date"),
-        ([{"id": "red_lentils", "amount": "lots"}], "parse"),
+        ([{"id": "red_lentils", "amount": "lots"}], "can.t read"),
     ],
 )
 def test_validate_rejects_bad_items(raw, message):
@@ -249,3 +249,44 @@ def test_frozen_dishes_wait_a_night_to_defrost():
     raw = Pantry([Item("spinach", "1", frozen=True)], [dish]).to_json()
     assert raw["items"][0]["frozen"] and pantry.validate(raw["items"])[0].frozen
     assert "frozen" not in Pantry([Item("spinach", "1")]).to_json()["items"][0]
+
+
+@pytest.mark.parametrize(
+    ("ing", "amount", "grams"),
+    [
+        ("carrot", "half", 0.5 * INGREDIENTS["carrot"].unit_weight),
+        ("red_lentils", "1 bag", INGREDIENTS["red_lentils"].pack_grams),
+        ("cannellini_beans", "2 tins", 2 * INGREDIENTS["cannellini_beans"].pack_grams),
+        (
+            "cannellini_beans",
+            "half a tin",
+            0.5 * INGREDIENTS["cannellini_beans"].pack_grams,
+        ),
+        ("red_lentils", "2 x 400g", 800),
+        ("red_lentils", "a pack", INGREDIENTS["red_lentils"].pack_grams),
+        ("red_lentils", "1.5kg", 1500),
+    ],
+)
+def test_amounts_in_words(ing, amount, grams):
+    assert pantry.grams(Item(ing, amount)) == pytest.approx(grams)
+
+
+def test_validate_rows_keeps_the_good_ones():
+    items, problems = pantry.validate_rows(
+        [{"id": "red_lentils", "amount": "1 tun"}, {"id": "carrot", "amount": "3"}]
+    )
+    assert items == [Item("carrot", "3")]
+    assert problems[0]["index"] == 0
+    assert "1 tun" in problems[0]["error"]
+    with pytest.raises(ValueError, match="1 tun"):
+        pantry.validate([{"id": "red_lentils", "amount": "1 tun"}])
+
+
+def test_unbin_puts_things_back(tmp_path):
+    log = tmp_path / "waste.json"
+    stock = Pantry([Item("carrot", "3"), Item("potato", "2")])
+    binned, _ = pantry.bin_things(stock, [Item("carrot", "3")], [], START, path=log)
+    assert pantry.load_waste(log)
+    back = pantry.unbin(binned, [Item("carrot", "3")], [], path=log)
+    assert sorted(i.id for i in back.items) == ["carrot", "potato"]
+    assert pantry.load_waste(log) == []

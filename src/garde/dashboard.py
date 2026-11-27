@@ -13,9 +13,15 @@ Endpoints:
     GET  /api/pantry       {items: [{id, amount, use_by}],
                             dishes: [{recipe_id, portions, use_by, cooked, ...}]}
     PUT  /api/pantry       same shape; saved to $GARDE_HOME/pantry.json. Without
-                           `dishes` the saved dishes are kept.
+                           `dishes` the saved dishes are kept. Rows it can't read
+                           are left out and listed in `problems`: [{index, id,
+                           error}]. With `version` (from any pantry reply) it's
+                           refused with 409 and the saved pantry if the pantry
+                           changed since (another tab or device).
+                           Every pantry reply carries `version`.
     POST /api/pantry/bin   {items: [...], dishes: [...], date}: thrown out; logged
                            in $GARDE_HOME/waste.json -> the pantry + waste
+    POST /api/pantry/unbin {items, dishes}: undo a bin -> the pantry + waste
     GET  /api/waste        {month_g, week_g, recent: [...]}: what's been binned
     GET  /api/household    {not_kept: [ids]}: staples this kitchen doesn't keep
     PUT  /api/household    same shape; plans shop for those instead
@@ -24,10 +30,16 @@ Endpoints:
                             weights, effort, seed,
                             shopping, inventory}  -> the plan
                            Without `inventory` it plans from the saved pantry.
+                           `start` (a week of picks, as `choice` below) searches
+                           from that week instead of the greedy one; with
+                           `search: false` it's only worked out as it is (a swap
+                           that leaves the rest of the week alone).
     POST /api/plan/stream  same body; Server-Sent Events: `progress` events while
                            it searches, then one `result` (or `error`). Closing
                            the connection stops the search.
-    POST /api/rate         {recipe_id, ingredients, rating, note}
+    POST /api/rate         {recipe_id, ingredients, rating, note}; with plan_id,
+                           day and meal, a new rating replaces that meal's old
+                           one, and rating 0 takes it back
     GET  /api/plans        saved plans, newest first: [{id, name, saved_at, ...}]
     POST /api/plans        {result, settings, name} -> the saved plan
                            (result is what /api/plan returned)
@@ -47,7 +59,8 @@ Endpoints:
                            meals stay. search=false keeps the other meals as
                            they are and only works out the new amounts
                            -> {plan, pantry}
-    POST /api/plans/<id>/meal    {day, meal, locked, rating} -> {plan}
+    POST /api/plans/<id>/meal    {day, meal, locked, rating, skipped} -> {plan}
+                           (skipped: true marks a meal that never happened)
     POST /api/plans/<id>/options {day, meal, date}: what else could go there,
                            best first -> {options: [...]}
     POST /api/plans/<id>/rename  {name} -> {plan}
@@ -64,9 +77,11 @@ from __future__ import annotations
 import argparse
 import contextlib
 import functools
+import hashlib
 import json
 import random
 import re
+import socket
 import threading
 import time
 from collections.abc import Callable
@@ -501,6 +516,12 @@ def run_plan(
     body: dict, feedback: Feedback, progress: Callable[..., None] | None = None
 ) -> dict[str, Any]:
     args, start = solve_args(body, feedback)
+    if body.get("start") is not None:
+        if not isinstance(body["start"], list):
+            raise BadRequestError("start must be a list")
+        args["start"] = body["start"]
+    if body.get("search") is False:
+        args["iterations"], args["restarts"] = 0, 1
     try:
         result = optimise_week(**args, progress=progress)
     except (KeyError, ValueError) as e:
@@ -527,49 +548,69 @@ def progress_json(done: int, total: int, weeks_tried: int, best: Breakdown) -> d
 
 def rate_request(body: dict, feedback: Feedback) -> dict[str, Any]:
     """A rating, kept in the feedback file; with plan_id, day and meal it's also
-    kept on that saved meal."""
+    kept on that saved meal, where a new one replaces the old (0 takes it back)."""
     recipe_id = body.get("recipe_id")
     if recipe_id not in RECIPES:
         raise BadRequestError("unknown recipe")
+    rating = _int(body, "rating", 0, -1, 1)
+    old = None
     if body.get("plan_id"):
-        rating = _int(body, "rating", 0, -1, 1)
         day, meal = _day_meal(body)
         with _KITCHEN_LOCK:
-            record = plans.rate(plans.load(str(body["plan_id"])), day, meal, rating)
+            record = plans.load(str(body["plan_id"]))
+            old = plans.find_meal(record, day, meal).get("rating")
+            record = plans.rate(record, day, meal, rating)
             plans.write(record)
+    elif rating == 0:
+        raise BadRequestError("rating is +1 or -1")
     with _FEEDBACK_LOCK:
-        try:
+        if old:
+            feedback.remove(recipe_id, int(old))
+        if rating:
             feedback.add(
                 recipe_id,
                 list(body.get("ingredients") or []),
-                int(body.get("rating", 0)),
+                rating,
                 note=str(body.get("note") or ""),
             )
-        except ValueError as e:
-            raise BadRequestError(str(e)) from e
         path = feedback.save()
         score = feedback.recipe_score(recipe_id)
     return {"saved": str(path), "recipe_score": score}
 
 
+class ConflictError(ValueError):
+    """The pantry changed since the client last saw it."""
+
+
+def pantry_json(stock: pantry.Pantry) -> dict[str, Any]:
+    """The pantry for the client, with a version to send back on the next save."""
+    raw = stock.to_json()
+    text = json.dumps(raw, sort_keys=True).encode()
+    return {**raw, "version": hashlib.sha1(text).hexdigest()[:12]}
+
+
 def pantry_get(feedback: Feedback) -> dict[str, Any]:
-    return pantry.load().to_json()
+    return pantry_json(pantry.load())
 
 
 def pantry_put(body: dict, feedback: Feedback) -> dict[str, Any]:
     with _KITCHEN_LOCK:
+        saved = pantry.load()
+        current = pantry_json(saved)
+        if body.get("version") and body["version"] != current["version"]:
+            raise ConflictError(current)
         try:
-            items = pantry.validate(body.get("items"))
+            items, problems = pantry.validate_rows(body.get("items"))
             dishes = (
                 pantry.validate_dishes(body["dishes"])
                 if "dishes" in body
-                else pantry.load().dishes
+                else saved.dishes
             )
         except ValueError as e:
             raise BadRequestError(str(e)) from e
         stock = pantry.Pantry(items, dishes)
         pantry.save(stock)
-    return stock.to_json()
+    return {**pantry_json(stock), "problems": problems}
 
 
 def household_get(body: dict, feedback: Feedback) -> dict[str, Any]:
@@ -603,7 +644,19 @@ def pantry_bin(body: dict, feedback: Feedback) -> dict[str, Any]:
         except ValueError as e:
             raise BadRequestError(str(e)) from e
         pantry.save(stock)
-    return {"pantry": stock.to_json(), "waste": waste_get({}, feedback)}
+    return {"pantry": pantry_json(stock), "waste": waste_get({}, feedback)}
+
+
+def pantry_unbin(body: dict, feedback: Feedback) -> dict[str, Any]:
+    with _KITCHEN_LOCK:
+        try:
+            items = pantry.validate(body.get("items") or [])
+            dishes = pantry.validate_dishes(body.get("dishes") or [])
+            stock = pantry.unbin(pantry.load(), items, dishes)
+        except ValueError as e:
+            raise BadRequestError(str(e)) from e
+        pantry.save(stock)
+    return {"pantry": pantry_json(stock), "waste": waste_get({}, feedback)}
 
 
 def plans_list(body: dict, feedback: Feedback) -> dict[str, Any]:
@@ -645,7 +698,7 @@ def plan_cook(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
             when=when,
             instead=body.get("instead"),
         )
-    return {"plan": record, "pantry": stock.to_json()}
+    return {"plan": record, "pantry": pantry_json(stock)}
 
 
 def plan_shop(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
@@ -679,11 +732,12 @@ def plan_shop(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
 
     with _KITCHEN_LOCK:
         record, stock = plans.update(plan_id, change)
-    return {"plan": record, "pantry": stock.to_json()}
+    return {"plan": record, "pantry": pantry_json(stock)}
 
 
 def plan_meal(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
-    """Lock a meal (keep it when re-planning) or record its rating."""
+    """Lock a meal (keep it when re-planning), record its rating, or mark it
+    skipped without re-planning (a past meal that never happened)."""
     day, meal = _day_meal(body)
     with _KITCHEN_LOCK:
         record = plans.load(plan_id)
@@ -691,6 +745,8 @@ def plan_meal(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
             record = plans.lock(record, day, meal, bool(body["locked"]))
         if "rating" in body:
             record = plans.rate(record, day, meal, _int(body, "rating", 0, -1, 1))
+        if body.get("skipped"):  # a past meal that never happened
+            record = plans.set_meal(record, day, meal, SKIP)
         plans.write(record)
     return {"plan": record}
 
@@ -767,7 +823,7 @@ def plan_replan(plan_id: str, body: dict, feedback: Feedback) -> dict[str, Any]:
             raise BadRequestError(str(e).strip("'\"")) from e
         record = plans.merge_replan(record, result_json(result, start), rp, when)
         plans.write(record)
-    return {"plan": record, "pantry": pantry.load().to_json()}
+    return {"plan": record, "pantry": pantry_json(pantry.load())}
 
 
 def _options_json(alts: list, people: int) -> list[dict[str, Any]]:
@@ -823,6 +879,7 @@ ROUTES = {
     "POST /api/rate": rate_request,
     "PUT /api/pantry": pantry_put,
     "POST /api/pantry/bin": pantry_bin,
+    "POST /api/pantry/unbin": pantry_unbin,
     "GET /api/waste": waste_get,
     "GET /api/household": household_get,
     "PUT /api/household": household_put,
@@ -867,6 +924,11 @@ def handle(method: str, url: str, raw: bytes, feedback: Feedback) -> tuple[int, 
             HTTPStatus.NOT_FOUND if str(e) == "no such plan" else HTTPStatus.BAD_REQUEST
         )
         return status, {"error": str(e)}
+    except ConflictError as e:
+        return HTTPStatus.CONFLICT, {
+            "error": "the pantry changed somewhere else",
+            "pantry": e.args[0],
+        }
     except (BadRequestError, json.JSONDecodeError) as e:
         return HTTPStatus.BAD_REQUEST, {"error": str(e)}
 
@@ -971,6 +1033,16 @@ class Handler(BaseHTTPRequestHandler):
         pass  # keep the terminal quiet
 
 
+def _lan_address() -> str:
+    """This machine's address on the local network, for the phone."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect(("10.255.255.255", 1))  # no packet is sent
+            return s.getsockname()[0]
+        except OSError:
+            return "127.0.0.1"
+
+
 def make_handler(feedback: Feedback) -> type[BaseHTTPRequestHandler]:
     return type("BoundHandler", (Handler,), {"feedback": feedback})
 
@@ -978,10 +1050,17 @@ def make_handler(feedback: Feedback) -> type[BaseHTTPRequestHandler]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="garde meal planning dashboard")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="address to listen on; 0.0.0.0 lets a phone on the same wifi in "
+        "(there's no login, so only on a network you trust)",
+    )
     args = parser.parse_args()
     feedback = Feedback.load(recipes=RECIPES)
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(feedback))
-    print(f"garde dashboard on http://127.0.0.1:{args.port}  (ctrl-c to stop)")
+    server = ThreadingHTTPServer((args.host, args.port), make_handler(feedback))
+    shown = "127.0.0.1" if args.host == "127.0.0.1" else _lan_address()
+    print(f"garde dashboard on http://{shown}:{args.port}  (ctrl-c to stop)")
     with contextlib.suppress(KeyboardInterrupt):
         server.serve_forever()
 

@@ -88,6 +88,7 @@ def test_save_list_load_delete(root):
     assert saved["start_date"] == "2026-12-01"
     assert plans.load(saved["id"], root) == saved
     (listed,) = plans.list_plans(root)
+    assert listed.pop("unticked") >= 0  # depends on today: see test_unticked_...
     assert listed == {
         "id": saved["id"],
         "name": "Week from Tue 1 Dec",
@@ -99,6 +100,7 @@ def test_save_list_load_delete(root):
         "skipped": 0,
         "to_buy": 0,
         "bought": 0,
+        "end_date": "2026-12-02",
     }
     plans.delete(saved["id"], root)
     assert plans.list_plans(root) == []
@@ -333,7 +335,7 @@ def test_extras_go_in_and_come_back_out(root, stock):
     [
         ("unicorn", "1", "unknown"),
         ("red_lentils", "", "how much"),
-        ("red_lentils", "lots", "parse"),
+        ("red_lentils", "lots", "can.t read"),
     ],
 )
 def test_bad_extras(root, stock, ing_id, amount, message):
@@ -458,3 +460,17 @@ def test_ticking_off_opens_a_tin_and_untick_seals_it_again(root):
     assert by == {None: "1", f"2026-12-0{1 + days}": "300g"}
     record, back = plans.cook(record, 1, "dinner", after, cooked=False)
     assert back.items == [Item("coconut_milk", "2")]
+
+
+def test_unticked_lists_past_meals_not_ticked_off(root):
+    record = plans.save(_result(), root=root)
+    assert plans.unticked(record, date(2026, 12, 1)) == []
+    gone = plans.unticked(record, date(2026, 12, 3))
+    planned = [
+        (d["day"], m["meal"])
+        for d in record["plan"]["days"]
+        for m in d["meals"]
+        if m.get("recipe_id")
+    ]
+    assert [(u["day"], u["meal"]) for u in gone] == planned
+    assert plans.summary(record, date(2026, 12, 3))["unticked"] == len(planned)

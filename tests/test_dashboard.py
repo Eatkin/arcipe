@@ -173,11 +173,67 @@ def test_pantry_round_trip_and_plans_from_it(server):
     assert args["inventory"] == {"spinach": [{"amount": 1.0, "expires": 2}]}
 
 
-def test_pantry_rejects_unknown_ingredients(server):
-    bad = {"items": [{"id": "unicorn", "amount": "1"}]}
+def test_pantry_keeps_good_rows_and_lists_bad_ones(server):
+    body = {
+        "items": [
+            {"id": "unicorn", "amount": "1"},
+            {"id": "carrot", "amount": "3"},
+            {"id": "red_lentils", "amount": "1 tun"},
+        ]
+    }
+    got = _json(_req(server + "/api/pantry", body, "PUT"))
+    assert [i["id"] for i in got["items"]] == ["carrot"]
+    assert [(p["index"], p["id"]) for p in got["problems"]] == [
+        (0, "unicorn"),
+        (2, "red_lentils"),
+    ]
+    assert "1 tun" in got["problems"][1]["error"]
+    assert [i["id"] for i in _json(server + "/api/pantry")["items"]] == ["carrot"]
+
+
+def test_pantry_save_from_a_stale_tab_is_refused(server):
+    first = _json(_req(server + "/api/pantry", {"items": []}, "PUT"))
+    version = first["version"]
+    here = [{"id": "carrot", "amount": "3"}]
+    second = _json(
+        _req(server + "/api/pantry", {"items": here, "version": version}, "PUT")
+    )
+    assert second["version"] != version
+    stale = {"items": [], "version": version}
     with pytest.raises(urllib.error.HTTPError) as e:
-        urllib.request.urlopen(_req(server + "/api/pantry", bad, "PUT"))
-    assert e.value.code == 400
+        urllib.request.urlopen(_req(server + "/api/pantry", stale, "PUT"))
+    assert e.value.code == 409
+    reply = json.loads(e.value.read())
+    assert reply["pantry"]["items"][0]["id"] == "carrot"
+    assert _json(server + "/api/pantry")["items"][0]["id"] == "carrot"
+
+
+def test_bin_then_undo(server):
+    items = [{"id": "carrot", "amount": "3"}, {"id": "potato", "amount": "2"}]
+    _json(_req(server + "/api/pantry", {"items": items}, "PUT"))
+    binned = _json(_req(server + "/api/pantry/bin", {"items": items[:1]}))
+    assert [i["id"] for i in binned["pantry"]["items"]] == ["potato"]
+    assert binned["waste"]["recent"][0]["id"] == "carrot"
+    back = _json(_req(server + "/api/pantry/unbin", {"items": items[:1]}))
+    assert {i["id"] for i in back["pantry"]["items"]} == {"carrot", "potato"}
+    assert back["waste"]["recent"] == []
+
+
+def test_plan_with_a_start_and_no_search_keeps_the_week():
+    body = {"days": 3, "effort": 1, "inventory": {"potato": 10, "red_lentils": "1kg"}}
+    first = plan_request(body, Feedback(recipes=RECIPES))
+    choice = [m["pick"] for d in first["plan"]["days"] for m in d["meals"]]
+    second = plan_request(
+        {**body, "start": choice, "search": False, "seed": 7},
+        Feedback(recipes=RECIPES),
+    )
+    assert [m["pick"] for d in second["plan"]["days"] for m in d["meals"]] == choice
+    pinned = {**body, "start": choice, "search": False}
+    pinned["pins"] = [{"day": 2, "meal": "dinner", "pick": "~skip"}]
+    third = plan_request(pinned, Feedback(recipes=RECIPES))
+    picks = [m["pick"] for d in third["plan"]["days"] for m in d["meals"]]
+    assert third["plan"]["days"][1]["meals"][0]["skipped"]
+    assert picks[0] == choice[0] and picks[2] == choice[2]
 
 
 def test_weeknight_and_weekend_limits():
@@ -463,6 +519,30 @@ def test_rating_and_rename_stay_on_the_saved_plan(server):
     got = _json(_req(f"{server}/api/plans/{saved['id']}/rename", {"name": "Advent"}))
     assert got["plan"]["name"] == "Advent"
     assert _meals(got["plan"])[(1, "dinner")]["rating"] == 1
+
+
+def test_changing_a_rating_replaces_it(server):
+    saved = _saved_week(server, days=2)
+    m = _meals(saved)[(1, "dinner")]
+    feedback = Feedback(recipes=RECIPES)
+    body = {"recipe_id": m["recipe_id"], "plan_id": saved["id"], "day": 1}
+    body["meal"] = "dinner"
+    rate_request({**body, "rating": 1}, feedback)
+    rate_request({**body, "rating": -1}, feedback)
+    assert [r.rating for r in feedback.ratings] == [-1]
+    rate_request({**body, "rating": 0}, feedback)
+    assert feedback.ratings == []
+    got = _json(f"{server}/api/plans/{saved['id']}")
+    assert _meals(got)[(1, "dinner")]["rating"] is None
+    with pytest.raises(BadRequestError):
+        rate_request({"recipe_id": m["recipe_id"], "rating": 0}, feedback)
+
+
+def test_mark_a_meal_as_not_made(server):
+    saved = _saved_week(server, days=2)
+    url = f"{server}/api/plans/{saved['id']}/meal"
+    got = _json(_req(url, {"day": 1, "meal": "dinner", "skipped": True}))
+    assert _meals(got["plan"])[(1, "dinner")]["skipped"]
 
 
 def test_options_for_an_unsaved_plan():

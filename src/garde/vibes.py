@@ -84,6 +84,15 @@ class Feedback:
         self.ratings.append(r)
         return r
 
+    def remove(self, recipe_id: str, rating: int) -> bool:
+        """Take back the newest matching rating (a vote changed or undone)."""
+        for i in range(len(self.ratings) - 1, -1, -1):
+            r = self.ratings[i]
+            if r.recipe_id == recipe_id and r.rating == rating:
+                del self.ratings[i]
+                return True
+        return False
+
     # -- scores --------------------------------------------------------------
 
     def _families(self, recipe_id: str) -> set[str]:
