@@ -155,3 +155,54 @@ sausage_casserole:
     - {from: dried_herbs,         to: tomato_sauce_body, type: combine}
     - {from: finish_herb,         to: tomato_sauce_body, type: finish}
     - {from: tomato_sauce_body,   to: mash_base,         type: top}
+
+
+bangers_and_mash:
+  name: Bangers and Mash
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Veggie sausages fried or baked, on a heap of mash, drowned in onion gravy
+    (onions cooked slowly until brown and sweet). Peas or greens alongside.
+  colour_dominant: brown
+  cuisine_context: [british]
+  required_ingredients: [veggie_sausages]
+  preferred_ingredients: [veggie_sausages, potato, onion, gravy, frozen_peas, tinned_peas, cabbage, kale, mustard]
+  slots: [protein_bulk, mash_base, aromatic_base, gravy, cooked_veg]
+  slot_overrides:
+    protein_bulk: {label: Sausages, required_method: [fry, roast], max_ingredients: 1, preferred_classes: [meat_alternative], amount: {per_serving: 125}, time: {active: 3, passive: 15}}
+    mash_base: {preferred_classes: [root_veg], amount: {per_serving: 250}}
+    aromatic_base: {label: Onions for the gravy, max_ingredients: 1, amount: {per_serving: 80}, time: {active: 5, passive: 15}}
+    cooked_veg: {label: Peas or greens, optional: true, max_ingredients: 1, discouraged_classes: [meat_alternative], preferred_classes: [legume, brassica, leafy_green], required_method: [boil, steam, wilt], amount: {per_serving: 80}}
+  edges:
+    - {from: aromatic_base, to: gravy,     type: combine}
+    - {from: gravy,         to: mash_base, type: coat}
+    - {from: protein_bulk,  to: mash_base, type: top}
+    - {from: cooked_veg,    to: mash_base, type: combine}
+
+
+swedish_meatballs:
+  name: Swedish Meatballs with Gravy and Mash
+  keeps_days: 2  # leftovers keep this long in the fridge
+  description: >
+    Veggie meatballs browned, then simmered in a creamy brown gravy (stock,
+    soy sauce, a little mustard, plant cream). Over mash with a spoon of jam
+    (lingonberry, cranberry or redcurrant) and some sharp pickled cucumber.
+  colour_dominant: brown
+  cuisine_context: [eastern_european]
+  required_ingredients: [veggie_meatballs]
+  preferred_ingredients: [veggie_meatballs, potato, gravy, plant_cream, plant_milk, onion, pickles, dill, parsley]
+  slots: [protein_bulk, mash_base, aromatic_base, gravy, creamy_liquid, acid_bright, finish_herb]
+  slot_overrides:
+    protein_bulk: {label: Meatballs, required_method: [fry, roast, bake], max_ingredients: 1, preferred_classes: [meat_alternative], amount: {per_serving: 110}, time: {active: 5, passive: 15}}
+    mash_base: {preferred_classes: [root_veg], amount: {per_serving: 250}}
+    aromatic_base: {label: Onion for the gravy, optional: true, max_ingredients: 1, amount: {per_serving: 40}}
+    gravy: {amount: {per_serving: 100}}
+    creamy_liquid: {label: Cream in the gravy, preferred_classes: [plant_milk], amount: {per_serving: 40}}
+    acid_bright: {label: Pickled cucumber, optional: true, required_classes: [fermented], amount: {per_serving: 30}}
+  edges:
+    - {from: aromatic_base, to: gravy,     type: combine}
+    - {from: creamy_liquid, to: gravy,     type: fold_in}
+    - {from: protein_bulk,  to: gravy,     type: fold_in}
+    - {from: gravy,         to: mash_base, type: coat}
+    - {from: acid_bright,   to: mash_base, type: finish}
+    - {from: finish_herb,   to: mash_base, type: finish}
