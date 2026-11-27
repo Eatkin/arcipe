@@ -107,7 +107,7 @@ kidney_beans:
 tofu:
   name: Tofu (firm)
   opened_days: 4  # once opened (drafted)
-  classes: [soy_product]
+  classes: [soy_product, meat_alternative]
   roles: [bulk, protein]
   flavour: [mild]
   colour: white
@@ -136,7 +136,7 @@ green_lentils:
 tempeh:
   name: Tempeh
   opened_days: 5  # once opened (drafted)
-  classes: [soy_product, fermented]
+  classes: [soy_product, fermented, meat_alternative]
   roles: [protein, bulk, umami_boost]
   flavour: [nutty, earthy]
   colour: beige
@@ -149,7 +149,7 @@ tempeh:
 
 soy_chunks:
   name: Soy Chunks / TVP
-  classes: [soy_product]
+  classes: [soy_product, meat_alternative]
   roles: [protein, bulk]
   flavour: [mild]
   colour: beige
@@ -213,7 +213,7 @@ dried_kidney_beans:
 seitan:
   name: Seitan
   opened_days: 4  # once opened (drafted)
-  classes: []
+  classes: [meat_alternative]
   roles: [protein, bulk]
   flavour: [umami, mild]
   colour: brown
@@ -286,7 +286,7 @@ tinned_peas:
 
 dried_tofu_sticks:
   name: Dried Tofu Sticks (fuzhu)
-  classes: [soy_product]
+  classes: [soy_product, meat_alternative]
   roles: [protein, bulk]
   flavour: [mild, nutty]
   colour: beige

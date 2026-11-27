@@ -238,7 +238,27 @@ BEANS_AND_FRUIT = {
     "potato": 1000.0,
     "cabbage": 800.0,
 }
+# Seitan landed in Salt and Pepper Tofu's Veg slot beside the carrot
+PROTEINS_AND_VEG = {
+    "seitan": 500.0,
+    "tofu": 800.0,
+    "tempeh": 400.0,
+    "dried_tofu_sticks": 500.0,
+    "soy_chunks": 500.0,
+    "carrot": 640.0,
+    "onion": 1000.0,
+    "garlic": 200.0,
+    "potato": 1000.0,
+    "parsnip": 600.0,
+    "mushrooms": 500.0,
+    "bell_pepper": 480.0,
+    "cabbage": 800.0,
+    "brown_rice": 1000.0,
+}
 PULSES = {i for i, ing in INGREDIENTS.items() if "pulse" in ing.classes}
+MEAT_ALTERNATIVES = {
+    i for i, ing in INGREDIENTS.items() if "meat_alternative" in ing.classes
+}
 VEG_SLOTS = {"cooked_veg", "roast_veg", "soup_veg", "grated_veg", "curry_bulk"}
 
 
@@ -248,10 +268,11 @@ VEG_SLOTS = {"cooked_veg", "roast_veg", "soup_veg", "grated_veg", "curry_bulk"}
         r for r, recipe in RECIPES.items() if {s.id for s in recipe.slots} & VEG_SLOTS
     ),
 )
-@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])
-def test_beans_are_not_the_veg_when_there_is_veg(recipe_id, stock):
+@pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE, PROTEINS_AND_VEG])
+def test_beans_and_seitan_are_not_the_veg_when_there_is_veg(recipe_id, stock):
     for slot in {s.id for s in RECIPES[recipe_id].slots} & VEG_SLOTS:
-        assert not picks(recipe_id, slot, inventory=stock) & PULSES, slot
+        got = picks(recipe_id, slot, inventory=stock)
+        assert not got & (PULSES | MEAT_ALTERNATIVES), slot
 
 
 @pytest.mark.parametrize("stock", [BEANS_AND_FRUIT, FULL, SPARSE])

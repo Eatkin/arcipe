@@ -111,6 +111,7 @@ IngredientClassName = Literal[
     "sea_veg",
     "rhizome",
     "soy_product",
+    "meat_alternative",  # tofu, tempeh, seitan, soy chunks: protein, not veg
     "vinegar",
     "raising_agent",
     # Culinary classes — what you'd reach for, not botany

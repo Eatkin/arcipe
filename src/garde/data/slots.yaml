@@ -169,7 +169,7 @@ curry_bulk:
   label: Curry Bulk Vegetables
   required_roles: [bulk]
   preferred_classes: [leafy_green, squash, fruit_veg]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   required_method: [fry, roast, raw]
   amount: {per_serving: 150}
   time: {active: 5, passive: 15}
@@ -179,7 +179,7 @@ starchy_bulk:
   label: Starchy Bulk
   required_roles: [bulk]
   preferred_classes: [root_veg]
-  discouraged_classes: [brassica, leafy_green, pulse]  # cabbage isn't starchy
+  discouraged_classes: [brassica, leafy_green, pulse, meat_alternative]  # cabbage isn't starchy
   required_method: [boil, roast]
   amount: {per_serving: 150}
   time: {active: 5, passive: 20}
@@ -415,7 +415,7 @@ cooked_veg:
   label: Veg
   required_roles: [bulk]
   preferred_classes: [brassica, fruit_veg, leafy_green, squash, fungus]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   required_method: [fry, roast, boil, steam, wilt]
   spread: true
   max_ingredients: 2
@@ -426,7 +426,7 @@ roast_veg:
   label: Roasted Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, brassica, squash, fruit_veg]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   required_method: [roast]
   spread: true
   max_ingredients: 2
@@ -446,7 +446,7 @@ grated_veg:
   label: Grated Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, fruit_veg, brassica]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   required_method: [raw]
   spread: true
   max_ingredients: 2
@@ -457,7 +457,7 @@ soup_veg:
   label: Soup Veg
   required_roles: [bulk]
   preferred_classes: [root_veg, brassica, leafy_green]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   required_method: [boil]
   spread: true
   max_ingredients: 2
@@ -468,7 +468,7 @@ blend_veg:
   label: Blended Veg Body
   required_roles: [bulk_blendable]
   preferred_classes: [squash, root_veg, brassica]
-  discouraged_classes: [pulse]
+  discouraged_classes: [pulse, meat_alternative]
   excluded_classes: [fruit, stone_fruit, citrus]
   required_method: [boil, roast, blend]
   spread: true
